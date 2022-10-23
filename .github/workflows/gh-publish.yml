@@ -7,20 +7,19 @@ name: Publish
 #     tags:
 #       - v*
 
-on: 
+on:
   push:
-      branches:
-        - master
+    branches:
+      - master
   pull_request:
-      branches:
-        - master
+    branches:
+      - master
 
 jobs:
   release:
     name: Publish
     runs-on: ubuntu-latest
     steps:
-    
       - name: Checkout Repo
         uses: actions/checkout@master
         with:
@@ -31,8 +30,9 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: 12.x
-          registry-url: 'https://npm.pkg.github.com'
-      - run: npm ci
+          registry-url: "https://npm.pkg.github.com"
+      - run: npm i
+      - run: npm run build
       - run: npm run release
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
