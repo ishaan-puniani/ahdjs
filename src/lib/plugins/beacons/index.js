@@ -8,7 +8,6 @@ import Beacons from "./Beacons";
 import "./assets/style.scss";
 
 export default (Class, factory) => {
-  debugger;
   // eslint-disable-next-line no-param-reassign
   factory.beacons = (beacons, options = {}) =>
     new (class extends Beacons {

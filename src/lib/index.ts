@@ -12,13 +12,13 @@ class ahdjs {
     this.guideChimp.plugins = new Set();
 
     //@ts-ignore
-    this.guideChimp.extend = (plugin, ...args) => {
-      if (!this.guideChimp.plugins.has(plugin)) {
-        this.guideChimp.plugins.add(plugin);
-        plugin(GuideChimp, this.guideChimp, ...args);
-      }
-      return this.guideChimp;
-    };
+    // this.guideChimp.extend = (plugin, ...args) => {
+    //   if (!this.guideChimp.plugins.has(plugin)) {
+    //     this.guideChimp.plugins.add(plugin);
+    //     plugin(GuideChimp, this.guideChimp, ...args);
+    //   }
+    //   return this.guideChimp;
+    // };
 
     // test beacon extension
     // @ts-ignore
