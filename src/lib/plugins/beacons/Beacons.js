@@ -39,7 +39,7 @@ export default class Beacons {
    * Called after construction, this hook allows you to add some extra setup
    * logic without having to override the constructor.
    */
-  init() {}
+  init() { }
 
   /**
    * Default options
@@ -94,11 +94,11 @@ export default class Beacons {
   setBeacons(beacons) {
     // cleanup for previous beacons
     this.removeAll();
-    debugger;
+    // debugger;
     this.beacons =
       !beacons ||
-      typeof beacons === "string" ||
-      (Array.isArray(beacons) && beacons.every((v) => typeof v === "string"))
+        typeof beacons === "string" ||
+        (Array.isArray(beacons) && beacons.every((v) => typeof v === "string"))
         ? this.getDataBeacons(beacons)
         : this.getJsBeacons(beacons);
 
@@ -127,7 +127,6 @@ export default class Beacons {
           !el.parentElement || el.parentElement === document.body
             ? document.body
             : el.parentElement;
-
         parentEl.append(beaconEl);
         this.elements.set(beacon, beaconEl);
         this.setBeaconPosition(el, beaconEl, beacon);
@@ -262,8 +261,9 @@ export default class Beacons {
   }
 
   createBeaconEl(beacon) {
+    // debugger;
     const data = { ...beacon };
-
+    console.log(data)
     data.onClick = (e) => {
       e.stopPropagation();
       if (beacon.onClick) {
@@ -405,6 +405,7 @@ export default class Beacons {
   }
 
   isCanShowBeacon({ canShow }) {
+    debugger;
     if (canShow !== undefined) {
       if (!canShow || (typeof canShow === "function" && canShow() === false)) {
         return false;
