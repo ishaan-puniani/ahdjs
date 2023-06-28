@@ -39,7 +39,7 @@
     "@babel/preset-env": "^7.19.4",
     "@storybook/addon-actions": "^6.5.12",
     "@storybook/addon-essentials": "^6.5.12",
-    "@storybook/addon-interactions": "^6.5.12",
+    "@storybook/addon-interactions": "^7.0.24",
     "@storybook/addon-links": "^6.5.12",
     "@storybook/builder-webpack5": "^6.5.12",
     "@storybook/html": "^6.5.12",
