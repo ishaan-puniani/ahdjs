@@ -1,10 +1,7 @@
 import "./page.css";
-import { createHeader } from "./Header";
 import ahdjs from "../lib/index";
 import { createButton } from "./Button";
-type User = {
-  name: string;
-};
+import { createPage } from "./Page";
 
 const tour = [
   {
@@ -14,11 +11,6 @@ const tour = [
       "Move to the next step is only possible if user input provided.",
     condition() {
       const input = document.querySelector("#user-input");
-
-      if (!input.value) {
-        alert("User input is empty!");
-        return false;
-      }
 
       return true;
     },
@@ -110,56 +102,81 @@ const tour = [
       },
     ],
   },
+  {
+    element: "#not-feature",
+    title: "Not Feature",
+    description:
+      "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a “lite” version to “standard,” “pro,” “enterprise” etc. versions without modifying the software or uninstalling the existing version.",
+    buttons: [
+      {
+        title: "See more",
+        class: "tour-button",
+        onClick: function () {
+          alert("Step button click");
+        },
+      },
+    ],
+  },
 ];
 
-export const createPage = () => {
-  const article = document.createElement("article");
-  let user: User = null;
-  let header = null;
-
-  const rerenderHeader = () => {
-    const wrapper = document.getElementsByTagName("article")[0];
-    wrapper.replaceChild(createHeaderElement(), wrapper.firstChild);
+let beacons = [
+  {
+    element: "#user-input",
+    position: "top",
+    boundary: "outer",
+    class: "beacon-labs64",
+    tour: [
+      {
+        title: "Input",
+        description: "You can enter your value inside this input field",
+      },
+    ],
+  },
+];
+function useEffect() {
+  fetch(
+    "https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/6336128a251dcbda38bd8fe1/contexttour?filter%5Bname%5D=&filter%5Bslug%5D=&filter%5Bselector%5D=&filter%5Blanguage%5D=&filter%5BisActive%5D=&filter%5Bcontent%5D=&orderBy=&limit=10&offset=0"
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      data?.rows.map((item: any) => {
+        const newObj = {
+          element: `${item?.selector}`,
+          position: "top-center",
+          boundary: "outer",
+          class: "beacon-labs64",
+          tour: [
+            {
+              title: `${item?.name}`,
+              description: `${
+                item?.content !== null ? `${item?.content?.content}` : ""
+              }`,
+            },
+          ],
+        };
+        beacons.push(newObj);
+      });
+    });
+  //   throw new Error("Function not implemented.");
+}
+export const createDynamicBeaconPage = () => {
+  const article = createPage();
+  const onStartTourClick = () => {
+    const _ahdJs = new ahdjs();
+    _ahdJs.beacons(beacons);
+    _ahdJs.start();
   };
-
-  const onLogin = () => {
-    user = { name: "Jane Doe" };
-    rerenderHeader();
-  };
-
-  const onLogout = () => {
-    user = null;
-    rerenderHeader();
-  };
-
-  const onCreateAccount = () => {
-    user = { name: "Jane Doe" };
-    rerenderHeader();
-  };
-
-  const createHeaderElement = () => {
-    return createHeader({ onLogin, onLogout, onCreateAccount, user });
-  };
-
-  header = createHeaderElement();
-  article.appendChild(header);
-
-  const section = `
-  <section>
-    <h2>Pages in Storybook</h2>
-    
-    <div class="tour-container">
-      User input: <input id="user-input">
-      <br><br>
-      <div data-ahd='content' class="tour-section content">Content</div>
-      <div data-ahd="heading" class="tour-section heading">Heading</div>
-      <div data-ahd='sub-heading' class="tour-section sub-heading">Sub Heading</div>
-      <div data-ahd='widget-video' class="tour-section widget-video">Story Book Hint 1</div>
-    </div>  
-  </section>
-`;
-
-  article.insertAdjacentHTML("beforeend", section);
+  article.appendChild(
+    createButton({
+      size: "small",
+      label: "Start Beacons",
+      onClick: onStartTourClick,
+      className: "btn-start-tour",
+    })
+  );
 
   return article;
 };
+
+const data: any = useEffect();
+console.log(data);

@@ -1,5 +1,5 @@
 section {
-  font-family: 'Nunito Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: "Nunito Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 24px;
   padding: 48px 20px;
@@ -68,8 +68,6 @@ section .tip-wrapper svg path {
   fill: #1ea7fd;
 }
 
-
-
 body {
   font-family: Roboto;
 }
@@ -81,7 +79,7 @@ h3 {
 }
 
 .tour-container {
-  background: #FFFAF0;
+  background: #fffaf0;
   width: 800px;
   margin: 20px auto;
   padding: 15px 20px 30px 20px;
@@ -99,28 +97,28 @@ h3 {
   color: white;
 }
 
-#try-and-buy {
-  background: #E14817;
+.widget-video {
+  background: #e14817;
 }
 
-#subscription {
-  background: #F08B53;
+.sub-heading {
+  background: #f08b53;
 }
 
-#pricing-table {
-  background: #7B2A10;
+.heading {
+  background: #7b2a10;
 }
 
-#multi-feature {
-  background: #AB6543;
+.content {
+  background: #ab6543;
 }
 
 #node-locked {
-  background: #87888A;
+  background: #87888a;
 }
 
 #pay-per-use {
-  background: #F2951C;
+  background: #f2951c;
 }
 
 .tour-button {
@@ -128,8 +126,8 @@ h3 {
   font-size: 16px;
   border-radius: 3px;
   padding: 5px 20px;
-  border: 1px solid #87888A;
-  background: #7B2A10;
+  border: 1px solid #87888a;
+  background: #7b2a10;
   display: inline-block;
   margin-left: 10px;
 }
@@ -139,12 +137,12 @@ h3 {
   font-size: 20px;
   border-radius: 3px;
   padding: 10px 20px;
-  border: 1px solid #87888A;
-  background: #7B2A10;
+  border: 1px solid #87888a;
+  background: #7b2a10;
   display: inline-block;
   margin-top: 20px;
 }
 
-article{
+article {
   text-align: center;
 }
