@@ -1,6 +1,6 @@
 # .github/workflows/publish.yml
 
-name: Publish
+name: GH-Publish
 
 # on:
 #   create:
