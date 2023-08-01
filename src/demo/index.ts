@@ -160,7 +160,7 @@ const beacons = [
 
 // guideChimp.on("onBeforeChange", (to, from) => {
 //   if (from && from.condition && !from.condition()) {
-//     return false
+//     return false;
 //   }
 // });
 

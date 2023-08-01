@@ -1,4 +1,4 @@
-# .github/workflows/publish.yml
+# .github/workflows/gh-publish.yml
 
 name: GH-Publish
 
