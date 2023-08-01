@@ -104,66 +104,7 @@ const tour = [
   },
 ];
 
-const beacons = [
-  {
-    element: "#user-input",
-    position: "top",
-    boundary: "outer",
-    class: "beacon-labs64",
-    tour: tour,
-  },
-  {
-    element: "#try-and-buy",
-    position: "top-left",
-    class: "beacon-green",
-    onClick() {
-      alert("Beacon clicked");
-    },
-  },
-  {
-    element: "#pricing-table",
-    position: "top-right",
-    class: "beacon-yellow",
-    tour: [
-      {
-        title: "Pricing Table",
-        description: "Pricing Table beacon clicked.",
-      },
-    ],
-  },
-  {
-    element: "#multi-feature",
-    position: "bottom-left",
-    boundary: "inner",
-    class: "beacon-white",
-    tour: [
-      {
-        title: "Multi Feature",
-        description: "Multi Feature beacon clicked.",
-      },
-    ],
-  },
-  {
-    element: "#pay-per-use",
-    position: "center",
-    class: "beacon-black",
-    tour: {
-      steps: [
-        {
-          element: "#pay-per-use",
-          title: "Pay-per-Use",
-          description: "Pay-per-Use beacon clicked.",
-        },
-      ],
-      options: {
-        position: "top",
-      },
-    },
-    canShow() {
-      return true;
-    },
-  },
-];
+let beacons;
 
 export const createBeaconFeaturePage = () => {
   const article = createPage();
@@ -183,3 +124,92 @@ export const createBeaconFeaturePage = () => {
 
   return article;
 };
+function useEffect() {
+  fetch(
+    "https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/6336128a251dcbda38bd8fe1/content/63431d417936e24bc2f54cc9"
+  )
+    .then((res) => res.json())
+    .then((data) => {
+      beacons = [
+        {
+          element: "#user-input",
+          position: "top",
+          boundary: "outer",
+          class: "beacon-labs64",
+          tour: tour,
+        },
+        {
+          element: "#try-and-buy",
+          position: "top-left",
+          class: "beacon-green",
+          onClick() {
+            alert("Beacon clicked");
+          },
+        },
+        {
+          element: "#pricing-table",
+          position: "top-right",
+          canShow: function () {
+            // Load the video
+            const videoPlayer = document.createElement("iframe");
+            videoPlayer.src =
+              "https://www.youtube.com/embed/k9xnxvujdBw?controls=0";
+            videoPlayer.allowFullscreen = true;
+            videoPlayer.classList.add("video-player");
+            const tourContainer = document.querySelector("#pricing-table");
+            tourContainer.appendChild(videoPlayer);
+          },
+          tour: [
+            {
+              title: "Pricing Table",
+              description: "Pricing Table beacon clicked.",
+              class: "not-price",
+              buttons: [],
+              canShow: function () {
+                // Load the video
+                const videoPlayer = document.createElement("iframe");
+                videoPlayer.src = `${data?.video[0]?.publicUrl}`;
+                videoPlayer.allowFullscreen = true;
+                videoPlayer.classList.add("video-player");
+                const tourContainer = document.querySelector("#pricing-table");
+                tourContainer.appendChild(videoPlayer);
+              },
+            },
+          ],
+        },
+        {
+          element: "#multi-feature",
+          position: "bottom-left",
+          boundary: "inner",
+          class: "beacon-white",
+          tour: [
+            {
+              title: "Multi Feature",
+              description: "Multi Feature beacon clicked.",
+            },
+          ],
+        },
+        {
+          element: "#pay-per-use",
+          position: "center",
+          class: "beacon-black",
+          tour: {
+            steps: [
+              {
+                element: "#pay-per-use",
+                title: "Pay-per-Use",
+                description: "Pay-per-Use beacon clicked.",
+              },
+            ],
+            options: {
+              position: "top",
+            },
+          },
+          canShow() {
+            return true;
+          },
+        },
+      ];
+    });
+}
+useEffect();

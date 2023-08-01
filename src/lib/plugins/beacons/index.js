@@ -43,8 +43,10 @@ export default (Class, factory) => {
 
       createBeaconEl(beacon) {
         const el = super.createBeaconEl(beacon);
-
+        console.log(el)
         if (beacon.tour) {
+          console.log(beacon)
+          console.log(beacon.tour)
           el.addEventListener("click", () => {
             let guide = null;
 
@@ -61,6 +63,9 @@ export default (Class, factory) => {
               guide.start();
             }
           });
+          if (beacon.element === '#pricing-table' && beacon.tour[0]?.canShow) {
+            // return true
+          }
         }
 
         return el;
