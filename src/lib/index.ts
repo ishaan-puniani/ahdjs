@@ -41,7 +41,7 @@ class AHDjs {
     await this.stop();
     // todo: local caching and use https://github.com/pillarjs/path-to-regexp to find exact match
     const respons: any = await fetch(
-      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.appId}/contexttour`
+      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.appId}/contexttour?filter[isActive]=true`
     ).then((res) => res.json());
 
     this.contextToursMapData = respons.rows;
