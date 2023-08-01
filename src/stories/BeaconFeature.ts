@@ -1,5 +1,5 @@
 import "./page.css";
-import ahdjs from "../lib/index";
+import AHDjs from "../lib/index";
 import { createButton } from "./Button";
 import { createPage } from "./Page";
 
@@ -168,7 +168,7 @@ const beacons = [
 export const createBeaconFeaturePage = () => {
   const article = createPage();
   const onStartTourClick = () => {
-    const _ahdJs = new ahdjs();
+    const _ahdJs = new AHDjs();
     _ahdJs.beacons(beacons);
     _ahdJs.start();
   };

@@ -1,5 +1,5 @@
 import "./page.css";
-import ahdjs from "../lib/index";
+import AHDjs from "../lib/index";
 import { createButton } from "./Button";
 import { createPage } from "./Page";
 
@@ -112,7 +112,7 @@ const tour = [
 export const createBasicTourPage = () => {
   const article = createPage();
   const onStartTourClick = () => {
-    const _ahdJs = new ahdjs(tour);
+    const _ahdJs = new AHDjs(tour);
     _ahdJs.start();
   };
   article.appendChild(

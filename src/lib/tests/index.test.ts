@@ -1,5 +1,5 @@
-import MyLibrary from '../index';
+import AHDjs from '../index';
 
 it('Runs without crashing', () => {
-  new MyLibrary();
+  new AHDjs();
 });

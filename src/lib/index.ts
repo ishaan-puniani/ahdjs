@@ -3,7 +3,7 @@ import GuideChimp from "./GuideChimp";
 import "./index.scss";
 import Information from "./plugins/information";
 import Beacons from "./plugins/beacons";
-class ahdjs {
+class AHDjs {
   private guideChimp: any;
   constructor(...args: any) {
     //@ts-ignore
@@ -67,4 +67,4 @@ class ahdjs {
   // module.exports = guideChimp;
 }
 
-export default ahdjs;
+export default AHDjs;

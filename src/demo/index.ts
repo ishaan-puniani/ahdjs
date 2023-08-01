@@ -1,4 +1,4 @@
-import ahdjs from "../lib/index";
+import AHDjs from "../lib/index";
 const tour = [
   {
     element: "h1",
@@ -187,7 +187,7 @@ document.querySelector("body").innerHTML = `<h1>Hello World!</h1>
 
 `;
 
-const _ahdJs = new ahdjs();
+const _ahdJs = new AHDjs();
 setTimeout(() => {
   _ahdJs.beacons([...beacons, "first_beacon"]);
 }, 1000);

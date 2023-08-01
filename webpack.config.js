@@ -31,7 +31,7 @@ module.exports = [
     output: {
       filename: "index.js",
       path: path.resolve(__dirname, "build"),
-      library: "ahdjs",
+      library: "AHDjs",
       libraryTarget: "umd",
       clean: true,
     },

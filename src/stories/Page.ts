@@ -1,6 +1,6 @@
 import "./page.css";
 import { createHeader } from "./Header";
-import ahdjs from "../lib/index";
+import AHDjs from "../lib/index";
 import { createButton } from "./Button";
 type User = {
   name: string;

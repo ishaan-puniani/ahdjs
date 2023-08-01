@@ -1,5 +1,5 @@
 import "./page.css";
-import ahdjs from "../lib/index";
+import AHDjs from "../lib/index";
 import { createButton } from "./Button";
 import { createPage } from "./Page";
 
@@ -173,7 +173,7 @@ const informations = [
 export const createInformationPage = () => {
   const article = createPage();
   const onStartTourClick = () => {
-    const _ahdJs = new ahdjs();
+    const _ahdJs = new AHDjs();
     _ahdJs.showInformation(informations);
     _ahdJs.start();
   };
