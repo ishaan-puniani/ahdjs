@@ -2,201 +2,225 @@
   <head>
     <link rel="stylesheet" href="./build/css/index.css" />
     <script type="text/javascript" src="/build/index.js"></script>
-   
+
     <body>
-        <div class="tour-container">
-            User input: <input id="user-input">
-            <br><br>
-            <div id="try-and-buy" class="tour-section">Try & Buy</div>
-            <div id="subscription" class="tour-section">Subscription</div>
-            <div id="pricing-table" class="tour-section">Pricing Table</div>
-            <div id="multi-feature" class="tour-section">Multi-Feature</div>
-            <div id="node-locked" class="tour-section">Node-Locked</div>
-            <div id="pay-per-use" class="tour-section">Pay-per-Use</div>
-          </div>  
-          <script>
-            const tour = [
-              {
+      <div class="tour-container">
+        User input: <input id="user-input" /> <br /><br />
+        <div id="try-and-buy" class="tour-section">Try & Buy</div>
+        <div id="subscription" class="tour-section">Subscription</div>
+        <div id="pricing-table" class="tour-section" data-ahd="heading">
+          Pricing Table
+        </div>
+        <div id="multi-feature" class="tour-section">Multi-Feature</div>
+        <div id="node-locked" class="tour-section" data-ahd="widget-video">
+          Node-Locked
+        </div>
+        <div id="pay-per-use" class="tour-section">Pay-per-Use</div>
+      </div>
+      <script>
+        const tour1 = [
+          {
+            element: "#user-input",
+            title: "Try & Buy",
+            description:
+              "Move to the next step is only possible if user input provided.",
+          },
+        ];
+        const tour = [
+          {
+            element: "#user-input",
+            title: "Try & Buy",
+            description:
+              "Move to the next step is only possible if user input provided.<iframe src='https://www.youtube.com/embed/k9xnxvujdBw?controls=0' />",
+
+            triggers: {
+              next: {
                 element: "#user-input",
-                title: "Try & Buy",
-                description:
-                  "Move to the next step is only possible if user input provided.<iframe src='https://www.youtube.com/embed/k9xnxvujdBw?controls=0' />",
-        
-                triggers: {
-                  next: {
-                    element: "#user-input",
-                    event: "change",
-                    listener(e) {
-                      if (e.target.value) {
-                        alert('User input: "' + e.target.value + '"');
-                        this.next();
-                      }
-                    },
-                  },
+                event: "change",
+                listener(e) {
+                  if (e.target.value) {
+                    alert('User input: "' + e.target.value + '"');
+                    this.next();
+                  }
                 },
               },
+            },
+          },
+          {
+            element: "#subscription",
+            title: "Subscription",
+            description:
+              "Subscription licensing model allows user to enable product for a specific period of time, with the possibility of the subscription renewal.",
+            buttons: [
               {
-                element: "#subscription",
-                title: "Subscription",
-                description:
-                  "Subscription licensing model allows user to enable product for a specific period of time, with the possibility of the subscription renewal.",
-                buttons: [
-                  {
-                    title: "See more",
-                    class: "tour-button",
-                    onClick: function () {
-                      alert("Step button click");
-                    },
-                  },
-                ],
+                title: "See more",
+                class: "tour-button",
+                onClick: function () {
+                  alert("Step button click");
+                },
               },
+            ],
+          },
+          {
+            element: "#pricing-table",
+            title: "Pricing Table",
+            description:
+              "Price and package in minutes without having to re-code or re-engineer back-office systems.",
+            buttons: [
               {
-                element: "#pricing-table",
+                title: "See more",
+                class: "tour-button",
+                onClick: function () {
+                  alert("Step button click");
+                },
+              },
+            ],
+          },
+          {
+            element: "#multi-feature",
+            title: "Multi Feature",
+            description:
+              "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a “lite” version to “standard,” “pro,” “enterprise” etc. versions without modifying the software or uninstalling the existing version.",
+            buttons: [
+              {
+                title: "See more",
+                class: "tour-button",
+                onClick: function () {
+                  alert("Step button click");
+                },
+              },
+            ],
+          },
+          {
+            element: "#node-locked",
+            title: "Node-Locked",
+            description:
+              "Software is licensed for use only on one or more named computer systems. Usually, CPU serial number verification is used to enforce this type of license.",
+            buttons: [
+              {
+                title: "See more",
+                class: "tour-button",
+                onClick: function () {
+                  alert("Step button click");
+                },
+              },
+            ],
+          },
+          {
+            element: "#pay-per-use",
+            title: "Pay-per-Use",
+            description:
+              "Limits the quantity of the license uses, in addition to the license validity. License fees are based on the actual usage.",
+            buttons: [
+              {
+                title: "See more",
+                class: "tour-button",
+                onClick: function () {
+                  alert("Step button click");
+                },
+              },
+            ],
+          },
+        ];
+        let beacons = [
+          {
+            element: "#user-input",
+            position: "top",
+            boundary: "outer",
+            class: "beacon-labs64",
+            tour: tour,
+          },
+          {
+            element: "#try-and-buy",
+            position: "top-left",
+            class: "beacon-green",
+            onClick() {
+              alert("Beacon clicked");
+            },
+          },
+          {
+            element: "#pricing-table",
+            position: "top-right",
+            canShow: function () {
+              // Load the video
+              // const videoPlayer = document.createElement("iframe");
+              // videoPlayer.src =
+              //   "https://www.youtube.com/embed/k9xnxvujdBw?controls=0";
+              // videoPlayer.allowFullscreen = true;
+              // videoPlayer.classList.add("video-player");
+              // const tourContainer = document.querySelector("#pricing-table");
+              // tourContainer.appendChild(videoPlayer);
+            },
+            tour: [
+              {
                 title: "Pricing Table",
-                description:
-                  "Price and package in minutes without having to re-code or re-engineer back-office systems.",
-                buttons: [
-                  {
-                    title: "See more",
-                    class: "tour-button",
-                    onClick: function () {
-                      alert("Step button click");
-                    },
-                  },
-                ],
-              },
-              {
-                element: "#multi-feature",
-                title: "Multi Feature",
-                description:
-                  "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a “lite” version to “standard,” “pro,” “enterprise” etc. versions without modifying the software or uninstalling the existing version.",
-                buttons: [
-                  {
-                    title: "See more",
-                    class: "tour-button",
-                    onClick: function () {
-                      alert("Step button click");
-                    },
-                  },
-                ],
-              },
-              {
-                element: "#node-locked",
-                title: "Node-Locked",
-                description:
-                  "Software is licensed for use only on one or more named computer systems. Usually, CPU serial number verification is used to enforce this type of license.",
-                buttons: [
-                  {
-                    title: "See more",
-                    class: "tour-button",
-                    onClick: function () {
-                      alert("Step button click");
-                    },
-                  },
-                ],
-              },
-              {
-                element: "#pay-per-use",
-                title: "Pay-per-Use",
-                description:
-                  "Limits the quantity of the license uses, in addition to the license validity. License fees are based on the actual usage.",
-                buttons: [
-                  {
-                    title: "See more",
-                    class: "tour-button",
-                    onClick: function () {
-                      alert("Step button click");
-                    },
-                  },
-                ],
-              },
-            ];
-            let beacons = [
-              {
-                element: "#user-input",
-                position: "top",
-                boundary: "outer",
-                class: "beacon-labs64",
-                tour: tour,
-              },
-              {
-                element: "#try-and-buy",
-                position: "top-left",
-                class: "beacon-green",
-                onClick() {
-                  alert("Beacon clicked");
-                },
-              },
-              {
-                element: "#pricing-table",
-                position: "top-right",
+                description: "Pricing Table beacon clicked.",
+                class: "not-price",
+                buttons: [],
                 canShow: function () {
                   // Load the video
-                  // const videoPlayer = document.createElement("iframe");
-                  // videoPlayer.src =
-                  //   "https://www.youtube.com/embed/k9xnxvujdBw?controls=0";
-                  // videoPlayer.allowFullscreen = true;
-                  // videoPlayer.classList.add("video-player");
-                  // const tourContainer = document.querySelector("#pricing-table");
-                  // tourContainer.appendChild(videoPlayer);
+                  const videoPlayer = document.createElement("iframe");
+                  videoPlayer.src = `${data?.video[0]?.publicUrl}`;
+                  videoPlayer.allowFullscreen = true;
+                  videoPlayer.classList.add("video-player");
+                  const tourContainer =
+                    document.querySelector("#pricing-table");
+                  tourContainer.appendChild(videoPlayer);
                 },
-                tour: [
-                  {
-                    title: "Pricing Table",
-                    description: "Pricing Table beacon clicked.",
-                    class: "not-price",
-                    buttons: [],
-                    canShow: function () {
-                      // Load the video
-                      const videoPlayer = document.createElement("iframe");
-                      videoPlayer.src = `${data?.video[0]?.publicUrl}`;
-                      videoPlayer.allowFullscreen = true;
-                      videoPlayer.classList.add("video-player");
-                      const tourContainer = document.querySelector("#pricing-table");
-                      tourContainer.appendChild(videoPlayer);
-                    },
-                  },
-                ],
               },
+            ],
+          },
+          {
+            element: "#multi-feature",
+            position: "bottom-left",
+            boundary: "inner",
+            class: "beacon-white",
+            tour: [
               {
-                element: "#multi-feature",
-                position: "bottom-left",
-                boundary: "inner",
-                class: "beacon-white",
-                tour: [
-                  {
-                    title: "Multi Feature",
-                    description: "Multi Feature beacon clicked.",
-                  },
-                ],
+                title: "Multi Feature",
+                description: "Multi Feature beacon clicked.",
               },
-              {
-                element: "#pay-per-use",
-                position: "center",
-                class: "beacon-black",
-                tour: {
-                  steps: [
-                    {
-                      element: "#pay-per-use",
-                      title: "Pay-per-Use",
-                      description: "Pay-per-Use beacon clicked.",
-                    },
-                  ],
-                  options: {
-                    position: "top",
-                  },
+            ],
+          },
+          {
+            element: "#pay-per-use",
+            position: "center",
+            class: "beacon-black",
+            tour: {
+              steps: [
+                {
+                  element: "#pay-per-use",
+                  title: "Pay-per-Use",
+                  description: "Pay-per-Use beacon clicked.",
                 },
-                canShow() {
-                  return true;
-                },
+              ],
+              options: {
+                position: "top",
               },
-            ];
-            const AHDjs = window.AHDjs.default;
-            const _ahdJs = new AHDjs(tour);
-            // _ahdJs.beacons(beacons);
-            // _ahdJs.showInformation(beacons);
-            _ahdJs.start();
-          </script>
+            },
+            canShow() {
+              return true;
+            },
+          },
+        ];
+        const AHDjs = window.AHDjs.default;
+        let _ahdJs = new AHDjs("6336128a251dcbda38bd8fe1");
+        // _ahdJs.beacons(beacons);
+        // _ahdJs.showInformation(beacons);
+        debugger;
+        _ahdJs.updatePageUrl("/testing.html");
+        // _ahdJs.start();
+        setTimeout(() => {
+          //   _ahdJs.updatePageUrl("/testing.html");
+          _ahdJs.beacons();
+        }, 10000);
+        // setTimeout(async () => {
+        //   await _ahdJs.stop();
+        //   debugger;
+        //   _ahdJs.setTour(tour);
+        //   _ahdJs.start();
+        // }, 15000);
+      </script>
     </body>
   </head>
 </html>
