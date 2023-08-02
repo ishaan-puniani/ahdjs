@@ -146,6 +146,7 @@
  */
 
 import GuideChimp from "./GuideChimp";
+import { LocalStorage } from "ttl-localstorage";
 
 /* ============
  * Styling
@@ -155,15 +156,61 @@ import GuideChimp from "./GuideChimp";
  */
 import "./index.scss";
 
-const AHDjs = (...args) => new GuideChimp(...args);
+LocalStorage.timeoutInSeconds = 300;
+const { match } = require("path-to-regexp");
 
-AHDjs.prototype = GuideChimp.prototype;
+const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
+  
+class AHD extends GuideChimp {
+  async updatePageUrl(url: string, refetch: boolean) {
+    await this.stop();
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheData(toursData);
+    }
+    const applicableTours = this.getApplicabeDataForUrl(toursData, url);
+
+    //if there is anything to open onload
+    const onboardTour = applicableTours.map((row: any) => {
+      return {
+        element: row.selector,
+        title: row.content.title,
+        description: row.content.content,
+      };
+    });
+    this.setTour(onboardTour);
+    this.start();
+  }
+
+  private getApplicabeDataForUrl(toursData: any, url: string) {
+    return toursData.filter((td) => {
+      const matcher = match(td.slug, { decode: decodeURIComponent });
+      return matcher(url);
+    });
+  }
+
+  private async fetchAndCacheData(toursData: any) {
+    const respons: any = await fetch(
+      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/contexttour?filter[isActive]=true`
+    ).then((res) => res.json());
+    if (respons.rows) {
+      toursData = respons.rows.filter((row: any) => !!row.content);
+      LocalStorage.put(TOUR_DATA_STORAGE_KEY, toursData);
+    }
+    return toursData;
+  }
+}
+
+const AHDjs = (...args) => new AHD(...args);
+
+AHDjs.prototype = AHD.prototype;
 AHDjs.plugins = new Set();
 
 AHDjs.extend = (plugin, ...args) => {
   if (!AHDjs.plugins.has(plugin)) {
     AHDjs.plugins.add(plugin);
-    plugin(GuideChimp, AHDjs, ...args);
+    plugin(AHD, AHDjs, ...args);
   }
   return AHDjs;
 };

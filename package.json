@@ -90,5 +90,8 @@
       "node"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "path-to-regexp": "^6.2.1",
+    "ttl-localstorage": "^2.0.0"
+  }
 }
