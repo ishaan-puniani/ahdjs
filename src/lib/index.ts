@@ -178,6 +178,7 @@ class AHD extends GuideChimp {
         element: row.selector,
         title: row.content.title,
         description: row.content.content,
+        position: row.position
       };
     });
     this.setTour(onboardTour);
