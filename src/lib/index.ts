@@ -156,11 +156,12 @@ import { LocalStorage } from "ttl-localstorage";
  */
 import "./index.scss";
 
-LocalStorage.timeoutInSeconds = 300;
+LocalStorage.timeoutInSeconds = 600;
 const { match } = require("path-to-regexp");
 
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
-  
+const TOUR_VISITED_STORAGE_KEY = "AHD_TOUR_VISITED";
+
 class AHD extends GuideChimp {
   async updatePageUrl(url: string, refetch: boolean) {
     await this.stop();
@@ -183,10 +184,21 @@ class AHD extends GuideChimp {
     this.start();
   }
 
-  private getApplicabeDataForUrl(toursData: any, url: string) {
+  private getApplicabeDataForUrl(toursData: any, url: string, forceShow=false) {
+    // exlude visitied
+    const vistied = LocalStorage.get(TOUR_VISITED_STORAGE_KEY) || [];
+    const nVistied = new Set(vistied);
     return toursData.filter((td) => {
-      const matcher = match(td.slug, { decode: decodeURIComponent });
-      return matcher(url);
+      if (forceShow || !vistied || !vistied.includes(td.slug)) {
+        const matcher = match(td.slug, { decode: decodeURIComponent });
+        const tourFound = matcher(url);
+        if (tourFound && !nVistied.has(td.slug)) {
+          nVistied.add(td.slug);
+          LocalStorage.put(TOUR_VISITED_STORAGE_KEY, [...nVistied], 86400);
+        }
+        return tourFound;
+      }
+      return false;
     });
   }
 
