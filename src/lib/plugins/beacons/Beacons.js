@@ -39,7 +39,7 @@ export default class Beacons {
    * Called after construction, this hook allows you to add some extra setup
    * logic without having to override the constructor.
    */
-  init() { }
+  init() {}
 
   /**
    * Default options
@@ -94,11 +94,11 @@ export default class Beacons {
   setBeacons(beacons) {
     // cleanup for previous beacons
     this.removeAll();
-    // debugger;
+
     this.beacons =
       !beacons ||
-        typeof beacons === "string" ||
-        (Array.isArray(beacons) && beacons.every((v) => typeof v === "string"))
+      typeof beacons === "string" ||
+      (Array.isArray(beacons) && beacons.every((v) => typeof v === "string"))
         ? this.getDataBeacons(beacons)
         : this.getJsBeacons(beacons);
 

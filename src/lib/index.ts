@@ -147,6 +147,7 @@
 
 import GuideChimp from "./GuideChimp";
 import { LocalStorage } from "ttl-localstorage";
+import Beacons from "./plugins/beacons";
 
 /* ============
  * Styling
@@ -156,14 +157,48 @@ import { LocalStorage } from "ttl-localstorage";
  */
 import "./index.scss";
 
-LocalStorage.timeoutInSeconds = 600;
 const { match } = require("path-to-regexp");
 
+const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
 const TOUR_VISITED_STORAGE_KEY = "AHD_TOUR_VISITED";
 
 class AHD extends GuideChimp {
-  async updatePageUrl(url: string, refetch: boolean) {
+  constructor(tour, options = {}) {
+    super(tour, options);
+    this.attachPlugins();
+  }
+
+  async attachPlugins() {
+    const pluginsToLoad = [Beacons];
+    pluginsToLoad.forEach((pluginClass) => {
+      AHDjs.extend(pluginClass);
+    });
+  }
+
+  async initializeSiteMap(refetch: boolean) {
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheData(toursData);
+    }
+    let helpData = LocalStorage.get(HELP_DATA_STORAGE_KEY);
+    if (!helpData || refetch) {
+      helpData = await this.fetchAndCacheHelpData(helpData);
+    }
+  }
+
+  async getHelpContent(url: string, refetch: boolean){
+    let helpData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+
+    if (!helpData || refetch) {
+      helpData = await this.fetchAndCacheData(helpData);
+    }
+
+    const applicableHelp = this.getApplicabeDataForUrl(helpData, url, true);
+    return applicableHelp;
+  }
+
+  async showPageTour(url: string, refetch: boolean) {
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
@@ -172,20 +207,52 @@ class AHD extends GuideChimp {
     }
     const applicableTours = this.getApplicabeDataForUrl(toursData, url);
 
-    //if there is anything to open onload
+    //if there is anything to open
     const onboardTour = applicableTours.map((row: any) => {
       return {
         element: row.selector,
         title: row.content.title,
         description: row.content.content,
-        position: row.position
+        position: row.position,
       };
     });
     this.setTour(onboardTour);
     this.start();
   }
 
-  private getApplicabeDataForUrl(toursData: any, url: string, forceShow=false) {
+  async showPageBeacons(url: string, refetch: boolean) {
+    await this.stop();
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheData(toursData);
+    }
+    const applicableTours = this.getApplicabeDataForUrl(toursData, url, true);
+
+    //if there is anything to open
+    const beacons = applicableTours.map((row: any) => {
+      return {
+        element: row.selector,
+        position: row.position,
+        tour: [
+          {
+            title: row.content.title,
+            description: row.content.content,
+          },
+        ],
+      };
+    });
+
+    AHDjs.beacons(beacons, {
+      boundary: "outer",
+    }).showAll();
+  }
+
+  private getApplicabeDataForUrl(
+    toursData: any,
+    url: string,
+    forceShow = false
+  ) {
     // exlude visitied
     const vistied = LocalStorage.get(TOUR_VISITED_STORAGE_KEY) || [];
     const nVistied = new Set(vistied);
@@ -209,9 +276,28 @@ class AHD extends GuideChimp {
     ).then((res) => res.json());
     if (respons.rows) {
       toursData = respons.rows.filter((row: any) => !!row.content);
-      LocalStorage.put(TOUR_DATA_STORAGE_KEY, toursData);
+      LocalStorage.put(
+        TOUR_DATA_STORAGE_KEY,
+        toursData,
+        this.options.toursRefetchIntervalInSec
+      );
     }
     return toursData;
+  }
+
+  private async fetchAndCacheHelpData(helpData: any) {
+    const respons: any = await fetch(
+      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/context-help?filter[isActive]=true`
+    ).then((res) => res.json());
+    if (respons.rows) {
+      helpData = respons.rows.filter((row: any) => !!row.content);
+      LocalStorage.put(
+        HELP_DATA_STORAGE_KEY,
+        helpData,
+        this.options.helpRefetchIntervalInSec
+      );
+    }
+    return helpData;
   }
 }
 
