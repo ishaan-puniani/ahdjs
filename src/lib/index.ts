@@ -187,7 +187,7 @@ class AHD extends GuideChimp {
     }
   }
 
-  async getHelpContent(url: string, refetch: boolean){
+  async getHelpContent(url: string, refetch: boolean) {
     let helpData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!helpData || refetch) {
@@ -212,7 +212,7 @@ class AHD extends GuideChimp {
       return {
         element: row.selector,
         title: row.content.title,
-        description: row.content.content,
+        description: this.generateDescription(row.content),
         position: row.position,
       };
     });
@@ -237,7 +237,7 @@ class AHD extends GuideChimp {
         tour: [
           {
             title: row.content.title,
-            description: row.content.content,
+            description: this.generateDescription(row.content),
           },
         ],
       };
@@ -248,6 +248,20 @@ class AHD extends GuideChimp {
     }).showAll();
   }
 
+  private generateDescription(content: any) {
+    let description = content.content || "";
+    if (content.video) {
+      content.video.forEach((vid) => {
+        description += `<br/><video  width="320" height="240" controls><source src="${vid.downloadUrl}" type="video/mp4"></video>`;
+      });
+    }
+    if (content.image) {
+      content.image.forEach((img) => {
+        description += `<br/><img  width="320" height="240" src="${img.downloadUrl}" />`;
+      });
+    }
+    return description;
+  }
   private getApplicabeDataForUrl(
     toursData: any,
     url: string,
