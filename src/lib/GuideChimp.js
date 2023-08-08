@@ -97,7 +97,8 @@ export default class GuideChimp {
             scrollPadding: 10,
             scrollBehavior: 'auto',
             toursRefetchIntervalInSec: 86400,
-            helpRefetchIntervalInSec: 86400
+            helpRefetchIntervalInSec: 86400,
+            visitsCacheIntervalInSec: 86400,
         };
     }
 

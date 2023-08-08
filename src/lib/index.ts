@@ -185,6 +185,10 @@ class AHD extends GuideChimp {
     if (!helpData || refetch) {
       helpData = await this.fetchAndCacheHelpData(helpData);
     }
+    let visits = LocalStorage.get(TOUR_VISITED_STORAGE_KEY);
+    if (!visits || refetch) {
+      visits = await this.fetchAndCachePageVisitsData(visits);
+    }
   }
 
   async getHelpContent(url: string, refetch: boolean) {
@@ -250,6 +254,12 @@ class AHD extends GuideChimp {
     }).showAll();
   }
 
+  async clearCachedData(){
+    LocalStorage.removeKey(HELP_DATA_STORAGE_KEY);
+    LocalStorage.removeKey(TOUR_DATA_STORAGE_KEY);
+    LocalStorage.removeKey(TOUR_VISITED_STORAGE_KEY);
+  }
+
   private generateDescription(content: any) {
     let description = content.content || "";
     if (content.video) {
@@ -264,6 +274,7 @@ class AHD extends GuideChimp {
     }
     return description;
   }
+
   private getApplicabeDataForUrl(
     toursData: any,
     url: string,
@@ -279,6 +290,7 @@ class AHD extends GuideChimp {
         if (tourFound && !nVistied.has(td.slug)) {
           nVistied.add(td.slug);
           LocalStorage.put(TOUR_VISITED_STORAGE_KEY, [...nVistied], 86400);
+          this.markPageVisited(td.slug);
         }
         return tourFound;
       }
@@ -314,6 +326,57 @@ class AHD extends GuideChimp {
       );
     }
     return helpData;
+  }
+
+  private async fetchAndCachePageVisitsData(visits: any) {
+    const respons: any = await fetch(
+      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/visitor-stats?filter[visitorId]=${this.options.visitorId}&filter[channel]=web&filter[type]=pagevisit`
+    ).then((res) => res.json());
+    if (respons.rows) {
+      visits = respons.rows;
+      LocalStorage.put(
+        TOUR_VISITED_STORAGE_KEY,
+        visits,
+        this.options.visitsCacheIntervalInSec
+      );
+    }
+    return visits;
+  }
+
+  private async markPageVisited(slug: sting) {
+    let visits;
+    const respons: any = await fetch(
+      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/visitor-stats`,
+      {
+        method: "POST", // *GET, POST, PUT, DELETE, etc.
+        mode: "cors", // no-cors, *cors, same-origin
+        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+        credentials: "same-origin", // include, *same-origin, omit
+        headers: {
+          "Content-Type": "application/json",
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        redirect: "follow", // manual, *follow, error
+        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        body: JSON.stringify({
+          data: {
+            slug,
+            visitorId: this.options.visitorId,
+            channel: "web",
+            type: "pagevisit",
+          },
+        }), // body data type must match "Content-Type" header
+      }
+    ).then((res) => res.json());
+    if (respons.rows) {
+      visits = respons.rows;
+      LocalStorage.put(
+        TOUR_VISITED_STORAGE_KEY,
+        visits,
+        this.options.visitsCacheIntervalInSec
+      );
+    }
+    return visits;
   }
 }
 
