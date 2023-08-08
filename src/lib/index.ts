@@ -236,6 +236,8 @@ class AHD extends GuideChimp {
         position: row.position,
         tour: [
           {
+            element: row.selector,
+            position: row.position,
             title: row.content.title,
             description: this.generateDescription(row.content),
           },
