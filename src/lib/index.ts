@@ -161,7 +161,7 @@ const { match } = require("path-to-regexp");
 
 const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
-const TOUR_VISITED_STORAGE_KEY = "AHD_TOUR_VISITED";
+const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
 class AHD extends GuideChimp {
   constructor(tour, options = {}) {
@@ -185,9 +185,9 @@ class AHD extends GuideChimp {
     if (!helpData || refetch) {
       helpData = await this.fetchAndCacheHelpData(helpData);
     }
-    let visits = LocalStorage.get(TOUR_VISITED_STORAGE_KEY);
-    if (!visits || refetch) {
-      visits = await this.fetchAndCachePageVisitsData(visits);
+    let stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY);
+    if (!stats || refetch) {
+      stats = await this.fetchAndCachePageVisitsData(stats);
     }
   }
 
@@ -254,10 +254,10 @@ class AHD extends GuideChimp {
     }).showAll();
   }
 
-  async clearCachedData(){
+  async clearCachedData() {
     LocalStorage.removeKey(HELP_DATA_STORAGE_KEY);
     LocalStorage.removeKey(TOUR_DATA_STORAGE_KEY);
-    LocalStorage.removeKey(TOUR_VISITED_STORAGE_KEY);
+    LocalStorage.removeKey(AHD_VISITOR_STATS_STORAGE_KEY);
   }
 
   private generateDescription(content: any) {
@@ -281,7 +281,8 @@ class AHD extends GuideChimp {
     forceShow = false
   ) {
     // exlude visitied
-    const vistied = LocalStorage.get(TOUR_VISITED_STORAGE_KEY) || [];
+    const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
+    const vistied = stats?.visited || [];
     const nVistied = new Set(vistied);
     return toursData.filter((td) => {
       if (forceShow || !vistied || !vistied.includes(td.slug)) {
@@ -289,7 +290,11 @@ class AHD extends GuideChimp {
         const tourFound = matcher(url);
         if (tourFound && !nVistied.has(td.slug)) {
           nVistied.add(td.slug);
-          LocalStorage.put(TOUR_VISITED_STORAGE_KEY, [...nVistied], 86400);
+          LocalStorage.put(
+            AHD_VISITOR_STATS_STORAGE_KEY,
+            { ...stats, visited: [...nVistied] },
+            86400
+          );
           this.markPageVisited(td.slug);
         }
         return tourFound;
@@ -330,14 +335,13 @@ class AHD extends GuideChimp {
 
   private async fetchAndCachePageVisitsData(visits: any) {
     const respons: any = await fetch(
-      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/visitor-stats?filter[visitorId]=${this.options.visitorId}&filter[channel]=web&filter[type]=pagevisit`
+      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/stats/${this.options.visitorId}?filter[channel]=web`
     ).then((res) => res.json());
-    if (respons.rows) {
-      visits = respons.rows;
+    if (respons) {
       LocalStorage.put(
-        TOUR_VISITED_STORAGE_KEY,
-        visits,
-        this.options.visitsCacheIntervalInSec
+        AHD_VISITOR_STATS_STORAGE_KEY,
+        respons,
+        this.options.statsCacheIntervalInSec
       );
     }
     return visits;
@@ -368,11 +372,10 @@ class AHD extends GuideChimp {
         }), // body data type must match "Content-Type" header
       }
     ).then((res) => res.json());
-    if (respons.rows) {
-      visits = respons.rows;
+    if (respons) {
       LocalStorage.put(
-        TOUR_VISITED_STORAGE_KEY,
-        visits,
+        AHD_VISITOR_STATS_STORAGE_KEY,
+        respons,
         this.options.visitsCacheIntervalInSec
       );
     }
