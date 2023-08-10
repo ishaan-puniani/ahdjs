@@ -96,6 +96,7 @@ export default class GuideChimp {
             padding: 8,
             scrollPadding: 10,
             scrollBehavior: 'auto',
+            apiHost: 'https://ahd-be-jggub5n6qq-em.a.run.app',
             toursRefetchIntervalInSec: 86400,
             helpRefetchIntervalInSec: 86400,
             statsCacheIntervalInSec: 86400,

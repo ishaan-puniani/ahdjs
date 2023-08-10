@@ -305,7 +305,7 @@ class AHD extends GuideChimp {
 
   private async fetchAndCacheData(toursData: any) {
     const respons: any = await fetch(
-      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/contexttour?filter[isActive]=true`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/contexttour?filter[isActive]=true`
     ).then((res) => res.json());
     if (respons.rows) {
       toursData = respons.rows.filter((row: any) => !!row.content);
@@ -320,7 +320,7 @@ class AHD extends GuideChimp {
 
   private async fetchAndCacheHelpData(helpData: any) {
     const respons: any = await fetch(
-      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/context-help?filter[isActive]=true`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/context-help?filter[isActive]=true`
     ).then((res) => res.json());
     if (respons.rows) {
       helpData = respons.rows.filter((row: any) => !!row.content);
@@ -335,7 +335,7 @@ class AHD extends GuideChimp {
 
   private async fetchAndCachePageVisitsData(visits: any) {
     const respons: any = await fetch(
-      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/stats/${this.options.visitorId}?filter[channel]=web`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/stats/${this.options.visitorId}?filter[channel]=web`
     ).then((res) => res.json());
     if (respons) {
       LocalStorage.put(
@@ -350,7 +350,7 @@ class AHD extends GuideChimp {
   private async markPageVisited(slug: sting) {
     let visits;
     const respons: any = await fetch(
-      `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.options.applicationId}/visitor-stats`,
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/visitor-stats`,
       {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         mode: "cors", // no-cors, *cors, same-origin
