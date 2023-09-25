@@ -2,10 +2,36 @@
  
  <a href="https://www.npmjs.com/package/@hodgef/ts-library-boilerplate-basic"><img src="https://badgen.net/npm/v/@hodgef/ts-library-boilerplate-basic?color=blue" alt="npm version"></a> <a href="https://github.com/hodgef/ts-library-boilerplate"><img src="https://img.shields.io/github/last-commit/hodgef/ts-library-boilerplate" alt="latest commit"></a> <a href="https://github.com/hodgef/ts-library-boilerplate-basic/actions"><img alt="Build Status" src="https://github.com/hodgef/ts-library-boilerplate-basic/workflows/Build/badge.svg?color=green" /></a> <a href="https://github.com/hodgef/ts-library-boilerplate-basic/actions"> <img alt="Publish Status" src="https://github.com/hodgef/ts-library-boilerplate-basic/workflows/Publish/badge.svg?color=green" /></a>
 
-<strong>For a plain Javascript alternative, check out [js-library-boilerplate-basic](https://github.com/hodgef/js-library-boilerplate-basic).</strong>
+# To get started 
 
-</div>
 
+### npm Installtion
+```
+npm install @ishaan-puniani/ahdjs
+```
+### app components
+```
+import AHDjs from 'ahdjs';
+const libraryInstance = new MyLibrary();
+
+const ahdJS = new AHDjs(undefined, {applicationId: '<Application ID from Back office>'});
+...
+
+ahdJS.updatePageUrl(props.url, false); <<-- to connect with router
+```
+
+### self-host/cdn
+
+```
+<script src="build/index.js"></script>
+
+const AHDjs = window.AHDjs.default;
+const ahdJS = new AHDjs();
+...
+```
+
+
+# For development and contribution
 ## ⭐️ Features
 
 - Webpack 5
@@ -20,7 +46,8 @@
 ## 📦 Getting Started
 
 ```
-git clone https://github.com/hodgef/ts-library-boilerplate-basic.git myLibrary
+git clone https://github.com/ishaan-puniani/ahdjs.git
+cd ahdjs
 npm install
 ```
 
@@ -37,28 +64,6 @@ npm install
 1. `npm publish`
 2. Your users can include your library as usual
 
-### npm
-
-```
-import MyLibrary from 'my-library';
-const libraryInstance = new MyLibrary();
-...
-```
-
-### self-host/cdn
-
-```
-<script src="build/index.js"></script>
-
-const MyLibrary = window.MyLibrary.default;
-const libraryInstance = new MyLibrary();
-...
-```
-
 ## ✅ Libraries built with this boilerplate
 
 > Made a library using this starter kit? Share it here by [submitting a pull request](https://github.com/hodgef/ts-library-boilerplate-basic/pulls)!
-
-- [simple-keyboard](https://github.com/hodgef/simple-keyboard) - Javascript Virtual Keyboard
-- [react-simple-keyboard](https://github.com/hodgef/react-simple-keyboard) - React Virtual Keyboard
-- [simple-keyboard-layouts](https://github.com/hodgef/simple-keyboard-layouts) - Keyboard layouts for simple-keyboard
