@@ -214,12 +214,12 @@
         const AHDjs = window.AHDjs.default;
             let _ahdJs = new AHDjs(undefined, {
           applicationId: "64d2b934c6cfdc96aa3734c5",
-          apiHost: "https://ahd.fabbuilder.com/ahd",
+          apiHost: "https://ahd.fabbuilder.com",
         });
         _ahdJs.initializeSiteMap();
 
         setTimeout(() => {
-          // _ahdJs.clearCachedData()
+          _ahdJs.clearCachedData()
         }, 50000);
 
         // _ahdJs.start();
