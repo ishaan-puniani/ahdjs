@@ -6,12 +6,20 @@
     <body>
       <div class="tour-container">
         User input: <input id="user-input" /> <br /><br />
-        <div id="try-and-buy" class="tour-section">Try & Buy</div>
+        <div id="try-and-buy" class="tour-section" data-ahd="create-new-entity">
+          Try & Buy
+        </div>
         <div id="subscription" class="tour-section">Subscription</div>
         <div id="pricing-table" class="tour-section" data-ahd="heading">
           Pricing Table
         </div>
-        <div id="multi-feature" class="tour-section">Multi-Feature</div>
+        <div
+          id="multi-feature"
+          class="tour-section"
+          data-ahd="add-fields-application"
+        >
+          Multi-Feature
+        </div>
         <div id="node-locked" class="tour-section" data-ahd="widget-video">
           Node-Locked
         </div>
@@ -20,7 +28,7 @@
       <script>
         const tour1 = [
           {
-            element: "#user-input",
+            element: "#user-input2",
             title: "Try & Buy",
             description:
               "Move to the next step is only possible if user input provided.",
@@ -204,16 +212,27 @@
           },
         ];
         const AHDjs = window.AHDjs.default;
-        let _ahdJs = new AHDjs("6336128a251dcbda38bd8fe1");
-        // _ahdJs.beacons(beacons);
+            let _ahdJs = new AHDjs(undefined, {
+          applicationId: "64d2b934c6cfdc96aa3734c5",
+          apiHost: "http://localhost:8080/ahd",
+        });
+        _ahdJs.initializeSiteMap();
+
+        setTimeout(() => {
+          // _ahdJs.clearCachedData()
+        }, 50000);
+
+        // _ahdJs.start();
+        _ahdJs.showPageTour("/auth/signin");
+    // _ahdJs.showPageBeacons("/configurator/view/xxxx");
         // _ahdJs.showInformation(beacons);
         debugger;
-        _ahdJs.updatePageUrl("/testing.html");
+        //_ahdJs.updatePageUrl("/testing.html");
         // _ahdJs.start();
-        setTimeout(() => {
-          //   _ahdJs.updatePageUrl("/testing.html");
-          _ahdJs.beacons();
-        }, 10000);
+        // setTimeout(() => {
+        //   //   _ahdJs.updatePageUrl("/testing.html");
+        //   _ahdJs.beacons();
+        // }, 10000);
         // setTimeout(async () => {
         //   await _ahdJs.stop();
         //   debugger;
