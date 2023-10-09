@@ -7,7 +7,12 @@
 
 ### npm Installtion
 ```
-npm install @ishaan-puniani/ahdjs
+npm install ahdjs --save
+```
+
+### yarn Installtion
+```
+yarn add ahdjs
 ```
 ### app components
 ```
