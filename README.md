@@ -7,18 +7,38 @@
 
 ### npm Installtion
 ```
-npm install @ishaan-puniani/ahdjs
+npm install ahdjs --save
+```
+
+### yarn Installtion
+```
+yarn add ahdjs
 ```
 ### app components
 ```
 import AHDjs from 'ahdjs';
-const libraryInstance = new MyLibrary();
-
+...
 const ahdJS = new AHDjs(undefined, {applicationId: '<Application ID from Back office>'});
 ...
 
+ahdJS.initializeSiteMap();
 ahdJS.updatePageUrl(props.url, false); <<-- to connect with router
 ```
+
+### Example 
+```
+
+let _ahdJs = new AHDjs(undefined, {
+  applicationId: "64d2b934c6cfdc96aa3734c5",
+  apiHost: "https://ahd.fabbuilder.com",
+});
+_ahdJs.initializeSiteMap();
+
+setTimeout(() => {
+  _ahdJs.showPageTour("/auth/signin");
+}, 1000);
+```
+
 
 ### self-host/cdn
 
