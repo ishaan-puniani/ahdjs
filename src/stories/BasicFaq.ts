@@ -4,18 +4,18 @@ import { createButton } from "./Button";
 export const createBasicFaqPage = () => {
   const article = document.createElement("article");
 
-  const pathname = window.location.pathname;
-  const apiUrl = `https://ahd.fabbuilder.com/api/tenant/662f60d8b0066ec52c97f190/faq-group-list?filter[slug]=${pathname}&filter[status]=published&limit=10&orderBy=order_ASC`;
+  const slug = "/help-support";  
+  const apiUrl = `https://ahd.fabbuilder.com/api/tenant/6639f54c38c61b20b19dd905/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`;
 
   const countDiv = document.createElement("div");
   countDiv.className = "count-display";
-  countDiv.textContent = "Loading...";
+ 
+  const faqDiv = document.createElement("div");  
+  faqDiv.className = "faq-list";  
 
   const onStartFaqClick = async () => {
     try {
-      const response = await fetch(apiUrl, {
-        method: "GET",
-      });
+      const response = await fetch(apiUrl);
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -26,11 +26,18 @@ export const createBasicFaqPage = () => {
 
       countDiv.textContent = `Count: ${faqData.count}`;
 
+       faqData.rows.forEach((faqItem) => {
+        const questionDiv = document.createElement("div");
+        questionDiv.textContent = faqItem.faqs.question;  
+        faqDiv.appendChild(questionDiv);
+      });
+
       const _ahdJs = new AHDjs(faqData);
       _ahdJs.start();
     } catch (error) {
       console.error("Failed to start the faq:", error);
-      }
+      countDiv.textContent = "Failed to load count";
+    }
   };
 
   const button = createButton({
@@ -42,6 +49,7 @@ export const createBasicFaqPage = () => {
 
   article.appendChild(countDiv);
   article.appendChild(button);
+  article.appendChild(faqDiv); 
 
   return article;
 };
