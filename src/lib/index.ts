@@ -180,7 +180,7 @@ class AHD extends GuideChimp {
   async initializeSiteMap(refetch: boolean) {
     let highlightsData = LocalStorage.get(HIGHLIGHTS_DATA_STORAGE_KEY);
     if (!highlightsData || refetch) {
-      highlightsData = await this.fetchAndCacheHighlightsData(highlightsData);
+      // highlightsData = await this.fetchAndCacheHighlightsData(highlightsData);
     }
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
@@ -227,10 +227,11 @@ class AHD extends GuideChimp {
 
     //if there is anything to open
     const onboardTour = applicableTours.map((row: any) => {
+      debugger;
       return {
         element: row.selector,
         title: row.content.title,
-        description: this.generateDescription(row),
+        description: this.generateDescription(row.content),
         position: row.position,
       };
     });
@@ -278,7 +279,7 @@ class AHD extends GuideChimp {
     let highlightsData = LocalStorage.get(HIGHLIGHTS_DATA_STORAGE_KEY);
 
     if (!highlightsData || refetch) {
-      highlightsData = await this.fetchAndCacheHighlightsData(highlightsData);
+      // highlightsData = await this.fetchAndCacheHighlightsData(highlightsData);
     }
     const applicableHighlights = this.getUnAcknowledgedHightlightsForUrl(
       highlightsData,
@@ -335,6 +336,7 @@ class AHD extends GuideChimp {
 
   private generateDescription(content: any) {
     let description = content.content || "";
+    debugger;
     if (content.video) {
       content.video.forEach((vid) => {
         description += `<br/><video  width="320" height="240" controls><source src="${vid.downloadUrl}" type="video/mp4"></video>`;
@@ -413,6 +415,7 @@ class AHD extends GuideChimp {
   }
 
   private async fetchAndCacheTourData(toursData: any) {
+    debugger
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/context-tours?filter[isActive]=true`
     ).then((res) => res.json());
