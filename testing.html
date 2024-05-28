@@ -213,7 +213,7 @@
         ];
         const AHDjs = window.AHDjs.default;
             let _ahdJs = new AHDjs(undefined, {
-          applicationId: "64d2b934c6cfdc96aa3734c5",
+          applicationId: "651c857ff482b36117dc1757",
           apiHost: "https://ahd.fabbuilder.com",
         });
         _ahdJs.initializeSiteMap();
@@ -224,6 +224,7 @@
 
         // _ahdJs.start();
         _ahdJs.showPageTour("/auth/signin");
+        _ahdJs.fetchFaqs('/user');
     // _ahdJs.showPageBeacons("/configurator/view/xxxx");
         // _ahdJs.showInformation(beacons);
         debugger;

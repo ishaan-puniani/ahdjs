@@ -239,7 +239,7 @@ class AHD extends GuideChimp {
   }
  async fetchFaqs(slug) {
     const response: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&orderBy=order_ASC`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
     ).then((res) => res.json());
 
     return response;
