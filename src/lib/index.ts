@@ -163,6 +163,7 @@ const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
+const FAQ_DATA_STORAGE_KEY = "FAQ_TOUR_DATA";
 
 class AHD extends GuideChimp {
   constructor(tour, options = {}) {
@@ -236,6 +237,13 @@ class AHD extends GuideChimp {
     });
     this.setTour(onboardTour);
     this.start();
+  }
+ async fetchFaqs(slug) {
+    const response: any = await fetch(
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&orderBy=order_ASC`
+    ).then((res) => res.json());
+
+    return response;
   }
 
   async showPageBeacons(url: string, refetch: boolean) {
