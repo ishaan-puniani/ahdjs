@@ -255,8 +255,9 @@
 .gc-description {
   font-size: 14px;
   overflow-y: auto;
-  max-height: 200px;
-  margin-bottom: 20px;
+  overflow-x: hidden;
+  max-height: 400px;
+  margin-bottom: 10px;
   padding: 0 5px 0 5px;
   text-align: justify;
   scroll-behavior: smooth;
@@ -264,6 +265,11 @@
   &.gc-hidden {
     display: none;
   }
+}
+
+.gc-description img,
+.gc-description video {
+  max-width: 100%;
 }
 
 .gc-custom-buttons {

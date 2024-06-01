@@ -308,7 +308,7 @@ class AHD extends GuideChimp {
             element: row.selector,
             position: row.position,
             title: row.content.title,
-            description: this.generateDescription(row),
+            description: this.generateDescription(row.content),
           },
         ],
       };
@@ -343,17 +343,17 @@ class AHD extends GuideChimp {
 
   private generateDescription(content: any) {
     let description = content.content || "";
-    debugger;
-    if (content.video) {
-      content.video.forEach((vid) => {
-        description += `<br/><video  width="320" height="240" controls><source src="${vid.downloadUrl}" type="video/mp4"></video>`;
-      });
-    }
-    if (content.image) {
-      content.image.forEach((img) => {
-        description += `<br/><img  width="320" height="240" src="${img.downloadUrl}" />`;
-      });
-    }
+    // debugger;
+    // if (content.video) {
+    //   content.video.forEach((vid) => {
+    //     description += `<br/><video  width="320" height="240" controls><source src="${vid.downloadUrl}" type="video/mp4"></video>`;
+    //   });
+    // }
+    // if (content.image) {
+    //   content.image.forEach((img) => {
+    //     description += `<br/><img  width="320" height="240" src="${img.downloadUrl}" />`;
+    //   });
+    // }
     return description;
   }
 
