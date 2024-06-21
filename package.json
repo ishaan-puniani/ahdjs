@@ -91,7 +91,7 @@
     ]
   },
   "dependencies": {
-    "path-to-regexp": "^6.2.1",
+    "path-to-regexp": "^7.0.0",
     "ttl-localstorage": "^2.0.0"
   }
 }
