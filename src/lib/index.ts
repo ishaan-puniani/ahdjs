@@ -238,12 +238,12 @@ class AHD extends GuideChimp {
     this.setTour(onboardTour);
     this.start();
   }
- async fetchFaqs(slug) {
+  async fetchFaqs(slug) {
     const response: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
     ).then((res) => res.json());
-
-    return response;
+    const filteredFaq = response.filter((record) => record.slug === slug);
+    return filteredFaq;
   }
 
   async showPageBeacons(url: string, refetch: boolean) {
@@ -422,7 +422,7 @@ class AHD extends GuideChimp {
   }
 
   private async fetchAndCacheTourData(toursData: any) {
-    debugger
+    debugger;
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/context-tours?filter[isActive]=true`
     ).then((res) => res.json());
