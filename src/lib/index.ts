@@ -242,8 +242,8 @@ class AHD extends GuideChimp {
     const response: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
     ).then((res) => res.json());
-    const filteredFaq = response.filter((record) => record.slug === slug);
-    return filteredFaq;
+
+    return response;
   }
 
   async showPageBeacons(url: string, refetch: boolean) {
