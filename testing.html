@@ -212,24 +212,27 @@
           },
         ];
         const AHDjs = window.AHDjs.default;
-            let _ahdJs = new AHDjs(undefined, {
-          applicationId: "651c857ff482b36117dc1757",
-          apiHost: "https://ahd.fabbuilder.com",
+        let _ahdJs = new AHDjs(undefined, {
+          applicationId: "6655bc2b30a6760d8f897581",
+          apiHost: "https://pagepilot.fabbuilder.com",
         });
         _ahdJs.initializeSiteMap();
 
         setTimeout(() => {
-          _ahdJs.clearCachedData()
+          _ahdJs.clearCachedData();
         }, 50000);
 
         // _ahdJs.start();
-        _ahdJs.showPageTour("/auth/signin");
-         _ahdJs.fetchFaqs('/user');
-        _ahdJs.showPageBeacons("/auth/signin");
+        _ahdJs.showPageTour("/slug");
+        _ahdJs.showAppBanner().then((banner) => {
+          alert(JSON.stringify(banner));
+        });
+
+        _ahdJs.fetchFaqs("/help-support");
+        _ahdJs.showPageBeacons("beacon-labs64");
         //_ahdJs.showPageFAQs("/auth/signin");
         // _ahdJs.showPageHelpDrawer("/auth/signin");
         // _ahdJs.showInformation(beacons);
-        debugger;
         //_ahdJs.updatePageUrl("/testing.html");
         // _ahdJs.start();
         // setTimeout(() => {
