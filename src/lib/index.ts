@@ -161,6 +161,7 @@ const { match } = require("path-to-regexp");
 
 const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
+const APP_BANNER_DATA_STORAGE_KEY = "APP_BANNER_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
@@ -227,7 +228,6 @@ class AHD extends GuideChimp {
 
     //if there is anything to open
     const onboardTour = applicableTours.map((row: any) => {
-      debugger;
       return {
         element: row.selector,
         title: row.content.title,
@@ -238,6 +238,17 @@ class AHD extends GuideChimp {
     this.setTour(onboardTour);
     this.start();
   }
+
+  async showAppBanner(url: string, refetch: boolean) {
+     let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
+
+    if (!appBannerData || refetch) {
+      appBannerData = await this.fetchAndCacheBannerData(appBannerData);
+    }
+
+    return appBannerData;
+  }
+
   async fetchFaqs(slug) {
     const response: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
@@ -422,7 +433,6 @@ class AHD extends GuideChimp {
   }
 
   private async fetchAndCacheTourData(toursData: any) {
-    debugger;
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/context-tours?filter[isActive]=true`
     ).then((res) => res.json());
@@ -435,6 +445,20 @@ class AHD extends GuideChimp {
       );
     }
     return toursData;
+  }
+  private async fetchAndCacheBannerData(appBannerData: any) {
+    const respons: any = await fetch(
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banners?filter[isActive]=true`
+    ).then((res) => res.json());
+    if (respons.rows) {
+      appBannerData = respons.rows.filter((row: any) => !!row.content);
+      LocalStorage.put(
+        APP_BANNER_DATA_STORAGE_KEY,
+        appBannerData,
+        this.options.appBannerRefetchIntervalInSec
+      );
+    }
+    return appBannerData;
   }
 
   // private async fetchAndCacheHelpData(helpData: any) {
