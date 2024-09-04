@@ -6,24 +6,28 @@
     <body>
       <div class="tour-container">
         User input: <input id="user-input" /> <br /><br />
-        <div id="try-and-buy" class="tour-section" data-ahd="create-new-entity">
-          Try & Buy
-        </div>
-        <div id="subscription" class="tour-section">Subscription</div>
-        <div id="pricing-table" class="tour-section" data-ahd="heading">
-          Pricing Table
-        </div>
-        <div
+        <span
+          id="try-and-buy"
+          class="tour-section"
+          data-ahd="create-new-entity"
+        >
+          Try & Buy </span
+        ><br />
+        <span id="subscription" class="tour-section">Subscription</span><br />
+        <span id="pricing-table" class="tour-section" data-ahd="heading">
+          Pricing Table </span
+        ><br />
+        <span
           id="multi-feature"
           class="tour-section"
           data-ahd="add-fields-application"
         >
-          Multi-Feature
-        </div>
-        <div id="node-locked" class="tour-section" data-ahd="widget-video">
-          Node-Locked
-        </div>
-        <div id="pay-per-use" class="tour-section">Pay-per-Use</div>
+          Multi-Feature </span
+        ><br />
+        <span id="node-locked" class="tour-section" data-ahd="widget-video">
+          Node-Locked </span
+        ><br />
+        <span id="pay-per-use" class="tour-section">Pay-per-Use</span>
       </div>
       <script>
         const tour1 = [
@@ -218,18 +222,75 @@
         });
         _ahdJs.initializeSiteMap();
 
-        setTimeout(() => {
-          _ahdJs.clearCachedData();
-        }, 50000);
+        const requestOptions = {
+          method: "GET",
+          redirect: "follow",
+        };
+
+        fetch(
+          "https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/get/unacknowledged",
+          requestOptions
+        )
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.type === "dialog") {
+              const dialogContent = [
+                {
+                  title: result.content.title,
+                  description: result.content.body,
+                  buttons: [
+                    {
+                      title: "Ok",
+                      class: "tour-button",
+                      onClick: function () {
+                        fetch(
+                          `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/acknowledge?id=${result._id}`,
+                          requestOptions
+                        );
+                      },
+                    },
+                  ],
+                },
+              ];
+              _ahdJs.setTour(dialogContent);
+              _ahdJs.start();
+            }
+
+            if (result.type === "snackbar") {
+              const snackbarContent = [
+                {
+                  title: result.content.title,
+                  description: result.content.body,
+                },
+              ];
+              _ahdJs.setTour(snackbarContent);
+              _ahdJs.start();
+              // setTimeout(() => {
+              //   _ahdJs.stop();
+              // }, result.timeout);
+            }
+            if (result.type === "beacon") {
+              _ahdJs.setBeacons([result.content]);
+              // _ahdJs.showAll();
+            }
+            if (result.type === "tour") {
+              _ahdJs.setTour(result.content.tour);
+              _ahdJs.start();
+              // _ahdJs.showAll();
+            }
+          })
+
+          .catch((error) => console.error(error));
+        // setTimeout(() => {
+        //   _ahdJs.clearCachedData();
+        // }, 50000);
 
         // _ahdJs.start();
-        _ahdJs.showPageTour("/slug");
-        _ahdJs.showAppBanner().then((banner) => {
-          alert(JSON.stringify(banner));
-        });
+        // _ahdJs.showPageTour("/slug");
+        // _ahdJs.showAppBanner();
 
-        _ahdJs.fetchFaqs("/help-support");
-        _ahdJs.showPageBeacons("beacon-labs64");
+        // _ahdJs.fetchFaqs("/help-support");
+        // _ahdJs.showPageBeacons("/auth/signin");
         //_ahdJs.showPageFAQs("/auth/signin");
         // _ahdJs.showPageHelpDrawer("/auth/signin");
         // _ahdJs.showInformation(beacons);
@@ -242,8 +303,8 @@
         // setTimeout(async () => {
         //   await _ahdJs.stop();
         //   debugger;
-        //   _ahdJs.setTour(tour);
-        //   _ahdJs.start();
+        // _ahdJs.setTour(tour);
+        // _ahdJs.start();
         // }, 15000);
       </script>
     </body>

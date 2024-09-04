@@ -240,7 +240,7 @@ class AHD extends GuideChimp {
   }
 
   async showAppBanner(url: string, refetch: boolean) {
-     let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
+    let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
 
     if (!appBannerData || refetch) {
       appBannerData = await this.fetchAndCacheBannerData(appBannerData);
@@ -287,6 +287,11 @@ class AHD extends GuideChimp {
       };
     });
 
+    AHDjs.beacons(beacons, {
+      boundary: "outer",
+    }).showAll();
+  }
+  async setBeacons(beacons) {
     AHDjs.beacons(beacons, {
       boundary: "outer",
     }).showAll();
