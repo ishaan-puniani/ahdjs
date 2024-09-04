@@ -265,9 +265,9 @@
               ];
               _ahdJs.setTour(snackbarContent);
               _ahdJs.start();
-              // setTimeout(() => {
-              //   _ahdJs.stop();
-              // }, result.timeout);
+              setTimeout(() => {
+                _ahdJs.stop();
+              }, result.timeout);
             }
             if (result.type === "beacon") {
               _ahdJs.setBeacons([result.content]);
