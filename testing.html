@@ -261,13 +261,14 @@
                 {
                   title: result.content.title,
                   description: result.content.body,
+                  position: "top-right",
                 },
               ];
               _ahdJs.setTour(snackbarContent);
               _ahdJs.start();
-              setTimeout(() => {
-                _ahdJs.stop();
-              }, result.timeout);
+              // setTimeout(() => {
+              //   _ahdJs.stop();
+              // }, result.timeout);
             }
             if (result.type === "beacon") {
               _ahdJs.setBeacons([result.content]);
@@ -276,6 +277,24 @@
             if (result.type === "tour") {
               _ahdJs.setTour(result.content.tour);
               _ahdJs.start();
+              // _ahdJs.showAll();
+            }
+            if (result.type === "tooltip") {
+              const tooltip = [
+                {
+                  element: result.content.element,
+                  position: result.content.position,
+                  class:result.content.class,
+                  tour: [
+                    ...result.content.tour.map((record) => ({
+                      ...record,
+                     
+                    })),
+                  ],
+                },
+              ];
+
+              _ahdJs.setBeacons(tooltip);
               // _ahdJs.showAll();
             }
           })

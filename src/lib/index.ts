@@ -292,6 +292,7 @@ class AHD extends GuideChimp {
     }).showAll();
   }
   async setBeacons(beacons) {
+
     AHDjs.beacons(beacons, {
       boundary: "outer",
     }).showAll();

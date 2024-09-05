@@ -118,9 +118,14 @@ export default class Beacons {
 
         const beaconEl = this.createBeaconEl(beacon);
         beaconEl.hidden = true;
-
         if (this.constructor.isFixed(el)) {
           beaconEl.classList.add(this.constructor.getFixedClass());
+        }
+        if (beacon.class === "info-tooltip") {
+          beaconEl.classList.remove("gc-beacon");
+        }
+        if (beacon.class === "help-tooltip") {
+          beaconEl.classList.remove("gc-beacon");
         }
 
         const parentEl =
