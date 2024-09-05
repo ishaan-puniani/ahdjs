@@ -261,11 +261,13 @@
                 {
                   title: result.content.title,
                   description: result.content.body,
-                  position: "top-right",
+                  position: "topRight",
                 },
               ];
-              _ahdJs.setTour(snackbarContent);
+              _ahdJs.setTour(snackbarContent,{type:'snackbar',showNavigation:false});
               _ahdJs.start();
+              _ahdJs.removeOverlayEl()
+              _ahdJs.removePreloaderEl()
               // setTimeout(() => {
               //   _ahdJs.stop();
               // }, result.timeout);

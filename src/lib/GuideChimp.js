@@ -200,8 +200,9 @@ export default class GuideChimp {
      * @param tour
      * @return {this}
      */
-    setTour(tour) {
+    setTour(tour,options={}) {
         this.tour = tour;
+        this.setOptions(options)
         return this;
     }
 
@@ -809,14 +810,14 @@ export default class GuideChimp {
             : (elRight + (padding / 2));
 
         controlEl.classList.toggle(this.constructor.getFixedClass(), this.constructor.isFixed(el));
-
         const { style } = controlEl;
-
         // set new position
-        style.cssText = `width: ${width}px;
-        height: ${height}px;
-        top: ${top}px;
-        left: ${left}px;`;
+        if (this.options.type !== "snackbar") {
+          style.cssText = `width: ${width}px;
+                             height: ${height}px;
+                             top: ${top}px;
+                             left: ${left}px;`;
+        }
 
         return this;
     }
@@ -825,6 +826,10 @@ export default class GuideChimp {
         if (!this.currentStep) {
             return this;
         }
+        //check to update check position
+        if (this.options.type === "snackbar") {
+            tooltipEl.classList.add('gc-tooltip-top-right')
+            }
 
         const el = this.getStepEl(this.currentStep);
 
@@ -841,7 +846,6 @@ export default class GuideChimp {
         pos = pos || this.options.position;
 
         let [position, alignment] = pos.split('-');
-
         const elStyle = getComputedStyle(el);
 
         if (elStyle.getPropertyValue('position') === 'floating') {
@@ -892,7 +896,6 @@ export default class GuideChimp {
             left: boundaryLeft,
             right: boundaryRight,
         } = boundaryRect;
-
         // if the element is default element, skip position and alignment calculation
         if (this.isEl(el, 'fakeStep')) {
             position = 'floating';
@@ -982,10 +985,12 @@ export default class GuideChimp {
             case 'bottom':
                 tooltipStyle.top = `${elHeight + padding}px`;
                 break;
-            default: {
-                tooltipStyle.left = '50%';
-                tooltipStyle.top = '50%';
-                tooltipStyle.transform = 'translate(-50%,-50%)';
+            default:{
+                if(this.options.type !=='snackbar'){
+                    tooltipStyle.left = '50%';
+                    tooltipStyle.top = '50%';
+                    tooltipStyle.transform = 'translate(-50%,-50%)';
+                }       
             }
         }
 
@@ -993,7 +998,6 @@ export default class GuideChimp {
 
         if (alignment) {
             tooltipEl.setAttribute('data-guidechimp-alignment', alignment);
-
             switch (alignment) {
                 case 'left': {
                     tooltipStyle.left = `${elLeft - (padding / 2)}px`;
