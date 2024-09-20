@@ -785,7 +785,23 @@ export default class GuideChimp {
 
     setControlPosition(controlEl) {
         const el = this.getStepEl(this.currentStep);
+debugger;
+        if(this.options.type==="snackbar"){
+            switch(this.currentStep.position){
+                case "top":{
+                    el.style.top= 0;
+                    break;
+                }
+                case "topRight":{
+                    el.style.top= "100px";
+                    el.style.left= "400px";
 
+                    controlEl.style.top= "100px";
+                    controlEl.style.left= "400px";
+
+                }
+            }
+        }
         if (!controlEl || !el) {
             return this;
         }
@@ -812,25 +828,20 @@ export default class GuideChimp {
         controlEl.classList.toggle(this.constructor.getFixedClass(), this.constructor.isFixed(el));
         const { style } = controlEl;
         // set new position
-        if (this.options.type !== "snackbar") {
-          style.cssText = `width: ${width}px;
-                             height: ${height}px;
-                             top: ${top}px;
-                             left: ${left}px;`;
-        }
+        style.cssText = `width: ${width}px;
+        height: ${height}px;
+        top: ${top}px;
+        left: ${left}px;`;
 
         return this;
     }
 
     setTooltipPosition(tooltipEl, options = {}) {
+        // debugger
         if (!this.currentStep) {
             return this;
         }
-        //check to update check position
-        if (this.options.type === "snackbar") {
-            tooltipEl.classList.add('gc-tooltip-top-right')
-            }
-
+        
         const el = this.getStepEl(this.currentStep);
 
         if (!tooltipEl || !el) {
@@ -863,7 +874,7 @@ export default class GuideChimp {
 
         const {
             top: elTop,
-            bottom: elBottom,
+             bottom: elBottom,
             left: elLeft,
             right: elRight,
             width: elWidth,
@@ -902,7 +913,7 @@ export default class GuideChimp {
         } else {
             // calculate position
             const positions = ['bottom', 'right', 'left', 'top'];
-
+            // debugger
             let {
                 marginTop: tooltipMarginTop,
                 marginLeft: tooltipMarginLeft,
@@ -971,7 +982,15 @@ export default class GuideChimp {
         tooltipEl.setAttribute('data-guidechimp-position', position);
 
         const root = document.documentElement;
-
+        // debugger
+        if(this.options.type === "snackbar"){
+            switch (this.currentStep.position) {    
+                case 'top':{
+                    tooltipStyle.top = `${0 + padding}px`;
+                    break; 
+                }
+            }
+        } else {
         switch (position) {
             case 'top':
                 tooltipStyle.bottom = `${elHeight + padding}px`;
@@ -986,14 +1005,14 @@ export default class GuideChimp {
                 tooltipStyle.top = `${elHeight + padding}px`;
                 break;
             default:{
-                if(this.options.type !=='snackbar'){
+               
                     tooltipStyle.left = '50%';
                     tooltipStyle.top = '50%';
                     tooltipStyle.transform = 'translate(-50%,-50%)';
-                }       
+                     
             }
         }
-
+    }
         tooltipEl.removeAttribute('data-guidechimp-alignment');
 
         if (alignment) {
@@ -1868,7 +1887,7 @@ export default class GuideChimp {
         this.setControlPosition(this.getEl('control'));
         this.setInteractionPosition(this.getEl('interaction'));
         this.setTooltipPosition(this.getEl('tooltip'));
-
+ 
         return this;
     }
 }

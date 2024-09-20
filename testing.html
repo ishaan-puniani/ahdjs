@@ -233,6 +233,16 @@
         )
           .then((response) => response.json())
           .then((result) => {
+            result = {
+              type: "snackbar",
+              content: {
+                position: "top",
+                title: "Try & Buy",
+                body: "Move to the next step is only possible if user input provided.",
+               },
+              timeout: 3000,
+            };
+            debugger;
             if (result.type === "dialog") {
               const dialogContent = [
                 {
@@ -264,10 +274,13 @@
                   position: "topRight",
                 },
               ];
-              _ahdJs.setTour(snackbarContent,{type:'snackbar',showNavigation:false});
+              _ahdJs.setTour(snackbarContent, {
+                type: "snackbar",
+                showNavigation: false,
+              });
               _ahdJs.start();
-              _ahdJs.removeOverlayEl()
-              _ahdJs.removePreloaderEl()
+              _ahdJs.removeOverlayEl();
+              _ahdJs.removePreloaderEl();
               // setTimeout(() => {
               //   _ahdJs.stop();
               // }, result.timeout);
@@ -286,11 +299,10 @@
                 {
                   element: result.content.element,
                   position: result.content.position,
-                  class:result.content.class,
+                  class: result.content.class,
                   tour: [
                     ...result.content.tour.map((record) => ({
                       ...record,
-                     
                     })),
                   ],
                 },
