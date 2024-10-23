@@ -32,7 +32,7 @@
     "es6"
   ],
   "devDependencies": {
-    "@babel/cli": "^7.19.3",
+    "@babel/cli": "^7.25.9",
     "@babel/core": "^7.19.6",
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/plugin-transform-typescript": "^7.19.3",
