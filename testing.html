@@ -215,10 +215,13 @@
             },
           },
         ];
+
         const AHDjs = window.AHDjs.default;
+        const userId = "675c5d10b73dc091ba239699";
         let _ahdJs = new AHDjs(undefined, {
           applicationId: "6655bc2b30a6760d8f897581",
           apiHost: "https://pagepilot.fabbuilder.com",
+          userId: userId,
         });
         _ahdJs.initializeSiteMap();
 
@@ -228,26 +231,17 @@
         };
 
         fetch(
-          "https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/get/unacknowledged",
+          `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/get/unacknowledged?userId=${userId}`,
           requestOptions
         )
           .then((response) => response.json())
           .then((result) => {
-            result = {
-              type: "snackbar",
-              content: {
-                position: "top",
-                title: "Try & Buy",
-                body: "Move to the next step is only possible if user input provided.",
-               },
-              timeout: 3000,
-            };
-            debugger;
             if (result.type === "dialog") {
               const dialogContent = [
                 {
                   title: result.content.title,
                   description: result.content.body,
+
                   buttons: [
                     {
                       title: "Ok",
@@ -256,7 +250,13 @@
                         fetch(
                           `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/acknowledge?id=${result._id}`,
                           requestOptions
-                        );
+                        )
+                          .then(() => {
+                            ahdJS.stop();
+                          })
+                          .catch((error) => {
+                            console.error("Error acknowledging:", error);
+                          });
                       },
                     },
                   ],
@@ -271,7 +271,7 @@
                 {
                   title: result.content.title,
                   description: result.content.body,
-                  position: "topRight",
+                  position: result.content.position,
                 },
               ];
               _ahdJs.setTour(snackbarContent, {
@@ -286,22 +286,64 @@
               // }, result.timeout);
             }
             if (result.type === "beacon") {
-              _ahdJs.setBeacons([result.content]);
+              const beacon = {
+                element: result.content.selector,
+                // title: result.content.title,
+                // description: result.content.body,
+                // position: result.content.position || "top",
+                // shape: result.content.shape || "circle",
+                // color: result.content.color || "blue",
+                // background: result.content.background,
+                // textColor: result.content.textColor,
+
+                tour: {
+                  steps: [
+                    {
+                      element: result.content.selector,
+                      title: result.content.title,
+                      description: result.content.body,
+                      position: result.content.position || "top",
+                    },
+                  ],
+                  options: {
+                    position: result.content.position,
+                    shape: result.content.shape || "circle",
+                    color: result.content.color || "blue",
+                    background: result.content.background,
+                    textColor: result.content.textColor,
+                  },
+                },
+              };
+
+ 
+              // const targetElement = document.querySelector(beacon.element);
+              // if (!targetElement) {
+              //   console.error(
+              //     "Target element not found for beacon selector:",
+              //     beacon.element
+              //   );
+              //   return;
+              // }
+              
+              debugger;
+              _ahdJs.setBeacons(beacon);
               // _ahdJs.showAll();
             }
+
             if (result.type === "tour") {
-              _ahdJs.setTour(result.content.tour);
+              _ahdJs.setTour(result.tourContent);
+ 
               _ahdJs.start();
               // _ahdJs.showAll();
             }
             if (result.type === "tooltip") {
               const tooltip = [
                 {
-                  element: result.content.element,
+                  element: result.content.selector,
                   position: result.content.position,
-                  class: result.content.class,
+                  title: result.content.title,
                   tour: [
-                    ...result.content.tour.map((record) => ({
+                    ...result.content.map((record) => ({
                       ...record,
                     })),
                   ],
@@ -335,7 +377,7 @@
         // }, 10000);
         // setTimeout(async () => {
         //   await _ahdJs.stop();
-        //   debugger;
+        //   ;
         // _ahdJs.setTour(tour);
         // _ahdJs.start();
         // }, 15000);

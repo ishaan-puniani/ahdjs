@@ -785,8 +785,7 @@ export default class GuideChimp {
 
     setControlPosition(controlEl) {
         const el = this.getStepEl(this.currentStep);
-debugger;
-        if(this.options.type==="snackbar"){
+         if(this.options.type==="snackbar"){
             switch(this.currentStep.position){
                 case "top":{
                     el.style.top= 0;
@@ -837,8 +836,7 @@ debugger;
     }
 
     setTooltipPosition(tooltipEl, options = {}) {
-        // debugger
-        if (!this.currentStep) {
+         if (!this.currentStep) {
             return this;
         }
         
@@ -913,8 +911,7 @@ debugger;
         } else {
             // calculate position
             const positions = ['bottom', 'right', 'left', 'top'];
-            // debugger
-            let {
+             let {
                 marginTop: tooltipMarginTop,
                 marginLeft: tooltipMarginLeft,
                 marginRight: tooltipMarginRight,
