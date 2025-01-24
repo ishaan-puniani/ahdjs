@@ -95,10 +95,179 @@
   position: fixed;
 }
 
+.info-tooltip {
+  position: absolute;
+  height: 20px;
+  width: 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 64;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  &:before {
+    content: "i";
+    height: 20px;
+    width: 15px;
+  }
+
+  &[data-beacon-position="top-left"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: 3px;
+      margin-top: 3px;
+    }
+  }
+
+  &[data-beacon-position="top"] {
+    &[data-beacon-boundary="inner"] {
+      margin-top: 3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-top: -3px;
+    }
+  }
+
+  &[data-beacon-position="top-right"] {
+    &[data-beacon-boundary="inner"] {
+      margin-top: 3px;
+      margin-left: -3px;
+    }
+  }
+
+  &[data-beacon-position="left"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: 3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-left: -3px;
+    }
+  }
+
+  &[data-beacon-position="right"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: -3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-left: 3px;
+    }
+  }
+
+  &[data-beacon-position="bottom-left"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: 3px;
+      margin-top: -3px;
+    }
+  }
+
+  &[data-beacon-position="bottom"] {
+    &[data-beacon-boundary="inner"] {
+      margin-top: -3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-top: 3px;
+    }
+  }
+
+  &[data-beacon-position="bottom-right"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: -3px;
+      margin-top: -3px;
+    }
+  }
+}
+.help-tooltip {
+  position: absolute;
+  height: 20px;
+  width: 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 64;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  &:before {
+    content: "?";
+    height: 20px;
+    width: 15px;
+  }
+
+  &[data-beacon-position="top-left"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: 3px;
+      margin-top: 3px;
+    }
+  }
+
+  &[data-beacon-position="top"] {
+    &[data-beacon-boundary="inner"] {
+      margin-top: 3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-top: -3px;
+    }
+  }
+
+  &[data-beacon-position="top-right"] {
+    &[data-beacon-boundary="inner"] {
+      margin-top: 3px;
+      margin-left: -3px;
+    }
+  }
+
+  &[data-beacon-position="left"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: 3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-left: -3px;
+    }
+  }
+
+  &[data-beacon-position="right"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: -3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-left: 3px;
+    }
+  }
+
+  &[data-beacon-position="bottom-left"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: 3px;
+      margin-top: -3px;
+    }
+  }
+
+  &[data-beacon-position="bottom"] {
+    &[data-beacon-boundary="inner"] {
+      margin-top: -3px;
+    }
+
+    &[data-beacon-boundary="outer"] {
+      margin-top: 3px;
+    }
+  }
+
+  &[data-beacon-position="bottom-right"] {
+    &[data-beacon-boundary="inner"] {
+      margin-left: -3px;
+      margin-top: -3px;
+    }
+  }
+}
+.dispay_none {
+  display: none;
+}
 
 @-webkit-keyframes beacon {
   0% {
-    -webkit-transform: scale(.1);
+    -webkit-transform: scale(0.1);
     opacity: 1;
   }
   70% {
@@ -112,7 +281,7 @@
 
 @keyframes beacon {
   0% {
-    transform: scale(.1);
+    transform: scale(0.1);
     opacity: 1;
   }
   70% {

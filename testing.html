@@ -6,24 +6,28 @@
     <body>
       <div class="tour-container">
         User input: <input id="user-input" /> <br /><br />
-        <div id="try-and-buy" class="tour-section" data-ahd="create-new-entity">
-          Try & Buy
-        </div>
-        <div id="subscription" class="tour-section">Subscription</div>
-        <div id="pricing-table" class="tour-section" data-ahd="heading">
-          Pricing Table
-        </div>
-        <div
+        <span
+          id="try-and-buy"
+          class="tour-section"
+          data-ahd="create-new-entity"
+        >
+          Try & Buy </span
+        ><br />
+        <span id="subscription" class="tour-section">Subscription</span><br />
+        <span id="pricing-table" class="tour-section" data-ahd="heading">
+          Pricing Table </span
+        ><br />
+        <span
           id="multi-feature"
           class="tour-section"
           data-ahd="add-fields-application"
         >
-          Multi-Feature
-        </div>
-        <div id="node-locked" class="tour-section" data-ahd="widget-video">
-          Node-Locked
-        </div>
-        <div id="pay-per-use" class="tour-section">Pay-per-Use</div>
+          Multi-Feature </span
+        ><br />
+        <span id="node-locked" class="tour-section" data-ahd="widget-video">
+          Node-Locked </span
+        ><br />
+        <span id="pay-per-use" class="tour-section">Pay-per-Use</span>
       </div>
       <script>
         const tour1 = [
@@ -211,25 +215,157 @@
             },
           },
         ];
+
         const AHDjs = window.AHDjs.default;
+        const userId = "675c5d10b73dc091ba239699";
         let _ahdJs = new AHDjs(undefined, {
           applicationId: "6655bc2b30a6760d8f897581",
           apiHost: "https://pagepilot.fabbuilder.com",
+          userId: userId,
         });
         _ahdJs.initializeSiteMap();
 
-        setTimeout(() => {
-          _ahdJs.clearCachedData();
-        }, 50000);
+        const requestOptions = {
+          method: "GET",
+          redirect: "follow",
+        };
+
+        fetch(
+          `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/get/unacknowledged?userId=${userId}`,
+          requestOptions
+        )
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.type === "dialog") {
+              const dialogContent = [
+                {
+                  title: result.content.title,
+                  description: result.content.body,
+
+                  buttons: [
+                    {
+                      title: "Ok",
+                      class: "tour-button",
+                      onClick: function () {
+                        fetch(
+                          `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/acknowledge?id=${result._id}`,
+                          requestOptions
+                        )
+                          .then(() => {
+                            ahdJS.stop();
+                          })
+                          .catch((error) => {
+                            console.error("Error acknowledging:", error);
+                          });
+                      },
+                    },
+                  ],
+                },
+              ];
+              _ahdJs.setTour(dialogContent);
+              _ahdJs.start();
+            }
+
+            if (result.type === "snackbar") {
+              const snackbarContent = [
+                {
+                  title: result.content.title,
+                  description: result.content.body,
+                  position: result.content.position,
+                },
+              ];
+              _ahdJs.setTour(snackbarContent, {
+                type: "snackbar",
+                showNavigation: false,
+              });
+              _ahdJs.start();
+              _ahdJs.removeOverlayEl();
+              _ahdJs.removePreloaderEl();
+              // setTimeout(() => {
+              //   _ahdJs.stop();
+              // }, result.timeout);
+            }
+            if (result.type === "beacon") {
+              const beacon = {
+                element: result.content.selector,
+                // title: result.content.title,
+                // description: result.content.body,
+                // position: result.content.position || "top",
+                // shape: result.content.shape || "circle",
+                // color: result.content.color || "blue",
+                // background: result.content.background,
+                // textColor: result.content.textColor,
+
+                tour: {
+                  steps: [
+                    {
+                      element: result.content.selector,
+                      title: result.content.title,
+                      description: result.content.body,
+                      position: result.content.position || "top",
+                    },
+                  ],
+                  options: {
+                    position: result.content.position,
+                    shape: result.content.shape || "circle",
+                    color: result.content.color || "blue",
+                    background: result.content.background,
+                    textColor: result.content.textColor,
+                  },
+                },
+              };
+
+ 
+              // const targetElement = document.querySelector(beacon.element);
+              // if (!targetElement) {
+              //   console.error(
+              //     "Target element not found for beacon selector:",
+              //     beacon.element
+              //   );
+              //   return;
+              // }
+              
+              debugger;
+              _ahdJs.setBeacons(beacon);
+              // _ahdJs.showAll();
+            }
+
+            if (result.type === "tour") {
+              _ahdJs.setTour(result.tourContent);
+ 
+              _ahdJs.start();
+              // _ahdJs.showAll();
+            }
+            if (result.type === "tooltip") {
+              const tooltip = [
+                {
+                  element: result.content.selector,
+                  position: result.content.position,
+                  title: result.content.title,
+                  tour: [
+                    ...result.content.map((record) => ({
+                      ...record,
+                    })),
+                  ],
+                },
+              ];
+
+              _ahdJs.setBeacons(tooltip);
+              // _ahdJs.showAll();
+            }
+          })
+
+          .catch((error) => console.error(error));
+        // setTimeout(() => {
+        //   _ahdJs.clearCachedData();
+        // }, 50000);
 
         // _ahdJs.start();
-        _ahdJs.showPageTour("/slug");
-        _ahdJs.showAppBanner().then((banner) => {
-          alert(JSON.stringify(banner));
-        });
+        // _ahdJs.showPageTour("/slug");
+        // _ahdJs.showAppBanner();
 
-        _ahdJs.fetchFaqs("/help-support");
-        _ahdJs.showPageBeacons("beacon-labs64");
+        // _ahdJs.fetchFaqs("/help-support");
+        // _ahdJs.showPageBeacons("/auth/signin");
         //_ahdJs.showPageFAQs("/auth/signin");
         // _ahdJs.showPageHelpDrawer("/auth/signin");
         // _ahdJs.showInformation(beacons);
@@ -241,9 +377,9 @@
         // }, 10000);
         // setTimeout(async () => {
         //   await _ahdJs.stop();
-        //   debugger;
-        //   _ahdJs.setTour(tour);
-        //   _ahdJs.start();
+        //   ;
+        // _ahdJs.setTour(tour);
+        // _ahdJs.start();
         // }, 15000);
       </script>
     </body>
