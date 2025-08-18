@@ -22,6 +22,16 @@
   }
 }
 
+ @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+   @keyframes slideUp {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+
 .gc-overlay {
   position: fixed;
   z-index: 6400;
@@ -42,6 +52,10 @@
       pointer-events: fill;
     }
   }
+}
+
+.gc-overlay-hidden {
+  display: none;
 }
 
 .gc-control {
@@ -161,6 +175,10 @@
     margin-left: -5px;
     border-bottom-color: white;
   }
+}
+
+.gc-tooltip-tail-hidden {
+  display: none;
 }
 
 .gc-close {

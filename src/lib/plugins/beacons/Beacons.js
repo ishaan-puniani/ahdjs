@@ -10,6 +10,11 @@ import domTemplate from "../../utils/domTemplate";
 
 // templates
 import beaconTpl from "./templates/beacon.html";
+import beaconWithLabel from "./templates/beaconWithLabel.html";
+import infoIcon from "./assets/icons/info.svg";
+import questionIcon from "./assets/icons/question.svg";
+import warningIcon from "./assets/icons/warning.svg";
+import beacon from "./assets/icons/beacon.svg";
 
 export default class Beacons {
   constructor(beacons, options = {}) {
@@ -262,13 +267,15 @@ export default class Beacons {
     return array.map((v, i) => ({ ...v, id: v.id || i }));
   }
 
-  getBeaconTpl() {
+  getBeaconTpl(data) {
+    if (data?.label?.isVisible) {
+      return beaconWithLabel;
+    }
     return beaconTpl;
   }
 
   createBeaconEl(beacon) {
     const data = { ...beacon };
-
     data.onClick = (e) => {
       e.stopPropagation();
       if (beacon.onClick) {
@@ -276,7 +283,7 @@ export default class Beacons {
       }
     };
 
-    return domTemplate(this.getBeaconTpl(), { beacon: data });
+    return domTemplate(this.getBeaconTpl(data), { beacon: data });
   }
 
   getEl(selector) {
@@ -285,9 +292,22 @@ export default class Beacons {
       : document.querySelector(selector);
   }
 
+  iconType(type) {
+    switch (type) {
+      case "question":
+        return `url(${questionIcon})`;
+      case "info":
+        return `url(${infoIcon})`;
+      case "warning":
+        return `url(${warningIcon})`;
+      default:
+        return `url(${beacon})`;
+    }
+  }
+
   setBeaconPosition(el, beaconEl, options = {}) {
     let { position, boundary } = options;
-
+    const { icon, label } = options;
     position = position || this.options.position;
     boundary = boundary || this.options.boundary;
     boundary = boundary === "inner" ? "inner" : "outer";
@@ -310,6 +330,19 @@ export default class Beacons {
 
     beaconEl.setAttribute("data-beacon-position", position);
     beaconEl.setAttribute("data-beacon-boundary", boundary);
+
+    if(icon?.isVisible) {
+      beaconStyle.backgroundImage = this.iconType(icon?.type);
+      beaconStyle.opacity = icon?.opacity ?? 1;
+      beaconStyle.backgroundColor = icon?.color ?? "white";
+    }
+
+    if(label?.isVisible) {
+      beaconStyle.opacity = label?.opacity ?? 1;
+      beaconStyle.backgroundColor = label?.backgroundColor ?? "#fff";
+      beaconStyle.color = label?.color ?? "#000";
+      beaconEl.setAttribute("data-beacon-label", label?.label ?? "NA");
+    }
 
     switch (position) {
       case "top-left": {

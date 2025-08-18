@@ -1,8 +1,8 @@
 <div class="gc-tooltip">
-    <div class="gc-tooltip-tail"></div>
+    <div class="gc-tooltip-tail {{ !isCaret ? 'gc-tooltip-tail-hidden': '' }}"></div>
     {{ progressbar }}
 
-    {{ title }}
+    <!-- {{ title }} -->
     {{ description }}
     {{ close }}
 

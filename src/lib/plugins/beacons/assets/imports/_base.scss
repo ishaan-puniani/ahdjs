@@ -6,7 +6,10 @@
   border-radius: 50%;
   cursor: pointer;
   z-index: 64;
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  // box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 
   &:before {
     position: absolute;
@@ -89,6 +92,16 @@
       margin-top: -3px;
     }
   }
+}
+
+.gc-beacon--label {
+    position: absolute;
+  cursor: pointer;
+  z-index: 64;
+  &:before {
+    content: attr(data-beacon-label);
+  }
+  padding: 2px;
 }
 
 .gc-beacon-fixed {
