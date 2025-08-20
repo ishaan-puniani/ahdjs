@@ -33,6 +33,7 @@ import closeTmpl from './templates/close.html';
 import copyrightTmpl from './templates/copyright.html';
 import notificationTmpl from './templates/notification.html';
 import fakeStepTmpl from './templates/fake-step.html';
+import { animationMode, DISMISSAL_SETTINGS } from './utils/constants';
 
 export default class GuideChimp {
     /**
@@ -117,7 +118,7 @@ export default class GuideChimp {
             position: 'bottom',
             useKeyboard: true,
             exitEscape: true,
-            exitOverlay: true,
+            exitOverlay: false,
             showPagination: true,
             showNavigation: true,
             showProgressbar: true,
@@ -915,14 +916,32 @@ export default class GuideChimp {
         const overlayEl = overlayEls[0];
 
         if (!this.currentStep.isBackdrop) {
-            if (!overlayEl.classList.contains("gc-overlay-hidden")) {
-            overlayEl.classList.add("gc-overlay-hidden");
-            }
-        } else {
-            if (overlayEl.classList.contains("gc-overlay-hidden")) {
-            overlayEl.classList.remove("gc-overlay-hidden");
+                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                overlayEl.classList.add("gc-overlay-hidden");
+                }
+            } else {
+                if (overlayEl.classList.contains("gc-overlay-hidden")) {
+                overlayEl.classList.remove("gc-overlay-hidden");
+                }
             }
         }
+
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
+            || this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.buttonClickOnly
+        ) {
+            this.setOptions({
+                exitOverlay: false,
+            })
+        } else {
+            this.setOptions({
+                exitOverlay: true,
+            })
+        }
+
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+            this.setOptions({
+                exitOverlay: true,
+            })
         }
         
 
@@ -1037,7 +1056,7 @@ export default class GuideChimp {
         const root = document.documentElement;
 
         if (this.currentStep.animation) {
-            tooltipStyle.animation = this.currentStep.animation;
+            tooltipStyle.animation = animationMode(this.currentStep.animation);
         }
 
         if(this.options.type === "snackbar"){

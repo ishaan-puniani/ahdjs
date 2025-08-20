@@ -55,7 +55,8 @@
 }
 
 .gc-overlay-hidden {
-  display: none;
+  opacity: 0;
+  pointer-events: auto;
 }
 
 .gc-control {

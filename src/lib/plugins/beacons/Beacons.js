@@ -12,7 +12,7 @@ import domTemplate from "../../utils/domTemplate";
 import beaconTpl from "./templates/beacon.html";
 import beaconWithLabel from "./templates/beaconWithLabel.html";
 import infoIcon from "./assets/icons/info.svg";
-import questionIcon from "./assets/icons/question.svg";
+import helpIcon from "./assets/icons/helpIcon.svg";
 import warningIcon from "./assets/icons/warning.svg";
 import beacon from "./assets/icons/beacon.svg";
 
@@ -268,7 +268,7 @@ export default class Beacons {
   }
 
   getBeaconTpl(data) {
-    if (data?.label?.isVisible) {
+    if (data?.triggerLabel?.isVisible) {
       return beaconWithLabel;
     }
     return beaconTpl;
@@ -294,8 +294,8 @@ export default class Beacons {
 
   iconType(type) {
     switch (type) {
-      case "question":
-        return `url(${questionIcon})`;
+      case "help":
+        return `url(${helpIcon})`;
       case "info":
         return `url(${infoIcon})`;
       case "warning":
@@ -307,7 +307,7 @@ export default class Beacons {
 
   setBeaconPosition(el, beaconEl, options = {}) {
     let { position, boundary } = options;
-    const { icon, label } = options;
+    const { triggerIcon, triggerLabel } = options;
     position = position || this.options.position;
     boundary = boundary || this.options.boundary;
     boundary = boundary === "inner" ? "inner" : "outer";
@@ -331,17 +331,17 @@ export default class Beacons {
     beaconEl.setAttribute("data-beacon-position", position);
     beaconEl.setAttribute("data-beacon-boundary", boundary);
 
-    if(icon?.isVisible) {
-      beaconStyle.backgroundImage = this.iconType(icon?.type);
-      beaconStyle.opacity = icon?.opacity ?? 1;
-      beaconStyle.backgroundColor = icon?.color ?? "white";
+    if(triggerIcon?.isVisible) {
+      beaconStyle.backgroundImage = this.iconType(triggerIcon?.type);
+      beaconStyle.opacity = triggerIcon?.opacity ?? 1;
+      beaconStyle.backgroundColor = triggerIcon?.color ?? "white";
     }
 
-    if(label?.isVisible) {
-      beaconStyle.opacity = label?.opacity ?? 1;
-      beaconStyle.backgroundColor = label?.backgroundColor ?? "#fff";
-      beaconStyle.color = label?.color ?? "#000";
-      beaconEl.setAttribute("data-beacon-label", label?.label ?? "NA");
+    if(triggerLabel?.isVisible) {
+      beaconStyle.opacity = triggerLabel?.opacity ?? 1;
+      beaconStyle.backgroundColor = triggerLabel?.background ?? "#fff";
+      beaconStyle.color = triggerLabel?.color ?? "#000";
+      beaconEl.setAttribute("data-beacon-label", triggerLabel?.text ?? "NA");
     }
 
     switch (position) {
