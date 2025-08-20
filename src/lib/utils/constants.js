@@ -43,3 +43,9 @@ export const animationMode = (type) => {
       return "none";
   }
 };
+
+export const TRIGGER_MODE = {
+  icon: "icon",
+  noIcon: "noIcon",
+  label: "label",
+};

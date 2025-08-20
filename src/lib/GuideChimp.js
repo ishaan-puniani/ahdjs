@@ -1055,8 +1055,8 @@ export default class GuideChimp {
 
         const root = document.documentElement;
 
-        if (this.currentStep.animation) {
-            tooltipStyle.animation = animationMode(this.currentStep.animation);
+        if (this.currentStep.animationType) {
+            tooltipStyle.animation = animationMode(this.currentStep.animationType);
         }
 
         if(this.options.type === "snackbar"){

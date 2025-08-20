@@ -15,6 +15,7 @@ import infoIcon from "./assets/icons/info.svg";
 import helpIcon from "./assets/icons/helpIcon.svg";
 import warningIcon from "./assets/icons/warning.svg";
 import beacon from "./assets/icons/beacon.svg";
+import { TRIGGER_MODE } from "../../utils/constants";
 
 export default class Beacons {
   constructor(beacons, options = {}) {
@@ -268,7 +269,7 @@ export default class Beacons {
   }
 
   getBeaconTpl(data) {
-    if (data?.triggerLabel?.isVisible) {
+    if (data?.triggerMode === TRIGGER_MODE.label || data?.triggerMode === TRIGGER_MODE.noIcon) {
       return beaconWithLabel;
     }
     return beaconTpl;
@@ -307,7 +308,7 @@ export default class Beacons {
 
   setBeaconPosition(el, beaconEl, options = {}) {
     let { position, boundary } = options;
-    const { triggerIcon, triggerLabel } = options;
+    const { triggerIcon, triggerLabel, triggerMode } = options;
     position = position || this.options.position;
     boundary = boundary || this.options.boundary;
     boundary = boundary === "inner" ? "inner" : "outer";
@@ -331,17 +332,18 @@ export default class Beacons {
     beaconEl.setAttribute("data-beacon-position", position);
     beaconEl.setAttribute("data-beacon-boundary", boundary);
 
-    if(triggerIcon?.isVisible) {
+    if(triggerMode === TRIGGER_MODE.icon) {
       beaconStyle.backgroundImage = this.iconType(triggerIcon?.type);
       beaconStyle.opacity = triggerIcon?.opacity ?? 1;
       beaconStyle.backgroundColor = triggerIcon?.color ?? "white";
     }
 
-    if(triggerLabel?.isVisible) {
+    if(triggerMode === TRIGGER_MODE.label || triggerMode === TRIGGER_MODE.noIcon) {
       beaconStyle.opacity = triggerLabel?.opacity ?? 1;
       beaconStyle.backgroundColor = triggerLabel?.background ?? "#fff";
       beaconStyle.color = triggerLabel?.color ?? "#000";
-      beaconEl.setAttribute("data-beacon-label", triggerLabel?.text ?? "NA");
+      const text = triggerMode === TRIGGER_MODE.label ? triggerLabel?.text ?? "" : "";
+      beaconEl.setAttribute("data-beacon-label", text);
     }
 
     switch (position) {
