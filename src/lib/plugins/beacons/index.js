@@ -62,9 +62,13 @@ export default (Class, factory) => {
       }
 
       // Start guide if instance can be created
-      runGuide(beacon, Class) {
-        const guide = this.createGuideInstance(beacon, Class);
-        if (guide) guide.start();
+      runGuide(beacon, GuideClass) {
+        const guide = this.createGuideInstance(beacon, GuideClass);
+        const hasTooltip = document.querySelector(".gc-tooltip") !== null;
+
+        if (guide && !hasTooltip) {
+          guide.start();
+        }
       }
 
       // Attach event listener dynamically based on beacon.trigger

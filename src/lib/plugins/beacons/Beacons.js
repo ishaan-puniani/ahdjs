@@ -336,6 +336,9 @@ export default class Beacons {
       beaconStyle.backgroundImage = this.iconType(triggerIcon?.type);
       beaconStyle.opacity = triggerIcon?.opacity ?? 1;
       beaconStyle.backgroundColor = triggerIcon?.color ?? "white";
+      if (!triggerIcon?.isAnimated) {
+        beaconEl.classList.add("gc-beacon-no-anim");
+      }
     }
 
     if(triggerMode === TRIGGER_MODE.label || triggerMode === TRIGGER_MODE.noIcon) {
