@@ -237,7 +237,8 @@ class AHD extends GuideChimp {
     // });
 
     // Mapped with Pageguide API response
-    const onboardTour = applicableTours.flatMap((row: any) =>
+    const onboardingTours = applicableTours.filter((t: any) => t.slug === url);
+    const onboardTour = onboardingTours.flatMap((row: any) =>
       Array.isArray(row.steps)
         ? row.steps
           .filter((step: any) => !!step.content)
