@@ -100,6 +100,7 @@ export default class GuideChimp {
             toursRefetchIntervalInSec: 86400,
             helpRefetchIntervalInSec: 86400,
             statsCacheIntervalInSec: 86400,
+            applicationId:'1234'
         };
     }
 
@@ -202,7 +203,7 @@ export default class GuideChimp {
      */
     setTour(tour,options={}) {
         this.tour = tour;
-        this.setOptions(options)
+        // this.setOptions(options)
         return this;
     }
 
