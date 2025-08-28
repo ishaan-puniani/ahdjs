@@ -458,7 +458,7 @@ class AHD extends GuideChimp {
 
   private async fetchAndCacheTourData(toursData: any) {
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/context-tours?filter[isActive]=true`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/pageguide?filter[status]=live`
     ).then((res) => res.json());
     if (respons.rows) {
       toursData = respons.rows.filter((row: any) => !!row.content);
