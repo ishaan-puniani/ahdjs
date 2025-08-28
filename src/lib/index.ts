@@ -227,14 +227,32 @@ class AHD extends GuideChimp {
     );
 
     //if there is anything to open
-    const onboardTour = applicableTours.map((row: any) => {
-      return {
-        element: row.selector,
-        title: row.content.title,
-        description: this.generateDescription(row.content),
-        position: row.position,
-      };
-    });
+    // const onboardTour = applicableTours.map((row: any) => {
+    //   return {
+    //     element: row.selector,
+    //     title: row.content.title,
+    //     description: this.generateDescription(row.content),
+    //     position: row.position,
+    //   };
+    // });
+
+    // Mapped with Pageguide API response
+    const onboardTour = applicableTours.flatMap((row: any) =>
+      Array.isArray(row.steps)
+        ? row.steps
+          .filter((step: any) => !!step.content)
+          .map((step: any) => ({
+            element: step.selector,
+            description: step.content,
+            position: step.position,
+            animationType: step.animationType,
+            delay: step.delay,
+            isBackdrop: step.isBackdrop,
+            isCaret: step.isCaret,
+            dismissalSetting: step.dismissalSetting,
+          }))
+        : []
+    );
     this.setTour(onboardTour);
     this.start();
   }
