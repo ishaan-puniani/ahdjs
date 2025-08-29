@@ -213,7 +213,7 @@ class AHD extends GuideChimp {
     return applicableHelp;
   }
 
-  async showPageTour(url: string, refetch: boolean) {
+  async showPageTour(url: string, refetch: boolean, forceShow: boolean) {
     await this.stop();
     debugger;
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
@@ -224,7 +224,8 @@ class AHD extends GuideChimp {
     const applicableTours = this.getApplicabeDataForUrl(
       toursData,
       url,
-      "pageview"
+      "pageview",
+      forceShow
     );
 
     //if there is anything to open
