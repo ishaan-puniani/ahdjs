@@ -33,7 +33,7 @@ import closeTmpl from './templates/close.html';
 import copyrightTmpl from './templates/copyright.html';
 import notificationTmpl from './templates/notification.html';
 import fakeStepTmpl from './templates/fake-step.html';
-
+import { animationMode, DISMISSAL_SETTINGS } from './utils/constants';
 export default class GuideChimp {
     /**
      * GuideChimp constructor
@@ -128,7 +128,6 @@ export default class GuideChimp {
             toursRefetchIntervalInSec: 86400,
             helpRefetchIntervalInSec: 86400,
             statsCacheIntervalInSec: 86400,
-            applicationId: '1234'
         };
     }
 
@@ -898,6 +897,48 @@ export default class GuideChimp {
         tooltipStyle.bottom = null;
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
+        tooltipStyle.animation = null;
+
+        if (this.currentStep.delay) {
+            tooltipStyle.visibility = "hidden";
+            setTimeout(() => {
+                tooltipStyle.visibility = "visible";
+            }, this.currentStep.delay);
+        }
+
+        const overlayEls = document.getElementsByClassName("gc-overlay");
+
+        if (overlayEls.length > 0) {
+            const overlayEl = overlayEls[0];
+
+            if (!this.currentStep.isBackdrop) {
+                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                    overlayEl.classList.add("gc-overlay-hidden");
+                }
+            } else {
+                if (overlayEl.classList.contains("gc-overlay-hidden")) {
+                    overlayEl.classList.remove("gc-overlay-hidden");
+                }
+            }
+        }
+
+        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
+            || this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.buttonClickOnly
+        ) {
+            this.setOptions({
+                exitOverlay: false,
+            })
+        } else {
+            this.setOptions({
+                exitOverlay: true,
+            })
+        }
+
+        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+            this.setOptions({
+                exitOverlay: true,
+            })
+        }
 
         const {
             top: elTop,
@@ -1009,6 +1050,9 @@ export default class GuideChimp {
 
         const root = document.documentElement;
         // debugger
+        if (this.currentStep.animationType) {
+            tooltipStyle.animation = animationMode(this.currentStep.animationType);
+        }
         if (this.options.type === "snackbar") {
             switch (this.currentStep.position) {
                 case 'top': {
@@ -1385,7 +1429,7 @@ export default class GuideChimp {
         const defaults = {
             ...this.getDefaultTmplData(),
             progressbar: this.createProgressbarEl(data),
-            title: this.createTitleEl(data),
+            // title: this.createTitleEl(data),
             description: this.createDescriptionEl(data),
             close: this.createCloseEl(data),
             customButtons: this.createCustomButtonsEl(data),
@@ -1394,6 +1438,7 @@ export default class GuideChimp {
             next: this.createNextEl(data),
             copyright: this.createCopyrightEl(data),
             notification: this.createNotificationEl(data),
+            isCaret: this.currentStep?.isCaret,
         };
 
         return this.createEl('tooltip', this.getTooltipTmpl(), { ...defaults, ...data });
