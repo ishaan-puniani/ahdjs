@@ -462,7 +462,7 @@ class AHD extends GuideChimp {
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/pageguide?filter[status]=live&filter[slug]=${slug}`
     ).then((res) => res.json());
     if (respons.rows) {
-      toursData = respons.rows.filter((row: any) => !!row.content);
+      toursData = respons.rows;
       LocalStorage.put(
         TOUR_DATA_STORAGE_KEY,
         toursData,
