@@ -33,6 +33,7 @@ import closeTmpl from './templates/close.html';
 import copyrightTmpl from './templates/copyright.html';
 import notificationTmpl from './templates/notification.html';
 import fakeStepTmpl from './templates/fake-step.html';
+import { animationMode, DISMISSAL_SETTINGS } from './utils/constants';
 
 export default class GuideChimp {
     /**
@@ -67,6 +68,17 @@ export default class GuideChimp {
         this.elements = new Map();
 
         this.init();
+
+        this.actions = {
+            onNextStep: this.onNextStep.bind(this),
+            onPrevStep: this.onPrevStep.bind(this),
+            onCloseStep: this.onCloseStep.bind(this),
+        };
+
+        if(document) {
+            document.addEventListener("click", (e) => this.handleClick(e));
+        } 
+
     }
 
     /**
@@ -77,6 +89,26 @@ export default class GuideChimp {
 
     }
 
+    handleClick(e) {   
+        const action = e.target.getAttribute("data-action");
+        if (action && this.actions[action]) {
+            this.actions[action]();
+        }
+    }
+
+    onNextStep() {
+        this.next({ event: "change" })
+    }
+
+    onPrevStep() {
+        this.previous({ event: "change" })
+    }
+
+    onCloseStep() {
+        this.stop({ event: "change" })
+    }
+
+    // options -------------------------
     /**
      * Default options
      * @return {Object}
@@ -86,11 +118,11 @@ export default class GuideChimp {
             position: 'bottom',
             useKeyboard: true,
             exitEscape: true,
-            exitOverlay: true,
+            exitOverlay: false,
             showPagination: true,
             showNavigation: true,
             showProgressbar: true,
-            paginationTheme: 'circles',
+            paginationTheme: 'numbers', // if="paginationTheme === 'numbers' || steps.length >= paginationCirclesMaxItems"
             paginationCirclesMaxItems: 10,
             interaction: true,
             padding: 8,
@@ -870,6 +902,49 @@ export default class GuideChimp {
         tooltipStyle.bottom = null;
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
+        tooltipStyle.animation = null;
+        
+        if (this.currentStep.delay) {
+            tooltipStyle.visibility = "hidden";
+            setTimeout(() => {
+                tooltipStyle.visibility = "visible";
+            }, this.currentStep.delay);
+        }
+
+        const overlayEls = document.getElementsByClassName("gc-overlay");
+
+        if (overlayEls.length > 0) {
+        const overlayEl = overlayEls[0];
+
+        if (!this.currentStep.isBackdrop) {
+                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                overlayEl.classList.add("gc-overlay-hidden");
+                }
+            } else {
+                if (overlayEl.classList.contains("gc-overlay-hidden")) {
+                overlayEl.classList.remove("gc-overlay-hidden");
+                }
+            }
+        }
+
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
+            || this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.buttonClickOnly
+        ) {
+            this.setOptions({
+                exitOverlay: false,
+            })
+        } else {
+            this.setOptions({
+                exitOverlay: true,
+            })
+        }
+
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+            this.setOptions({
+                exitOverlay: true,
+            })
+        }
+        
 
         const {
             top: elTop,
@@ -980,7 +1055,11 @@ export default class GuideChimp {
         tooltipEl.setAttribute('data-guidechimp-position', position);
 
         const root = document.documentElement;
-        // debugger
+
+        if (this.currentStep.animationType) {
+            tooltipStyle.animation = animationMode(this.currentStep.animationType);
+        }
+
         if(this.options.type === "snackbar"){
             switch (this.currentStep.position) {    
                 case 'top':{
@@ -1353,11 +1432,12 @@ export default class GuideChimp {
         return tooltipTmpl;
     }
 
+    // main element made here
     createTooltipEl(data = {}) {
         const defaults = {
             ...this.getDefaultTmplData(),
             progressbar: this.createProgressbarEl(data),
-            title: this.createTitleEl(data),
+            // title: this.createTitleEl(data),
             description: this.createDescriptionEl(data),
             close: this.createCloseEl(data),
             customButtons: this.createCustomButtonsEl(data),
@@ -1366,6 +1446,7 @@ export default class GuideChimp {
             next: this.createNextEl(data),
             copyright: this.createCopyrightEl(data),
             notification: this.createNotificationEl(data),
+            isCaret: this.currentStep?.isCaret,
         };
 
         return this.createEl('tooltip', this.getTooltipTmpl(), { ...defaults, ...data });
