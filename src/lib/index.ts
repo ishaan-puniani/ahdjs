@@ -291,20 +291,76 @@ class AHD extends GuideChimp {
     );
 
     //if there is anything to open
-    const beacons = applicableTours.map((row: any) => {
-      return {
-        element: row.selector,
-        position: row.position,
-        tour: [
-          {
-            element: row.selector,
-            position: row.position,
-            title: row.content.title,
-            description: this.generateDescription(row.content),
-          },
-        ],
-      };
-    });
+    // const beacons = applicableTours.map((row: any) => {
+    //   return {
+    //     element: row.selector,
+    //     position: row.position,
+    //     tour: [
+    //       {
+    //         element: row.selector,
+    //         position: row.position,
+    //         title: row.content.title,
+    //         description: this.generateDescription(row.content),
+    //       },
+    //     ],
+    //   };
+    // });
+    const beacons = Array.isArray(response.steps)
+      ? response.steps
+        .filter((step: any) => !!step.content)
+        .map((step: any) => {
+          const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
+
+          const tourSteps = [{
+            element: step.selector || "#default-element",
+            title: step.title || "Default Title",
+            description: step.content,
+            animationType: ANIMATION_TYPES[step.animationType as keyof typeof ANIMATION_TYPES] || ANIMATION_TYPES.fadeIn,
+            delay: step.delay || behavior.delay || 300,
+            isBackdrop: step.isBackdrop !== undefined ? step.isBackdrop : (behavior.isBackdrop !== undefined ? behavior.isBackdrop : true),
+            isCaret: step.isCaret !== undefined ? step.isCaret : (behavior.isCaret !== undefined ? behavior.isCaret : true),
+            position: step.position || behavior.position || "right"
+          }];
+
+          const beacon: any = {
+            element: step.selector || behavior.selector || "#default-element",
+            position: step.position || behavior.position || "right",
+            boundary: "outer",
+            class: "beacon-green",
+            triggerMode: (step.triggerMode || behavior.triggerMode) === "icon" ? TRIGGER_MODE.icon : TRIGGER_MODE.label,
+            trigger: (step.triggerBehaviour || behavior.triggerBehaviour) === "onClick" ? TRIGGER_EVENTS.onClick : TRIGGER_EVENTS.onHover,
+            tour: tourSteps
+          };
+
+          const triggerIconData = step.triggerIcon || behavior.triggerIcon;
+          const triggerLabelData = step.triggerLabel || behavior.triggerLabel;
+
+          if (beacon.triggerMode === TRIGGER_MODE.icon && triggerIconData) {
+           
+            let iconType = ICON_TYPE.beacon; 
+            if (triggerIconData.type === "info") iconType = ICON_TYPE.info;
+            if (triggerIconData.type === "warning") iconType = ICON_TYPE.warning;
+            if (triggerIconData.type === "helpIcon") iconType = ICON_TYPE.helpIcon;
+
+            beacon.triggerIcon = {
+              type: iconType,
+              color: triggerIconData.color || "#000000",
+              opacity: triggerIconData.opacity ? (triggerIconData.opacity / 100) : 1,
+              isAnimated: triggerIconData.isAnimated || false
+            };
+          } else if (beacon.triggerMode === TRIGGER_MODE.label && triggerLabelData) {
+            beacon.triggerLabel = {
+              text: triggerLabelData.text || step.title || "Click me",
+              color: triggerLabelData.color || "#000000",
+              background: triggerLabelData.backgroundColor || "#ffffff"
+            };
+          }
+
+          return beacon;
+        })
+      : [];
+
+    console.log('beacons', beacons);
 
     AHDjs.beacons(beacons, {
       boundary: "outer",
