@@ -213,28 +213,47 @@ class AHD extends GuideChimp {
     return applicableHelp;
   }
 
-  async showPageTour(url: string, refetch: boolean) {
+  async showPageTour(url: string, refetch: boolean,) {
     await this.stop();
+    debugger;
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData);
+      toursData = await this.fetchAndCacheTourData(toursData, url);
     }
     const applicableTours = this.getApplicabeDataForUrl(
       toursData,
       url,
-      "pageview"
+      "pageview",
     );
 
     //if there is anything to open
-    const onboardTour = applicableTours.map((row: any) => {
-      return {
-        element: row.selector,
-        title: row.content.title,
-        description: this.generateDescription(row.content),
-        position: row.position,
-      };
-    });
+    // const onboardTour = applicableTours.map((row: any) => {
+    //   return {
+    //     element: row.selector,
+    //     title: row.content.title,
+    //     description: this.generateDescription(row.content),
+    //     position: row.position,
+    //   };
+    // });
+
+    // Mapped with Pageguide API response
+    const onboardTour = applicableTours.flatMap((row: any) =>
+      Array.isArray(row.steps)
+        ? row.steps
+          .filter((step: any) => !!step.content)
+          .map((step: any) => ({
+            element: step.selector,
+            description: step.content,
+            position: step.position,
+            animationType: step.animationType,
+            delay: step.delay,
+            isBackdrop: step.isBackdrop,
+            isCaret: step.isCaret,
+            dismissalSetting: step.dismissalSetting,
+          }))
+        : []
+    );
     this.setTour(onboardTour);
     this.start();
   }
@@ -262,7 +281,7 @@ class AHD extends GuideChimp {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData);
+      toursData = await this.fetchAndCacheTourData(toursData, slug);
     }
     const applicableTours = this.getApplicabeDataForUrl(
       toursData,
@@ -438,12 +457,12 @@ class AHD extends GuideChimp {
     return highlightsData;
   }
 
-  private async fetchAndCacheTourData(toursData: any) {
+  private async fetchAndCacheTourData(toursData: any, slug: string) {
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/context-tours?filter[isActive]=true`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/pageguide?filter[status]=live&filter[slug]=${slug}`
     ).then((res) => res.json());
     if (respons.rows) {
-      toursData = respons.rows.filter((row: any) => !!row.content);
+      toursData = respons.rows;
       LocalStorage.put(
         TOUR_DATA_STORAGE_KEY,
         toursData,

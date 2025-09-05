@@ -11,11 +11,13 @@ export const ANIMATION_TYPES = {
   slide: "slide",
 };
 
+
 export const DISMISSAL_SETTINGS = {
   onOutsideClick: "onOutsideClick",
   dismissButtonClickOnly: "dismissButtonClickOnly",
   buttonClickOnly: "buttonClickOnly",
 };
+
 
 export const POSITION = {
   top: "top",
@@ -24,12 +26,14 @@ export const POSITION = {
   right: "right",
 };
 
+
 export const ICON_TYPE = {
   help: "help",
   info: "info",
   warning: "warning",
   beacon: "beacon",
 };
+
 
 export const animationMode = (type) => {
   switch (type) {
@@ -49,3 +53,4 @@ export const TRIGGER_MODE = {
   noIcon: "noIcon",
   label: "label",
 };
+

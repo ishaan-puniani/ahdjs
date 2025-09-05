@@ -75,9 +75,11 @@ export default class GuideChimp {
             onCloseStep: this.onCloseStep.bind(this),
         };
 
+
         if(document) {
             document.addEventListener("click", (e) => this.handleClick(e));
         } 
+
 
     }
 
@@ -89,7 +91,9 @@ export default class GuideChimp {
 
     }
 
+
     handleClick(e) {   
+
         const action = e.target.getAttribute("data-action");
         if (action && this.actions[action]) {
             this.actions[action]();
@@ -109,6 +113,7 @@ export default class GuideChimp {
     }
 
     // options -------------------------
+
     /**
      * Default options
      * @return {Object}
@@ -232,9 +237,9 @@ export default class GuideChimp {
      * @param tour
      * @return {this}
      */
-    setTour(tour,options={}) {
+    setTour(tour, options = {}) {
         this.tour = tour;
-        this.setOptions(options)
+        // this.setOptions(options)
         return this;
     }
 
@@ -817,18 +822,18 @@ export default class GuideChimp {
 
     setControlPosition(controlEl) {
         const el = this.getStepEl(this.currentStep);
-         if(this.options.type==="snackbar"){
-            switch(this.currentStep.position){
-                case "top":{
-                    el.style.top= 0;
+        if (this.options.type === "snackbar") {
+            switch (this.currentStep.position) {
+                case "top": {
+                    el.style.top = 0;
                     break;
                 }
-                case "topRight":{
-                    el.style.top= "100px";
-                    el.style.left= "400px";
+                case "topRight": {
+                    el.style.top = "100px";
+                    el.style.left = "400px";
 
-                    controlEl.style.top= "100px";
-                    controlEl.style.left= "400px";
+                    controlEl.style.top = "100px";
+                    controlEl.style.left = "400px";
 
                 }
             }
@@ -868,10 +873,10 @@ export default class GuideChimp {
     }
 
     setTooltipPosition(tooltipEl, options = {}) {
-         if (!this.currentStep) {
+        if (!this.currentStep) {
             return this;
         }
-        
+
         const el = this.getStepEl(this.currentStep);
 
         if (!tooltipEl || !el) {
@@ -902,7 +907,7 @@ export default class GuideChimp {
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
-        
+
         if (this.currentStep.delay) {
             tooltipStyle.visibility = "hidden";
             setTimeout(() => {
@@ -913,6 +918,7 @@ export default class GuideChimp {
         const overlayEls = document.getElementsByClassName("gc-overlay");
 
         if (overlayEls.length > 0) {
+
         const overlayEl = overlayEls[0];
 
         if (!this.currentStep.isBackdrop) {
@@ -939,15 +945,16 @@ export default class GuideChimp {
         }
 
         if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+
             this.setOptions({
                 exitOverlay: true,
             })
         }
-        
+
 
         const {
             top: elTop,
-             bottom: elBottom,
+            bottom: elBottom,
             left: elLeft,
             right: elRight,
             width: elWidth,
@@ -986,7 +993,7 @@ export default class GuideChimp {
         } else {
             // calculate position
             const positions = ['bottom', 'right', 'left', 'top'];
-             let {
+            let {
                 marginTop: tooltipMarginTop,
                 marginLeft: tooltipMarginLeft,
                 marginRight: tooltipMarginRight,
@@ -1062,33 +1069,34 @@ export default class GuideChimp {
         if(this.options.type === "snackbar"){
             switch (this.currentStep.position) {    
                 case 'top':{
+
                     tooltipStyle.top = `${0 + padding}px`;
-                    break; 
+                    break;
                 }
             }
         } else {
-        switch (position) {
-            case 'top':
-                tooltipStyle.bottom = `${elHeight + padding}px`;
-                break;
-            case 'right':
-                tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
-                break;
-            case 'left':
-                tooltipStyle.right = `${root.clientWidth - (elLeft - (padding / 2))}px`;
-                break;
-            case 'bottom':
-                tooltipStyle.top = `${elHeight + padding}px`;
-                break;
-            default:{
-               
+            switch (position) {
+                case 'top':
+                    tooltipStyle.bottom = `${elHeight + padding}px`;
+                    break;
+                case 'right':
+                    tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
+                    break;
+                case 'left':
+                    tooltipStyle.right = `${root.clientWidth - (elLeft - (padding / 2))}px`;
+                    break;
+                case 'bottom':
+                    tooltipStyle.top = `${elHeight + padding}px`;
+                    break;
+                default: {
+
                     tooltipStyle.left = '50%';
                     tooltipStyle.top = '50%';
                     tooltipStyle.transform = 'translate(-50%,-50%)';
-                     
+
+                }
             }
         }
-    }
         tooltipEl.removeAttribute('data-guidechimp-alignment');
 
         if (alignment) {
@@ -1965,7 +1973,7 @@ export default class GuideChimp {
         this.setControlPosition(this.getEl('control'));
         this.setInteractionPosition(this.getEl('interaction'));
         this.setTooltipPosition(this.getEl('tooltip'));
- 
+
         return this;
     }
 }
