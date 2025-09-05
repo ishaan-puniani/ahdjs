@@ -10,6 +10,12 @@ import domTemplate from "../../utils/domTemplate";
 
 // templates
 import beaconTpl from "./templates/beacon.html";
+import beaconWithLabel from "./templates/beaconWithLabel.html";
+import infoIcon from "./assets/icons/info.svg";
+import helpIcon from "./assets/icons/helpIcon.svg";
+import warningIcon from "./assets/icons/warning.svg";
+import beacon from "./assets/icons/beacon.svg";
+import { TRIGGER_MODE } from "../../utils/constants";
 
 export default class Beacons {
   constructor(beacons, options = {}) {
@@ -262,13 +268,15 @@ export default class Beacons {
     return array.map((v, i) => ({ ...v, id: v.id || i }));
   }
 
-  getBeaconTpl() {
+  getBeaconTpl(data) {
+    if (data?.triggerMode === TRIGGER_MODE.label || data?.triggerMode === TRIGGER_MODE.noIcon) {
+      return beaconWithLabel;
+    }
     return beaconTpl;
   }
 
   createBeaconEl(beacon) {
     const data = { ...beacon };
-
     data.onClick = (e) => {
       e.stopPropagation();
       if (beacon.onClick) {
@@ -276,7 +284,7 @@ export default class Beacons {
       }
     };
 
-    return domTemplate(this.getBeaconTpl(), { beacon: data });
+    return domTemplate(this.getBeaconTpl(data), { beacon: data });
   }
 
   getEl(selector) {
@@ -285,9 +293,22 @@ export default class Beacons {
       : document.querySelector(selector);
   }
 
+  iconType(type) {
+    switch (type) {
+      case "help":
+        return `url(${helpIcon})`;
+      case "info":
+        return `url(${infoIcon})`;
+      case "warning":
+        return `url(${warningIcon})`;
+      default:
+        return `url(${beacon})`;
+    }
+  }
+
   setBeaconPosition(el, beaconEl, options = {}) {
     let { position, boundary } = options;
-
+    const { triggerIcon, triggerLabel, triggerMode } = options;
     position = position || this.options.position;
     boundary = boundary || this.options.boundary;
     boundary = boundary === "inner" ? "inner" : "outer";
@@ -310,6 +331,23 @@ export default class Beacons {
 
     beaconEl.setAttribute("data-beacon-position", position);
     beaconEl.setAttribute("data-beacon-boundary", boundary);
+
+    if(triggerMode === TRIGGER_MODE.icon) {
+      beaconStyle.backgroundImage = this.iconType(triggerIcon?.type);
+      beaconStyle.opacity = triggerIcon?.opacity ?? 1;
+      beaconStyle.backgroundColor = triggerIcon?.color ?? "white";
+      if (!triggerIcon?.isAnimated) {
+        beaconEl.classList.add("gc-beacon-no-anim");
+      }
+    }
+
+    if(triggerMode === TRIGGER_MODE.label || triggerMode === TRIGGER_MODE.noIcon) {
+      beaconStyle.opacity = triggerLabel?.opacity ?? 1;
+      beaconStyle.backgroundColor = triggerLabel?.background ?? "#fff";
+      beaconStyle.color = triggerLabel?.color ?? "#000";
+      const text = triggerMode === TRIGGER_MODE.label ? triggerLabel?.text ?? "" : "";
+      beaconEl.setAttribute("data-beacon-label", text);
+    }
 
     switch (position) {
       case "top-left": {

@@ -5,7 +5,6 @@ export const TRIGGER_EVENTS = {
   onLongPress: "onLongPress",
 };
 
-
 export const ANIMATION_TYPES = {
   instant: "instant",
   fadeIn: "fadeIn",
@@ -49,9 +48,9 @@ export const animationMode = (type) => {
   }
 };
 
-
 export const TRIGGER_MODE = {
   icon: "icon",
   noIcon: "noIcon",
   label: "label",
 };
+

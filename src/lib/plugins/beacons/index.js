@@ -6,6 +6,7 @@
  */
 import Beacons from "./Beacons";
 import "./assets/style.scss";
+import { TRIGGER_EVENTS } from "../../utils/constants";
 
 export default (Class, factory) => {
   // eslint-disable-next-line no-param-reassign
@@ -41,28 +42,79 @@ export default (Class, factory) => {
         return data;
       }
 
-      createBeaconEl(beacon) {
-        const el = super.createBeaconEl(beacon);
+      createGuideInstance(beacon, Class) {
+        if (!beacon?.tour) return null;
 
-        if (beacon.tour) {
-          el.addEventListener("click", () => {
-            let guide = null;
-
-            if (typeof beacon.tour === "string" || Array.isArray(beacon.tour)) {
-              guide = new Class(beacon.tour);
-            } else if (beacon.tour instanceof Class) {
-              guide = beacon.tour;
-            } else if (typeof beacon.tour === "object") {
-              const { steps, options: tourOptions } = beacon.tour;
-              guide = new Class(steps, tourOptions);
-            }
-
-            if (guide) {
-              guide.start();
-            }
-          });
+        if (typeof beacon.tour === "string" || Array.isArray(beacon.tour)) {
+          return new Class(beacon.tour);
         }
 
+        if (beacon.tour instanceof Class) {
+          return beacon.tour;
+        }
+
+        if (typeof beacon.tour === "object") {
+          const { steps, options: tourOptions } = beacon.tour;
+          return new Class(steps, tourOptions);
+        }
+
+        return null;
+      }
+
+      // Start guide if instance can be created
+      runGuide(beacon, GuideClass) {
+        const guide = this.createGuideInstance(beacon, GuideClass);
+        const hasTooltip = document.querySelector(".gc-tooltip") !== null;
+
+        if (guide && !hasTooltip) {
+          guide.start();
+        }
+      }
+
+      // Attach event listener dynamically based on beacon.trigger
+      attachGuideEvent(el, beacon, Class) {
+        const trigger = beacon?.trigger;
+        const handler = () => this.runGuide(beacon, Class);
+
+        switch (trigger) {
+          case TRIGGER_EVENTS.onClick:
+            el.addEventListener("click", handler);
+            break;
+
+          case TRIGGER_EVENTS.onHover:
+            el.addEventListener("mouseenter", handler);
+            break;
+
+          case TRIGGER_EVENTS.onLongPress: {
+            let pressTimer;
+            const startPress = () => (pressTimer = setTimeout(handler, 600));
+            const clearPress = () => clearTimeout(pressTimer);
+
+            el.addEventListener("mousedown", startPress);
+            el.addEventListener("mouseup", clearPress);
+            el.addEventListener("mouseleave", clearPress);
+            el.addEventListener("touchstart", startPress);
+            el.addEventListener("touchend", clearPress);
+            break;
+          }
+
+          case TRIGGER_EVENTS.onPageLoad:
+            if (document.readyState === "loading") {
+              document.addEventListener("DOMContentLoaded", handler);
+            } else {
+              handler();
+            }
+            break;
+
+          default:
+            console.warn(`Unsupported trigger: ${trigger}`);
+        }
+      }
+
+      // Creates beacon element and attaches events
+      createBeaconEl(beacon) {
+        const el = super.createBeaconEl(beacon);
+        this.attachGuideEvent(el, beacon, Class);
         return el;
       }
     })(beacons, options);

@@ -34,6 +34,7 @@ import copyrightTmpl from './templates/copyright.html';
 import notificationTmpl from './templates/notification.html';
 import fakeStepTmpl from './templates/fake-step.html';
 import { animationMode, DISMISSAL_SETTINGS } from './utils/constants';
+
 export default class GuideChimp {
     /**
      * GuideChimp constructor
@@ -74,9 +75,12 @@ export default class GuideChimp {
             onCloseStep: this.onCloseStep.bind(this),
         };
 
-        if (document) {
+
+        if(document) {
             document.addEventListener("click", (e) => this.handleClick(e));
-        }
+        } 
+
+
     }
 
     /**
@@ -87,7 +91,9 @@ export default class GuideChimp {
 
     }
 
-    handleClick(e) {
+
+    handleClick(e) {   
+
         const action = e.target.getAttribute("data-action");
         if (action && this.actions[action]) {
             this.actions[action]();
@@ -105,6 +111,9 @@ export default class GuideChimp {
     onCloseStep() {
         this.stop({ event: "change" })
     }
+
+    // options -------------------------
+
     /**
      * Default options
      * @return {Object}
@@ -114,11 +123,11 @@ export default class GuideChimp {
             position: 'bottom',
             useKeyboard: true,
             exitEscape: true,
-            exitOverlay: true,
+            exitOverlay: false,
             showPagination: true,
             showNavigation: true,
             showProgressbar: true,
-            paginationTheme: 'circles',
+            paginationTheme: 'numbers', // if="paginationTheme === 'numbers' || steps.length >= paginationCirclesMaxItems"
             paginationCirclesMaxItems: 10,
             interaction: true,
             padding: 8,
@@ -909,20 +918,21 @@ export default class GuideChimp {
         const overlayEls = document.getElementsByClassName("gc-overlay");
 
         if (overlayEls.length > 0) {
-            const overlayEl = overlayEls[0];
 
-            if (!this.currentStep.isBackdrop) {
+        const overlayEl = overlayEls[0];
+
+        if (!this.currentStep.isBackdrop) {
                 if (!overlayEl.classList.contains("gc-overlay-hidden")) {
-                    overlayEl.classList.add("gc-overlay-hidden");
+                overlayEl.classList.add("gc-overlay-hidden");
                 }
             } else {
                 if (overlayEl.classList.contains("gc-overlay-hidden")) {
-                    overlayEl.classList.remove("gc-overlay-hidden");
+                overlayEl.classList.remove("gc-overlay-hidden");
                 }
             }
         }
 
-        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
             || this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.buttonClickOnly
         ) {
             this.setOptions({
@@ -934,11 +944,13 @@ export default class GuideChimp {
             })
         }
 
-        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+
             this.setOptions({
                 exitOverlay: true,
             })
         }
+
 
         const {
             top: elTop,
@@ -1049,13 +1061,15 @@ export default class GuideChimp {
         tooltipEl.setAttribute('data-guidechimp-position', position);
 
         const root = document.documentElement;
-        // debugger
+
         if (this.currentStep.animationType) {
             tooltipStyle.animation = animationMode(this.currentStep.animationType);
         }
-        if (this.options.type === "snackbar") {
-            switch (this.currentStep.position) {
-                case 'top': {
+
+        if(this.options.type === "snackbar"){
+            switch (this.currentStep.position) {    
+                case 'top':{
+
                     tooltipStyle.top = `${0 + padding}px`;
                     break;
                 }
@@ -1425,6 +1439,7 @@ export default class GuideChimp {
         return tooltipTmpl;
     }
 
+    // main element made here
     createTooltipEl(data = {}) {
         const defaults = {
             ...this.getDefaultTmplData(),

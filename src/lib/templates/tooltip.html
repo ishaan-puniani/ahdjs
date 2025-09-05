@@ -1,6 +1,9 @@
 <div class="gc-tooltip">
-    <div class="gc-tooltip-tail"></div>
-    <!-- {{ progressbar }} -->
+
+    <div class="gc-tooltip-tail {{ !isCaret ? 'gc-tooltip-tail-hidden': '' }}"></div>
+    {{ progressbar }}
+
+
     <!-- commentout title as its not required -->
     <!-- {{ title }} -->
     {{ description }}
