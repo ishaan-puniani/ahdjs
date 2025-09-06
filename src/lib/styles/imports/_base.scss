@@ -4,7 +4,8 @@
   }
 
   .gc-fixed {
-    position: fixed;
+    // position: fixed;
+    position: absolute;
   }
 
   &.gc-loading {
