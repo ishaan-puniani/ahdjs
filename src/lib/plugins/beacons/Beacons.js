@@ -296,13 +296,13 @@ export default class Beacons {
   iconType(type) {
     switch (type) {
       case "help":
-        return `url(${helpIcon})`;
+        return `url(https://i.ibb.co/1tTctTQP/helpIcon.png)`;
       case "info":
-        return `url(${infoIcon})`;
+        return `url(https://i.ibb.co/g20HNY0/infoIcon.png)`;
       case "warning":
-        return `url(${warningIcon})`;
+        return `url(https://i.ibb.co/XrbmwHFp/warning-Icon.png)`;
       default:
-        return `url(${beacon})`;
+        return `url(https://i.ibb.co/ccYMGHZR/beacon-Icon.png)`;
     }
   }
 
