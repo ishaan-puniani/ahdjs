@@ -226,18 +226,8 @@ class AHD extends GuideChimp {
       "pageview",
     );
 
-    //if there is anything to open
-    // const onboardTour = applicableTours.map((row: any) => {
-    //   return {
-    //     element: row.selector,
-    //     title: row.content.title,
-    //     description: this.generateDescription(row.content),
-    //     position: row.position,
-    //   };
-    // });
 
-    // Mapped with Pageguide API response
-    const onboardTour = applicableTours.flatMap((row: any) =>
+    const onboardTour = tourOnly.flatMap((row: any) =>
       Array.isArray(row.steps)
         ? row.steps
           .filter((step: any) => !!step.content)
@@ -291,22 +281,8 @@ class AHD extends GuideChimp {
       true
     );
 
-    //if there is anything to open
-    // const beacons = applicableTours.map((row: any) => {
-    //   return {
-    //     element: row.selector,
-    //     position: row.position,
-    //     tour: [
-    //       {
-    //         element: row.selector,
-    //         position: row.position,
-    //         title: row.content.title,
-    //         description: this.generateDescription(row.content),
-    //       },
-    //     ],
-    //   };
-    // });
-    const beacons = applicableTours.flatMap((tour: any) =>
+
+    const beacons = tooltipOnly.flatMap((tour: any) =>
       Array.isArray(tour.steps)
         ? tour.steps
           .filter((step: any) => !!step.content)
@@ -374,7 +350,36 @@ class AHD extends GuideChimp {
       boundary: "outer",
     }).showAll();
   }
+  async showPageExperience(url: string, refetch: boolean) {
+    await this.stop();
 
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheTourData(toursData, url);
+    }
+    const applicable = this.getApplicabeDataForUrl(
+      toursData,
+      url,
+      "pageview",
+      true
+    );
+
+    if (!applicable || applicable.length === 0) return;
+
+    const hasTour = applicable.some(
+      (r: any) => (r.type).toLowerCase() === "tour"
+    );
+    if (hasTour) {
+      await this.showPageTour(url, refetch);
+      return;
+    }
+    const hasTooltip = applicable.some(
+      (r: any) => (r.type).toLowerCase() === "tooltip"
+    );
+    if (hasTooltip) {
+      await this.showPageBeacons(url, refetch);
+    }
+  }
   async showPageHighlights(url: string, refetch: boolean, force = false) {
     await this.stop();
     let highlightsData = LocalStorage.get(HIGHLIGHTS_DATA_STORAGE_KEY);
@@ -519,7 +524,7 @@ class AHD extends GuideChimp {
 
   private async fetchAndCacheTourData(toursData: any, slug: string) {
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/pageguide?filter[status]=live&filter[slug]=${slug}`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/pageguide?filter[slug]=${slug}`
     ).then((res) => res.json());
     if (respons.rows) {
       toursData = respons.rows;
