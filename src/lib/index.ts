@@ -380,6 +380,7 @@ class AHD extends GuideChimp {
       await this.showPageBeacons(url, refetch);
     }
   }
+
   async showPageHighlights(url: string, refetch: boolean, force = false) {
     await this.stop();
     let highlightsData = LocalStorage.get(HIGHLIGHTS_DATA_STORAGE_KEY);
@@ -492,7 +493,7 @@ class AHD extends GuideChimp {
       if (forceShow || !vistied || !vistied.includes(td.slug)) {
         const matcher = match(td.slug, { decode: decodeURIComponent });
         const tourFound = matcher(url);
-        if (tourFound && !nVistied.has(td.slug) && !isTooltip) {
+        if (tourFound && !nVistied.has(td.slug)) {
           nVistied.add(td.slug);
           LocalStorage.put(
             AHD_VISITOR_STATS_STORAGE_KEY,
