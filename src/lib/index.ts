@@ -227,7 +227,7 @@ class AHD extends GuideChimp {
     );
 
 
-    const onboardTour = tourOnly.flatMap((row: any) =>
+    const onboardTour = applicableTours.flatMap((row: any) =>
       Array.isArray(row.steps)
         ? row.steps
           .filter((step: any) => !!step.content)
@@ -282,7 +282,7 @@ class AHD extends GuideChimp {
     );
 
 
-    const beacons = tooltipOnly.flatMap((tour: any) =>
+    const beacons = applicableTours.flatMap((tour: any) =>
       Array.isArray(tour.steps)
         ? tour.steps
           .filter((step: any) => !!step.content)
