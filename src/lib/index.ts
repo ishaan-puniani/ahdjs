@@ -477,7 +477,7 @@ class AHD extends GuideChimp {
     });
   }
 
-  private getApplicabeDataForUrl(
+   private getApplicabeDataForUrl(
     toursData: any,
     url: string,
     type: string,
@@ -487,9 +487,7 @@ class AHD extends GuideChimp {
     const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
     const vistied = stats?.visited || [];
     const nVistied = new Set(vistied);
-
     return toursData.filter((td) => {
-      const isTooltip = td?.type?.toLowerCase() === "tooltip";
       if (forceShow || !vistied || !vistied.includes(td.slug)) {
         const matcher = match(td.slug, { decode: decodeURIComponent });
         const tourFound = matcher(url);
@@ -507,7 +505,6 @@ class AHD extends GuideChimp {
       return false;
     });
   }
-
   private async fetchAndCacheHighlightsData(highlightsData: any) {
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/highlights?filter[isActive]=true`
