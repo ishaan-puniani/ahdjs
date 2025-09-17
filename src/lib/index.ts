@@ -214,7 +214,7 @@ class AHD extends GuideChimp {
 
   async showPageTour(url: string, refetch: boolean,) {
     await this.stop();
-    debugger;
+console.log('showPageTour', url, refetch);
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
@@ -268,7 +268,7 @@ class AHD extends GuideChimp {
   async showPageBeacons(url: string, refetch: boolean) {
     await this.stop();
     debugger;
-
+console.log('showPageBeacons', url, refetch);
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
@@ -370,6 +370,7 @@ class AHD extends GuideChimp {
       (r: any) => (r.type).toLowerCase() === "tour"
     );
     if (hasTour) {
+      console.log('hasTour', url, refetch);
       await this.showPageTour(url, refetch);
       return;
     }
@@ -377,6 +378,7 @@ class AHD extends GuideChimp {
       (r: any) => (r.type).toLowerCase() === "tooltip"
     );
     if (hasTooltip) {
+      console.log('hasTooltip', url, refetch);
       await this.showPageBeacons(url, refetch);
     }
   }
