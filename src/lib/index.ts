@@ -214,7 +214,7 @@ class AHD extends GuideChimp {
 
   async showPageTour(url: string, refetch: boolean,) {
     await this.stop();
-console.log('showPageTour', url, refetch);
+    console.log('showPageTour', url, refetch);
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
@@ -268,7 +268,7 @@ console.log('showPageTour', url, refetch);
   async showPageBeacons(url: string, refetch: boolean) {
     await this.stop();
     debugger;
-console.log('showPageBeacons', url, refetch);
+    console.log('showPageBeacons', url, refetch);
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
@@ -479,25 +479,30 @@ console.log('showPageBeacons', url, refetch);
     });
   }
 
-   private getApplicabeDataForUrl(
+  private getApplicabeDataForUrl(
     toursData: any,
     url: string,
     type: string,
     forceShow = false
   ) {
-    // exlude visitied
+    // exclude visited
     const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
-    const vistied = stats?.visited || [];
-    const nVistied = new Set(vistied);
+    const visited = stats?.visited || [];
+    const nVisited = new Set(visited);
     return toursData.filter((td) => {
-      if (forceShow || !vistied || !vistied.includes(td.slug)) {
+      if (
+        forceShow ||
+        td.oneTimeOnly ||
+        !visited ||
+        !visited.includes(td.slug)
+      ) {
         const matcher = match(td.slug, { decode: decodeURIComponent });
         const tourFound = matcher(url);
-        if (tourFound && !nVistied.has(td.slug)) {
-          nVistied.add(td.slug);
+        if (tourFound && td.oneTimeOnly && !nVisited.has(td.slug)) {
+          nVisited.add(td.slug);
           LocalStorage.put(
             AHD_VISITOR_STATS_STORAGE_KEY,
-            { ...stats, visited: [...nVistied] },
+            { ...stats, visited: [...nVisited] },
             86400
           );
           this.markPageVisited(td.slug, type);
