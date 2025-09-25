@@ -479,7 +479,7 @@ class AHD extends GuideChimp {
     });
   }
 
-  private getApplicabeDataForUrl(
+ private getApplicabeDataForUrl(
     toursData: any,
     url: string,
     type: string,
@@ -489,15 +489,16 @@ class AHD extends GuideChimp {
     const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
     const visited = stats?.visited || [];
     const nVisited = new Set(visited);
+    
     return toursData.filter((td) => {
-      if (
-        forceShow ||
-        !td.oneTimeOnly ||
-        (td.oneTimeOnly && !visited.includes(td.slug))
-      ) {
-        const matcher = match(td.slug, { decode: decodeURIComponent });
-        const tourFound = matcher(url);
-        if (tourFound && td.oneTimeOnly && !nVisited.has(td.slug)) {
+      const matcher = match(td.slug, { decode: decodeURIComponent });
+      const tourFound = matcher(url);
+      
+      if (tourFound) {
+        if (td.oneTimeOnly && visited.includes(td.slug) && !forceShow) {
+          return false; 
+        }
+        if (td.oneTimeOnly && !nVisited.has(td.slug)) {
           nVisited.add(td.slug);
           LocalStorage.put(
             AHD_VISITOR_STATS_STORAGE_KEY,
@@ -506,8 +507,10 @@ class AHD extends GuideChimp {
           );
           this.markPageVisited(td.slug, type);
         }
-        return tourFound;
+        
+        return true; 
       }
+      
       return false;
     });
   }
