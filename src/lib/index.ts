@@ -223,6 +223,7 @@ class AHD extends GuideChimp {
       toursData,
       url,
       "pageview",
+      false
     );
     console.log('showPageTour', applicableTours);
 
@@ -359,7 +360,7 @@ class AHD extends GuideChimp {
       toursData,
       url,
       "pageview",
-      true
+      false
     );
 
     if (!applicable || applicable.length === 0) return;
@@ -483,26 +484,58 @@ class AHD extends GuideChimp {
     type: string,
     forceShow = false
   ) {
-    // exlude visitied
     const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
-    const vistied = stats?.visited || [];
-    const nVistied = new Set(vistied);
+    const visited = stats?.visited || [];
+
     return toursData.filter((td) => {
-      if (forceShow || !vistied || !vistied.includes(td.slug)) {
-        const matcher = match(td.slug, { decode: decodeURIComponent });
-        const tourFound = matcher(url);
-        if (tourFound && !nVistied.has(td.slug)) {
-          nVistied.add(td.slug);
+      const matcher = match(td.slug, { decode: decodeURIComponent });
+      const tourFound = matcher(url);
+      const isOneTimeOnly = td.oneTimeOnly === true;
+      const hasBeenVisited = visited.includes(td.slug);
+      if (!tourFound) {
+        return false;
+      }
+      if (forceShow) {
+        const nVisited = new Set(visited);
+        if (!nVisited.has(td.slug)) {
+          nVisited.add(td.slug);
           LocalStorage.put(
             AHD_VISITOR_STATS_STORAGE_KEY,
-            { ...stats, visited: [...nVistied] },
+            { ...stats, visited: [...nVisited] },
             86400
           );
           this.markPageVisited(td.slug, type);
         }
-        return tourFound;
+        return true;
       }
-      return false;
+
+      if (isOneTimeOnly) {
+
+        if (!hasBeenVisited) {
+          const nVisited = new Set(visited);
+          nVisited.add(td.slug);
+          LocalStorage.put(
+            AHD_VISITOR_STATS_STORAGE_KEY,
+            { ...stats, visited: [...nVisited] },
+            86400
+          );
+          this.markPageVisited(td.slug, type);
+          return true;
+        }
+        return false;
+      } else {
+        const nVisited = new Set(visited);
+        if (!nVisited.has(td.slug)) {
+          nVisited.add(td.slug);
+          LocalStorage.put(
+            AHD_VISITOR_STATS_STORAGE_KEY,
+            { ...stats, visited: [...nVisited] },
+            86400
+          );
+          this.markPageVisited(td.slug, type);
+        }
+        return true;
+      }
     });
   }
   private async fetchAndCacheHighlightsData(highlightsData: any) {
