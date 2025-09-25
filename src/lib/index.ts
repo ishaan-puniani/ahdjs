@@ -220,14 +220,14 @@ class AHD extends GuideChimp {
     if (!toursData || refetch) {
       toursData = await this.fetchAndCacheTourData(toursData, url);
     }
-    const applicableTours = this.getApplicabeDataForUrl(
-      toursData,
-      url,
-      "pageview",
-    );
+    // const applicableTours = this.getApplicabeDataForUrl(
+    //   toursData,
+    //   url,
+    //   "pageview",
+    // );
 
 
-    const onboardTour = applicableTours.flatMap((row: any) =>
+    const onboardTour = toursData.flatMap((row: any) =>
       Array.isArray(row.steps)
         ? row.steps
           .filter((step: any) => !!step.content)
@@ -274,15 +274,15 @@ class AHD extends GuideChimp {
     if (!toursData || refetch) {
       toursData = await this.fetchAndCacheTourData(toursData, url);
     }
-    const applicableTours = this.getApplicabeDataForUrl(
-      toursData,
-      url,
-      "pageview",
-      true
-    );
+    // const applicableTours = this.getApplicabeDataForUrl(
+    //   toursData,
+    //   url,
+    //   "pageview",
+    //   true
+    // );
 
 
-    const beacons = applicableTours.flatMap((tour: any) =>
+    const beacons = toursData.flatMap((tour: any) =>
       Array.isArray(tour.steps)
         ? tour.steps
           .filter((step: any) => !!step.content)
@@ -492,9 +492,8 @@ class AHD extends GuideChimp {
     return toursData.filter((td) => {
       if (
         forceShow ||
-        td.oneTimeOnly ||
-        !visited ||
-        !visited.includes(td.slug)
+        !td.oneTimeOnly ||
+        (td.oneTimeOnly && !visited.includes(td.slug))
       ) {
         const matcher = match(td.slug, { decode: decodeURIComponent });
         const tourFound = matcher(url);
