@@ -479,38 +479,31 @@ class AHD extends GuideChimp {
     });
   }
 
- private getApplicabeDataForUrl(
+  private getApplicabeDataForUrl(
     toursData: any,
     url: string,
     type: string,
     forceShow = false
   ) {
-    // exclude visited
+    // exlude visitied
     const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
-    const visited = stats?.visited || [];
-    const nVisited = new Set(visited);
-    
+    const vistied = stats?.visited || [];
+    const nVistied = new Set(vistied);
     return toursData.filter((td) => {
-      const matcher = match(td.slug, { decode: decodeURIComponent });
-      const tourFound = matcher(url);
-      
-      if (tourFound) {
-        if (td.oneTimeOnly && visited.includes(td.slug) && !forceShow) {
-          return false; 
-        }
-        if (td.oneTimeOnly && !nVisited.has(td.slug)) {
-          nVisited.add(td.slug);
+      if (forceShow || td.oneTimeOnly || !vistied || !vistied.includes(td.slug)) {
+        const matcher = match(td.slug, { decode: decodeURIComponent });
+        const tourFound = matcher(url);
+        if (tourFound && !nVistied.has(td.slug)) {
+          nVistied.add(td.slug);
           LocalStorage.put(
             AHD_VISITOR_STATS_STORAGE_KEY,
-            { ...stats, visited: [...nVisited] },
+            { ...stats, visited: [...nVistied] },
             86400
           );
           this.markPageVisited(td.slug, type);
         }
-        
-        return true; 
+        return tourFound;
       }
-      
       return false;
     });
   }
