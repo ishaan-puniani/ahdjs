@@ -227,24 +227,43 @@ class AHD extends GuideChimp {
     );
     console.log('showPageTour', applicableTours);
 
-    const onboardTour = applicableTours.flatMap((row: any) =>
-      Array.isArray(row.steps)
-        ? row.steps
-          .filter((step: any) => !!step.content)
-          .map((step: any) => ({
-            element: step.selector,
-            description: step.content,
-            position: step.position,
-            animationType: step.animationType,
-            delay: step.delay,
-            isBackdrop: step.isBackdrop,
-            isCaret: step.isCaret,
-            dismissalSetting: step.dismissalSetting,
-          }))
-        : []
-    );
-    this.setTour(onboardTour);
-    this.start();
+    if (applicableTours.length > 0) {
+      const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
+      const visited = stats?.visited || [];
+      const nVisited = new Set(visited);
+
+      applicableTours.forEach((tour: any) => {
+        if (!nVisited.has(tour.slug)) {
+          nVisited.add(tour.slug);
+          this.markPageVisited(tour.slug, "pageview");
+        }
+      });
+
+      LocalStorage.put(
+        AHD_VISITOR_STATS_STORAGE_KEY,
+        { ...stats, visited: [...nVisited] },
+        86400
+      );
+
+      const onboardTour = applicableTours.flatMap((row: any) =>
+        Array.isArray(row.steps)
+          ? row.steps
+            .filter((step: any) => !!step.content)
+            .map((step: any) => ({
+              element: step.selector,
+              description: step.content,
+              position: step.position,
+              animationType: step.animationType,
+              delay: step.delay,
+              isBackdrop: step.isBackdrop,
+              isCaret: step.isCaret,
+              dismissalSetting: step.dismissalSetting,
+            }))
+          : []
+      );
+      this.setTour(onboardTour);
+      this.start();
+    }
   }
 
   async showAppBanner(url: string, refetch: boolean) {
@@ -280,68 +299,85 @@ class AHD extends GuideChimp {
       true
     );
     console.log('showPageBeacons', applicableTours);
+    if (applicableTours.length > 0) {
+      const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
+      const visited = stats?.visited || [];
+      const nVisited = new Set(visited);
 
-    const beacons = applicableTours.flatMap((tour: any) =>
-      Array.isArray(tour.steps)
-        ? tour.steps
-          .filter((step: any) => !!step.content)
-          .map((step: any) => {
-            const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
+      applicableTours.forEach((tour: any) => {
+        if (!nVisited.has(tour.slug)) {
+          nVisited.add(tour.slug);
+          this.markPageVisited(tour.slug, "pageview");
+        }
+      });
 
-            const tourSteps = [{
-              element: step.selector || "#default-element",
-              title: step.title || "Default Title",
-              description: step.content,
-              animationType: step.animationType || behavior.animationType || "fadeIn",
-              delay: step.delay || behavior.delay || 300,
-              isBackdrop: step.isBackdrop !== undefined ? step.isBackdrop : (behavior.isBackdrop !== undefined ? behavior.isBackdrop : true),
-              isCaret: step.isCaret !== undefined ? step.isCaret : (behavior.isCaret !== undefined ? behavior.isCaret : true),
-              position: step.position || behavior.position || "right"
-            }];
+      LocalStorage.put(
+        AHD_VISITOR_STATS_STORAGE_KEY,
+        { ...stats, visited: [...nVisited] },
+        86400
+      );
+      const beacons = applicableTours.flatMap((tour: any) =>
+        Array.isArray(tour.steps)
+          ? tour.steps
+            .filter((step: any) => !!step.content)
+            .map((step: any) => {
+              const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
 
-            const beacon: any = {
-              element: step.selector || behavior.selector,
-              position: step.position || behavior.position || "right",
-              boundary: "outer",
-              class: "beacon-labs64",
-              triggerMode: step.triggerMode || behavior.triggerMode,
-              trigger: step.triggerBehaviour || behavior.triggerBehaviour || 'onClick',
-              tour: tourSteps
-            };
+              const tourSteps = [{
+                element: step.selector || "#default-element",
+                title: step.title || "Default Title",
+                description: step.content,
+                animationType: step.animationType || behavior.animationType || "fadeIn",
+                delay: step.delay || behavior.delay || 300,
+                isBackdrop: step.isBackdrop !== undefined ? step.isBackdrop : (behavior.isBackdrop !== undefined ? behavior.isBackdrop : true),
+                isCaret: step.isCaret !== undefined ? step.isCaret : (behavior.isCaret !== undefined ? behavior.isCaret : true),
+                position: step.position || behavior.position || "right"
+              }];
 
-            const triggerIconData = step.triggerIcon || behavior.triggerIcon;
-            const triggerLabelData = step.triggerLabel || behavior.triggerLabel;
-
-            if (beacon.triggerMode === 'icon' && triggerIconData) {
-              let iconType = 'beacon';
-              if (triggerIconData.type === "info") iconType = "info";
-              if (triggerIconData.type === "success") iconType = "success";
-              if (triggerIconData.type === "warning") iconType = "warning";
-              if (triggerIconData.type === "helpIcon") iconType = "helpIcon";
-
-              beacon.triggerIcon = {
-                type: iconType,
-                color: triggerIconData.color || "#000000",
-                opacity: triggerIconData.opacity ? (triggerIconData.opacity / 100) : 1,
-                isAnimated: triggerIconData.isAnimated || false
+              const beacon: any = {
+                element: step.selector || behavior.selector,
+                position: step.position || behavior.position || "right",
+                boundary: "outer",
+                class: "beacon-labs64",
+                triggerMode: step.triggerMode || behavior.triggerMode,
+                trigger: step.triggerBehaviour || behavior.triggerBehaviour || 'onClick',
+                tour: tourSteps
               };
-            } else if (beacon.triggerMode === 'label' && triggerLabelData) {
-              beacon.triggerLabel = {
-                text: triggerLabelData.text,
-                color: triggerLabelData.color || "#000000",
-                background: triggerLabelData.backgroundColor || "#ffffff"
-              };
-            }
 
-            return beacon;
-          })
-        : []
-    );
-    console.log('beacons', beacons);
+              const triggerIconData = step.triggerIcon || behavior.triggerIcon;
+              const triggerLabelData = step.triggerLabel || behavior.triggerLabel;
 
-    AHDjs.beacons(beacons, {
-      boundary: "outer",
-    }).showAll();
+              if (beacon.triggerMode === 'icon' && triggerIconData) {
+                let iconType = 'beacon';
+                if (triggerIconData.type === "info") iconType = "info";
+                if (triggerIconData.type === "success") iconType = "success";
+                if (triggerIconData.type === "warning") iconType = "warning";
+                if (triggerIconData.type === "helpIcon") iconType = "helpIcon";
+
+                beacon.triggerIcon = {
+                  type: iconType,
+                  color: triggerIconData.color || "#000000",
+                  opacity: triggerIconData.opacity ? (triggerIconData.opacity / 100) : 1,
+                  isAnimated: triggerIconData.isAnimated || false
+                };
+              } else if (beacon.triggerMode === 'label' && triggerLabelData) {
+                beacon.triggerLabel = {
+                  text: triggerLabelData.text,
+                  color: triggerLabelData.color || "#000000",
+                  background: triggerLabelData.backgroundColor || "#ffffff"
+                };
+              }
+
+              return beacon;
+            })
+          : []
+      );
+      console.log('beacons', beacons);
+
+      AHDjs.beacons(beacons, {
+        boundary: "outer",
+      }).showAll();
+    }
   }
   async setBeacons(beacons) {
 
@@ -490,50 +526,23 @@ class AHD extends GuideChimp {
     return toursData.filter((td) => {
       const matcher = match(td.slug, { decode: decodeURIComponent });
       const tourFound = matcher(url);
-      const isOneTimeOnly = td.oneTimeOnly === true;
-      const hasBeenVisited = visited.includes(td.slug);
+
       if (!tourFound) {
         return false;
       }
+
+      const isOneTimeOnly = td.oneTimeOnly === true;
+      const hasBeenVisited = visited.includes(td.slug);
+
       if (forceShow) {
-        const nVisited = new Set(visited);
-        if (!nVisited.has(td.slug)) {
-          nVisited.add(td.slug);
-          LocalStorage.put(
-            AHD_VISITOR_STATS_STORAGE_KEY,
-            { ...stats, visited: [...nVisited] },
-            86400
-          );
-          this.markPageVisited(td.slug, type);
-        }
         return true;
       }
 
-      if (isOneTimeOnly) {
 
-        if (!hasBeenVisited) {
-          const nVisited = new Set(visited);
-          nVisited.add(td.slug);
-          LocalStorage.put(
-            AHD_VISITOR_STATS_STORAGE_KEY,
-            { ...stats, visited: [...nVisited] },
-            86400
-          );
-          this.markPageVisited(td.slug, type);
-          return true;
-        }
-        return false;
+      if (isOneTimeOnly) {
+        return !hasBeenVisited;
       } else {
-        const nVisited = new Set(visited);
-        if (!nVisited.has(td.slug)) {
-          nVisited.add(td.slug);
-          LocalStorage.put(
-            AHD_VISITOR_STATS_STORAGE_KEY,
-            { ...stats, visited: [...nVisited] },
-            86400
-          );
-          this.markPageVisited(td.slug, type);
-        }
+
         return true;
       }
     });
