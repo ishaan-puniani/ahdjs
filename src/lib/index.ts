@@ -317,62 +317,74 @@ class AHD extends GuideChimp {
         { ...stats, visited: [...nVisited] },
         86400
       );
-      const beacons = applicableTours.flatMap((tour: any) =>
-        Array.isArray(tour.steps)
-          ? tour.steps
-            .filter((step: any) => !!step.content)
-            .map((step: any) => {
-              const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
+      const beacons = applicableTours.flatMap((tour: any) => {
+        const stepsArray = Array.isArray(tour.step) ? tour.step : tour.step ? [tour.step] : [];
 
-              const tourSteps = [{
+        return stepsArray
+          .filter((step: any) => !!step.content)
+          .map((step: any) => {
+            const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
+
+            const tourSteps = [
+              {
                 element: step.selector || "#default-element",
                 title: step.title || "Default Title",
                 description: step.content,
                 animationType: step.animationType || behavior.animationType || "fadeIn",
                 delay: step.delay || behavior.delay || 300,
-                isBackdrop: step.isBackdrop !== undefined ? step.isBackdrop : (behavior.isBackdrop !== undefined ? behavior.isBackdrop : true),
-                isCaret: step.isCaret !== undefined ? step.isCaret : (behavior.isCaret !== undefined ? behavior.isCaret : true),
-                position: step.position || behavior.position || "right"
-              }];
-
-              const beacon: any = {
-                element: step.selector || behavior.selector,
+                isBackdrop:
+                  step.isBackdrop !== undefined
+                    ? step.isBackdrop
+                    : behavior.isBackdrop !== undefined
+                    ? behavior.isBackdrop
+                    : true,
+                isCaret:
+                  step.isCaret !== undefined
+                    ? step.isCaret
+                    : behavior.isCaret !== undefined
+                    ? behavior.isCaret
+                    : true,
                 position: step.position || behavior.position || "right",
-                boundary: "outer",
-                class: "beacon-labs64",
-                triggerMode: step.triggerMode || behavior.triggerMode,
-                trigger: step.triggerBehaviour || behavior.triggerBehaviour || 'onClick',
-                tour: tourSteps
+              },
+            ];
+
+            const beacon: any = {
+              element: step.selector || behavior.selector,
+              position: step.position || behavior.position || "right",
+              boundary: "outer",
+              class: "beacon-labs64",
+              triggerMode: step.triggerMode || behavior.triggerMode,
+              trigger: step.triggerBehaviour || behavior.triggerBehaviour || "onClick",
+              tour: tourSteps,
+            };
+
+            const triggerIconData = step.triggerIcon || behavior.triggerIcon;
+            const triggerLabelData = step.triggerLabel || behavior.triggerLabel;
+
+            if (beacon.triggerMode === "icon" && triggerIconData) {
+              let iconType = "beacon";
+              if (triggerIconData.type === "info") iconType = "info";
+              if (triggerIconData.type === "success") iconType = "success";
+              if (triggerIconData.type === "warning") iconType = "warning";
+              if (triggerIconData.type === "helpIcon") iconType = "helpIcon";
+
+              beacon.triggerIcon = {
+                type: iconType,
+                color: triggerIconData.color || "#000000",
+                opacity: triggerIconData.opacity ? triggerIconData.opacity / 100 : 1,
+                isAnimated: triggerIconData.isAnimated || false,
               };
+            } else if (beacon.triggerMode === "label" && triggerLabelData) {
+              beacon.triggerLabel = {
+                text: triggerLabelData.text,
+                color: triggerLabelData.color || "#000000",
+                background: triggerLabelData.backgroundColor || "#ffffff",
+              };
+            }
 
-              const triggerIconData = step.triggerIcon || behavior.triggerIcon;
-              const triggerLabelData = step.triggerLabel || behavior.triggerLabel;
-
-              if (beacon.triggerMode === 'icon' && triggerIconData) {
-                let iconType = 'beacon';
-                if (triggerIconData.type === "info") iconType = "info";
-                if (triggerIconData.type === "success") iconType = "success";
-                if (triggerIconData.type === "warning") iconType = "warning";
-                if (triggerIconData.type === "helpIcon") iconType = "helpIcon";
-
-                beacon.triggerIcon = {
-                  type: iconType,
-                  color: triggerIconData.color || "#000000",
-                  opacity: triggerIconData.opacity ? (triggerIconData.opacity / 100) : 1,
-                  isAnimated: triggerIconData.isAnimated || false
-                };
-              } else if (beacon.triggerMode === 'label' && triggerLabelData) {
-                beacon.triggerLabel = {
-                  text: triggerLabelData.text,
-                  color: triggerLabelData.color || "#000000",
-                  background: triggerLabelData.backgroundColor || "#ffffff"
-                };
-              }
-
-              return beacon;
-            })
-          : []
-      );
+            return beacon;
+          });
+      });
       console.log('beacons', beacons);
 
       AHDjs.beacons(beacons, {
