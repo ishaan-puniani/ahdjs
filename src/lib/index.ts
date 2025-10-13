@@ -236,7 +236,8 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-          this.markPageVisited(tour.slug, "tour",toursData.id);
+            const entityId = tour.id || tour._id;
+          this.markPageVisited(tour.slug, "tour", entityId);
         }
       });
 
@@ -308,7 +309,8 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-          this.markPageVisited(tour.slug, "tooltip",tooltipData.id);
+          const entityId = tour.id || tour._id;
+          this.markPageVisited(tour.slug, "tooltip", entityId);
         }
       });
 
@@ -336,14 +338,14 @@ class AHD extends GuideChimp {
                   step.isBackdrop !== undefined
                     ? step.isBackdrop
                     : behavior.isBackdrop !== undefined
-                    ? behavior.isBackdrop
-                    : true,
+                      ? behavior.isBackdrop
+                      : true,
                 isCaret:
                   step.isCaret !== undefined
                     ? step.isCaret
                     : behavior.isCaret !== undefined
-                    ? behavior.isCaret
-                    : true,
+                      ? behavior.isCaret
+                      : true,
                 position: step.position || behavior.position || "right",
               },
             ];
@@ -640,7 +642,7 @@ class AHD extends GuideChimp {
     return visits;
   }
 
-  private async markPageVisited(slug: sting, type: string,id:string) {
+  private async markPageVisited(slug: sting, type: string, id: string) {
     let visits;
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/visitor-stats`,
@@ -659,7 +661,7 @@ class AHD extends GuideChimp {
           data: {
             slug,
             visitorId: this.options.visitorId,
-            entityId:id,
+            entityId: id,
             channel: "web",
             type,
           },
