@@ -236,7 +236,7 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-          const entityId = applicableTours.id || applicableTours._id;
+          const entityId = applicableTours[0].id || applicableTours[0]._id;
           this.markPageVisited(tour.slug, "tour", entityId);
         }
       });
@@ -309,7 +309,7 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-          const entityId = applicableTours.id|| applicableTours._id;
+          const entityId = applicableTours[0].id || applicableTours[0]._id;
           this.markPageVisited(tour.slug, "tooltip", entityId);
         }
       });
@@ -642,7 +642,7 @@ class AHD extends GuideChimp {
     return visits;
   }
 
-  private async markPageVisited(slug: sting, type: string, id: string) {
+  private async markPageVisited(slug: string, type: string, entityId: string) {
     let visits;
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/visitor-stats`,
@@ -661,7 +661,7 @@ class AHD extends GuideChimp {
           data: {
             slug,
             visitorId: this.options.visitorId,
-            entityId: id,
+            entityId: entityId,
             channel: "web",
             type,
           },
