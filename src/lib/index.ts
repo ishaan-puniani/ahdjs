@@ -236,7 +236,7 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-            const entityId = tour.id || tour._id;
+          const entityId = applicableTours.id || applicableTours._id;
           this.markPageVisited(tour.slug, "tour", entityId);
         }
       });
@@ -309,7 +309,7 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-          const entityId = tour.id || tour._id;
+          const entityId = applicableTours.id|| applicableTours._id;
           this.markPageVisited(tour.slug, "tooltip", entityId);
         }
       });
