@@ -1037,8 +1037,8 @@ export default class GuideChimp {
                 // valid left space must be at least tooltip width
                 if (boundaryRight - elLeft < minTooltipWidth) {
                     alignments.splice(alignments.indexOf('left'), 1);
-                }
-
+            }
+            
                 // valid right space must be at least tooltip width
                 if (elRight - boundaryLeft < minTooltipWidth) {
                     alignments.splice(alignments.indexOf('right'), 1);
@@ -1088,13 +1088,11 @@ export default class GuideChimp {
                 case 'bottom':
                     tooltipStyle.top = `${elHeight + padding}px`;
                     break;
-                default: {
-
+                default:
+                    tooltipStyle.position = 'fixed';
                     tooltipStyle.left = '50%';
                     tooltipStyle.top = '50%';
-                    tooltipStyle.transform = 'translate(-50%,-50%)';
-
-                }
+                    tooltipStyle.transform = 'translate(-50%, -50%)';
             }
         }
         tooltipEl.removeAttribute('data-guidechimp-alignment');
