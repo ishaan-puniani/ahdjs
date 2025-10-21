@@ -163,7 +163,6 @@ const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
 const APP_BANNER_DATA_STORAGE_KEY = "APP_BANNER_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
-const TOOLTIP_DATA_STORAGE_KEY = "AHD_TOOLTIP_DATA";
 
 class AHD extends GuideChimp {
   constructor(tour, options = {}) {
@@ -218,17 +217,16 @@ class AHD extends GuideChimp {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, url, 'tour');
+      toursData = await this.fetchAndCacheTourData(toursData, url);
     }
     const applicableTours = this.getApplicabeDataForUrl(
-      toursData,
+      toursData.tours,
       url,
-      "tour",
       false
     );
     console.log('showPageTour', applicableTours);
 
-    if (applicableTours.length > 0) {
+    if (applicableTours?.length > 0) {
       const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
       const visited = stats?.visited || [];
       const nVisited = new Set(visited);
@@ -236,7 +234,7 @@ class AHD extends GuideChimp {
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
-          const entityId = applicableTours.id || applicableTours._id;
+          const entityId = tour.id || tour._id;
           this.markPageVisited(tour.slug, "tour", entityId);
         }
       });
@@ -290,15 +288,14 @@ class AHD extends GuideChimp {
   async showPageBeacons(url: string, refetch: boolean) {
     await this.stop();
     debugger;
-    let tooltipData = LocalStorage.get(TOOLTIP_DATA_STORAGE_KEY);
+    let tooltipData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!tooltipData || refetch) {
-      tooltipData = await this.fetchAndCacheTourData(tooltipData, url, 'tooltip');
+      tooltipData = await this.fetchAndCacheTourData(tooltipData, url);
     }
     const applicableTours = this.getApplicabeDataForUrl(
-      tooltipData,
+      tooltipData.tooltips,
       url,
-      "tooltip",
       true
     );
     console.log('showPageBeacons', applicableTours);
@@ -330,8 +327,8 @@ class AHD extends GuideChimp {
 
             const tourSteps = [
               {
-                element: step.selector || "#default-element",
-                title: step.title || "Default Title",
+                element: step.selector,
+                title: step.title,
                 description: step.content,
                 animationType: step.animationType || behavior.animationType || "fadeIn",
                 delay: step.delay || behavior.delay || 300,
@@ -445,7 +442,6 @@ class AHD extends GuideChimp {
     LocalStorage.removeKey(HELP_DATA_STORAGE_KEY);
     LocalStorage.removeKey(TOUR_DATA_STORAGE_KEY);
     LocalStorage.removeKey(AHD_VISITOR_STATS_STORAGE_KEY);
-    LocalStorage.removeKey(TOOLTIP_DATA_STORAGE_KEY);
   }
 
   async acknowledgeHighlight(id: string) {
@@ -502,7 +498,6 @@ class AHD extends GuideChimp {
   private getApplicabeDataForUrl(
     toursData: any,
     url: string,
-    type: string,
     forceShow = false
   ) {
     const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
@@ -542,19 +537,12 @@ class AHD extends GuideChimp {
     return highlightsData;
   }
 
-  private async fetchAndCacheTourData(toursData: any, slug: string, type: string) {
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/${type}?filter[slug]=${slug}`
+  private async fetchAndCacheTourData(toursData: any, slug: string) {
+    const response: any = await fetch(
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}`
     ).then((res) => res.json());
-    if (respons.rows) {
-      toursData = respons.rows;
-      if (type === 'tooltip') {
-        LocalStorage.put(
-          TOOLTIP_DATA_STORAGE_KEY,
-          toursData,
-          this.options.toursRefetchIntervalInSec
-        );
-      }
+    if (response) {
+      toursData = response;
       LocalStorage.put(
         TOUR_DATA_STORAGE_KEY,
         toursData,
