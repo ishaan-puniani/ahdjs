@@ -76,9 +76,9 @@ export default class GuideChimp {
         };
 
 
-        if(document) {
+        if (document) {
             document.addEventListener("click", (e) => this.handleClick(e));
-        } 
+        }
 
 
     }
@@ -92,7 +92,7 @@ export default class GuideChimp {
     }
 
 
-    handleClick(e) {   
+    handleClick(e) {
 
         const action = e.target.getAttribute("data-action");
         if (action && this.actions[action]) {
@@ -607,15 +607,23 @@ export default class GuideChimp {
         }
 
         const getEl = (selector, def = null) => {
-            const el = (typeof selector === 'string')
-                ? document.querySelector(selector)
-                : selector;
-            return el || def;
+            try {
+                const el = (typeof selector === 'string')
+                    ? document.querySelector(selector)
+                    : selector;
+                return el || def;
+            } catch (error) {
+                // Invalid selector (like "." or "#")
+                return def;
+            }
         };
 
         let el = getEl(element);
 
-        if (!el || el.style.display === 'none' || el.style.visibility === 'hidden') {
+        if (!el ||
+            el.style.display === 'none' ||
+            el.style.visibility === 'hidden' ||
+            (el.offsetWidth === 0 && el.offsetHeight === 0)) {
             el = this.getEl('fakeStep') ? this.getEl('fakeStep') : this.mountFakeStepEl();
         }
 
@@ -907,6 +915,7 @@ export default class GuideChimp {
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
+        tooltipStyle.position = null;
 
         if (this.currentStep.delay) {
             tooltipStyle.visibility = "hidden";
@@ -918,21 +927,20 @@ export default class GuideChimp {
         const overlayEls = document.getElementsByClassName("gc-overlay");
 
         if (overlayEls.length > 0) {
+            const overlayEl = overlayEls[0];
 
-        const overlayEl = overlayEls[0];
-
-        if (!this.currentStep.isBackdrop) {
+            if (!this.currentStep.isBackdrop) {
                 if (!overlayEl.classList.contains("gc-overlay-hidden")) {
-                overlayEl.classList.add("gc-overlay-hidden");
+                    overlayEl.classList.add("gc-overlay-hidden");
                 }
             } else {
                 if (overlayEl.classList.contains("gc-overlay-hidden")) {
-                overlayEl.classList.remove("gc-overlay-hidden");
+                    overlayEl.classList.remove("gc-overlay-hidden");
                 }
             }
         }
 
-        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
+        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
             || this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.buttonClickOnly
         ) {
             this.setOptions({
@@ -944,13 +952,38 @@ export default class GuideChimp {
             })
         }
 
-        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
-
+        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
             this.setOptions({
                 exitOverlay: true,
             })
         }
 
+        const isFakeOrNotFound = this.isEl(el, 'fakeStep');
+
+        if (isFakeOrNotFound) {
+            // Center the tooltip on screen
+            tooltipEl.setAttribute('data-guidechimp-position', 'floating');
+            tooltipStyle.position = 'fixed';
+            tooltipStyle.left = '50%';
+            tooltipStyle.top = '50%';
+            tooltipStyle.transform = 'translate(-50%, -50%)';
+            tooltipStyle.zIndex = '10000';
+            tooltipStyle.visibility = 'visible';
+
+            // Hide the overlay highlight when element is not found
+            if (overlayEls.length > 0) {
+                const overlayEl = overlayEls[0];
+                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                    overlayEl.classList.add("gc-overlay-hidden");
+                }
+            }
+
+            if (this.currentStep.animationType) {
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+            }
+
+            return this;
+        }
 
         const {
             top: elTop,
@@ -1037,8 +1070,8 @@ export default class GuideChimp {
                 // valid left space must be at least tooltip width
                 if (boundaryRight - elLeft < minTooltipWidth) {
                     alignments.splice(alignments.indexOf('left'), 1);
-            }
-            
+                }
+
                 // valid right space must be at least tooltip width
                 if (elRight - boundaryLeft < minTooltipWidth) {
                     alignments.splice(alignments.indexOf('right'), 1);
@@ -1066,9 +1099,9 @@ export default class GuideChimp {
             tooltipStyle.animation = animationMode(this.currentStep.animationType);
         }
 
-        if(this.options.type === "snackbar"){
-            switch (this.currentStep.position) {    
-                case 'top':{
+        if (this.options.type === "snackbar") {
+            switch (this.currentStep.position) {
+                case 'top': {
 
                     tooltipStyle.top = `${0 + padding}px`;
                     break;
