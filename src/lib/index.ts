@@ -259,9 +259,9 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
-              width:step.width,
-              height:step.height,
-              offset:step.offset,
+              width: step.width,
+              height: step.height,
+              offset: step.offset,
             }))
           : []
       );
@@ -334,7 +334,7 @@ class AHD extends GuideChimp {
                 title: step.title,
                 description: step.content,
                 animationType: step.animationType || behavior.animationType || "fadeIn",
-                delay: step.delay || behavior.delay || 300,
+                delay: step.delay || behavior.delay || 0,
                 isBackdrop:
                   step.isBackdrop !== undefined
                     ? step.isBackdrop
@@ -347,7 +347,10 @@ class AHD extends GuideChimp {
                     : behavior.isCaret !== undefined
                       ? behavior.isCaret
                       : true,
-                position: step.position || behavior.position || "right",
+                position: step.position || behavior.position,
+                width: step.width,
+                height: step.height,
+                offset: step.offset,
               },
             ];
 

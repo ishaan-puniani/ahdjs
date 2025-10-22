@@ -213,7 +213,7 @@ export default class GuideChimp {
     }
 
     /**
-     * Parse offset value - supports object {top, left} or string "top,left"
+     * Parse offset value"
      * @param offset
      * @return {{top: number, left: number}}
      */
@@ -752,7 +752,7 @@ export default class GuideChimp {
             const path = overlay.querySelector('path');
             const animate = path.querySelector('animate');
 
-            // Check if we have offset with width and height for virtual highlight
+            // Check if we have offset with width and height for highlighting
             const hasOffset = this.currentStep?.offset;
             const hasWidth = this.currentStep?.width;
             const hasHeight = this.currentStep?.height;
@@ -797,7 +797,6 @@ export default class GuideChimp {
             }
         }
 
-        // Only add classes to real elements, not for offset-based highlights
         if (!this.currentStep?.offset || !this.currentStep?.width || !this.currentStep?.height) {
             const elStyle = getComputedStyle(el);
 
@@ -1580,7 +1579,6 @@ export default class GuideChimp {
     }
 
     getOverlayStepPath(step) {
-        // Check if step has offset with width and height
         if (step && step.offset && step.width && step.height) {
             return this.getOverlayOffsetPath(step);
         }
