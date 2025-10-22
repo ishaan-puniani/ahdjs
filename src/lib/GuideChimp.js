@@ -885,9 +885,7 @@ export default class GuideChimp {
             return this;
         }
 
-        const el = this.getStepEl(this.currentStep);
-
-        if (!tooltipEl || !el) {
+        if (!tooltipEl) {
             return this;
         }
 
@@ -900,11 +898,6 @@ export default class GuideChimp {
         pos = pos || this.options.position;
 
         let [position, alignment] = pos.split('-');
-        const elStyle = getComputedStyle(el);
-
-        if (elStyle.getPropertyValue('position') === 'floating') {
-            padding = 0;
-        }
 
         const { style: tooltipStyle } = tooltipEl;
 
@@ -958,10 +951,38 @@ export default class GuideChimp {
             })
         }
 
-        const isFakeOrNotFound = this.isEl(el, 'fakeStep');
+        const hasElement = this.currentStep.element;
+        const hasOffset = this.currentStep.offset;
 
-        if (isFakeOrNotFound) {
-            // Center the tooltip on screen
+    
+        if (!hasElement && hasOffset) {
+            tooltipEl.setAttribute('data-guidechimp-position', 'offset');
+            tooltipStyle.position = 'fixed';
+            tooltipStyle.zIndex = '10000';
+            tooltipStyle.visibility = 'visible';
+
+            if (typeof hasOffset.top !== 'undefined') {
+                tooltipStyle.top = typeof hasOffset.top === 'number' ? `${hasOffset.top}px` : hasOffset.top;
+            }
+            if (typeof hasOffset.left !== 'undefined') {
+                tooltipStyle.left = typeof hasOffset.left === 'number' ? `${hasOffset.left}px` : hasOffset.left;
+            }
+
+            if (overlayEls.length > 0) {
+                const overlayEl = overlayEls[0];
+                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                    overlayEl.classList.add("gc-overlay-hidden");
+                }
+            }
+
+            if (this.currentStep.animationType) {
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+            }
+
+            return this;
+        }
+
+        if (!hasElement && !hasOffset) {
             tooltipEl.setAttribute('data-guidechimp-position', 'floating');
             tooltipStyle.position = 'fixed';
             tooltipStyle.left = '50%';
@@ -970,7 +991,43 @@ export default class GuideChimp {
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
 
-            // Hide the overlay highlight when element is not found
+            if (overlayEls.length > 0) {
+                const overlayEl = overlayEls[0];
+                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                    overlayEl.classList.add("gc-overlay-hidden");
+                }
+            }
+
+            if (this.currentStep.animationType) {
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+            }
+
+            return this;
+        }
+
+        const el = this.getStepEl(this.currentStep);
+
+        if (!el) {
+            return this;
+        }
+
+        const elStyle = getComputedStyle(el);
+
+        if (elStyle.getPropertyValue('position') === 'floating') {
+            padding = 0;
+        }
+
+        const isFakeOrNotFound = this.isEl(el, 'fakeStep');
+
+        if (isFakeOrNotFound) {
+            tooltipEl.setAttribute('data-guidechimp-position', 'floating');
+            tooltipStyle.position = 'fixed';
+            tooltipStyle.left = '50%';
+            tooltipStyle.top = '50%';
+            tooltipStyle.transform = 'translate(-50%, -50%)';
+            tooltipStyle.zIndex = '10000';
+            tooltipStyle.visibility = 'visible';
+
             if (overlayEls.length > 0) {
                 const overlayEl = overlayEls[0];
                 if (!overlayEl.classList.contains("gc-overlay-hidden")) {
@@ -996,7 +1053,6 @@ export default class GuideChimp {
 
         const { height: tooltipHeight, width: tooltipWith } = tooltipEl.getBoundingClientRect();
 
-        // find out min tooltip width
         const cloneTooltip = tooltipEl.cloneNode(true);
         cloneTooltip.style.visibility = 'hidden';
         cloneTooltip.innerHTML = '';
