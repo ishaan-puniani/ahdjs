@@ -537,56 +537,23 @@ class AHD extends GuideChimp {
     return highlightsData;
   }
 
-  // private async fetchAndCacheTourData(toursData: any, slug: string) {
-  //   const response: any = await fetch(
-  //     `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}`
-  //   ).then((res) => res.json());
-  //   if (response) {
-  //     toursData = response;
-  //     LocalStorage.put(
-  //       TOUR_DATA_STORAGE_KEY,
-  //       toursData,
-  //       this.options.toursRefetchIntervalInSec
-  //     );
-
-  //   }
-  //   return toursData;
-  // }
-
   private async fetchAndCacheTourData(toursData: any, slug: string) {
-    const key = slug ? String(slug) : "__all__";
+    const response: any = await fetch(
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}`
+    ).then((res) => res.json());
+    if (response) {
+      toursData = response;
+      LocalStorage.put(
+        TOUR_DATA_STORAGE_KEY,
+        toursData,
+        this.options.toursRefetchIntervalInSec
+      );
 
-    if (fetchTourPromises.has(key)) {
-      return fetchTourPromises.get(key);
     }
-
-    const fetchPromise = (async () => {
-      const slugParam = slug ? `filter[slug]=${encodeURIComponent(slug)}&` : "";
-      const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?${slugParam}filter[userId]=${this.options.visitorId}`;
-
-      const response: any = await fetch(url).then((res) => res.json());
-
-      if (response) {
-        toursData = response;
-        LocalStorage.put(
-          TOUR_DATA_STORAGE_KEY,
-          toursData,
-          this.options.toursRefetchIntervalInSec
-        );
-      }
-
-      return toursData;
-    })();
-
-    fetchTourPromises.set(key, fetchPromise);
-
-    try {
-      const result = await fetchPromise;
-      return result;
-    } finally {
-      fetchTourPromises.delete(key);
-    }
+    return toursData;
   }
+
+
   private async fetchAndCacheBannerData(appBannerData: any) {
     const respons: any = await fetch(
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banners?filter[isActive]=true`
