@@ -259,6 +259,9 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
+              width:step.width,
+              height:step.height,
+              offset:JSON.stringify((step.offset.spit(',').map(value=>value)))
             }))
           : []
       );

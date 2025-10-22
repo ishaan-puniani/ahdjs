@@ -212,6 +212,36 @@ export default class GuideChimp {
         return this.isFixed(parentNode);
     }
 
+    /**
+     * Parse offset value - supports object {top, left} or string "top,left"
+     * @param offset
+     * @return {{top: number, left: number}}
+     */
+    static parseOffset(offset) {
+        if (!offset) {
+            return { top: 0, left: 0 };
+        }
+
+        // If offset is already an object, return it
+        if (typeof offset === 'object' && !Array.isArray(offset)) {
+            return {
+                top: typeof offset.top === 'number' ? offset.top : parseFloat(offset.top) || 0,
+                left: typeof offset.left === 'number' ? offset.left : parseFloat(offset.left) || 0,
+            };
+        }
+
+        // If offset is a string like "100,200", parse it
+        if (typeof offset === 'string') {
+            const parts = offset.split(',').map(p => parseFloat(p.trim()));
+            return {
+                top: parts[0] || 0,
+                left: parts[1] || 0,
+            };
+        }
+
+        return { top: 0, left: 0 };
+    }
+
     setDefaults() {
         this.previousStep = null;
         this.currentStep = null;
@@ -600,7 +630,12 @@ export default class GuideChimp {
     }
 
     getStepEl(step) {
-        const { element } = step || {};
+        const { element, offset, width, height } = step || {};
+
+        // Handle offset with dimensions - create a virtual element
+        if (!element && offset && width && height) {
+            return this.mountOffsetFakeStepEl({ offset, width, height });
+        }
 
         if (!element) {
             return this.mountFakeStepEl();
@@ -719,9 +754,15 @@ export default class GuideChimp {
             const path = overlay.querySelector('path');
             const animate = path.querySelector('animate');
 
-            const isCurrentElFake = this.isEl(el, 'fakeStep');
+            // Check if we have offset with width and height for virtual highlight
+            const hasOffset = this.currentStep?.offset;
+            const hasWidth = this.currentStep?.width;
+            const hasHeight = this.currentStep?.height;
 
-            const to = (isCurrentElFake)
+            const isCurrentElFake = this.isEl(el, 'fakeStep');
+            const isOffsetWithDimensions = hasOffset && hasWidth && hasHeight;
+
+            const to = (isCurrentElFake && !isOffsetWithDimensions)
                 ? this.getOverlayDocumentPath()
                 : this.getOverlayStepPath(this.currentStep);
 
@@ -758,13 +799,16 @@ export default class GuideChimp {
             }
         }
 
-        const elStyle = getComputedStyle(el);
+        // Only add classes to real elements, not for offset-based highlights
+        if (!this.currentStep?.offset || !this.currentStep?.width || !this.currentStep?.height) {
+            const elStyle = getComputedStyle(el);
 
-        if (!['absolute', 'relative', 'fixed'].includes(elStyle.getPropertyValue('position'))) {
-            el.classList.add(this.constructor.getRelativePositionClass());
+            if (!['absolute', 'relative', 'fixed'].includes(elStyle.getPropertyValue('position'))) {
+                el.classList.add(this.constructor.getRelativePositionClass());
+            }
+
+            el.classList.add(this.constructor.getHighlightClass());
         }
-
-        el.classList.add(this.constructor.getHighlightClass());
 
         el.setAttribute(`data-guidechimp-${this.uid}`, 'highlight');
         this.elements.set('highlight', el);
@@ -789,8 +833,11 @@ export default class GuideChimp {
 
         const el = this.getStepEl(this.currentStep);
 
-        el.classList.remove(this.constructor.getRelativePositionClass());
-        el.classList.remove(this.constructor.getHighlightClass());
+        // Only remove classes if they were added (not for offset-based highlights)
+        if (!this.currentStep?.offset || !this.currentStep?.width || !this.currentStep?.height) {
+            el.classList.remove(this.constructor.getRelativePositionClass());
+            el.classList.remove(this.constructor.getHighlightClass());
+        }
 
         el.removeAttribute(`data-guidechimp-${this.uid}`);
         this.elements.delete('highlight');
@@ -799,6 +846,34 @@ export default class GuideChimp {
     }
 
     setInteractionPosition(interactionEl) {
+        const hasOffset = this.currentStep?.offset;
+        const hasWidth = this.currentStep?.width;
+        const hasHeight = this.currentStep?.height;
+        
+        if (hasOffset && hasWidth && hasHeight) {
+            if (!interactionEl) {
+                return this;
+            }
+            
+            let { padding } = this.options;
+            const { interaction } = this.options;
+            
+            const { top, left } = this.constructor.parseOffset(hasOffset);
+            const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
+            const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
+            
+            const { style } = interactionEl;
+            
+            style.cssText = `position: fixed;
+            width: ${width + padding}px;
+            height: ${height + padding}px;
+            top: ${top - (padding / 2)}px;
+            left: ${left - (padding / 2)}px;
+            z-index: 6403;`;
+            
+            return this;
+        }
+        
         const el = this.getStepEl(this.currentStep);
 
         if (!interactionEl || !el) {
@@ -819,7 +894,6 @@ export default class GuideChimp {
 
         const { style } = interactionEl;
 
-        // set new position
         style.cssText = `width: ${width + padding}px;
         height: ${height + padding}px;
         top: ${top - (padding / 2)}px;
@@ -829,6 +903,29 @@ export default class GuideChimp {
     }
 
     setControlPosition(controlEl) {
+        const hasOffset = this.currentStep?.offset;
+        const hasWidth = this.currentStep?.width;
+        const hasHeight = this.currentStep?.height;
+        
+        if (hasOffset && hasWidth && hasHeight) {
+            if (!controlEl) {
+                return this;
+            }
+            
+            const { style } = controlEl;
+            style.position = 'fixed';
+            style.width = 'auto';
+            style.height = 'auto';
+            style.top = '0';
+            style.left = '0';
+            style.right = '0';
+            style.bottom = '0';
+            style.pointerEvents = 'none';
+            style.visibility = 'visible'; 
+            
+            return this;
+        }
+        
         const el = this.getStepEl(this.currentStep);
         if (this.options.type === "snackbar") {
             switch (this.currentStep.position) {
@@ -952,8 +1049,40 @@ export default class GuideChimp {
         }
 
         const hasElement = this.currentStep.element;
-        const hasOffset = this.currentStep.offset;
+        const hasOffset = this.currentStep?.offset;
+        const hasWidth = this.currentStep?.width;
+        const hasHeight = this.currentStep?.height;
 
+        if (hasOffset && hasWidth && hasHeight) {
+            tooltipEl.setAttribute('data-guidechimp-position', 'offset-with-highlight');
+            tooltipStyle.position = 'fixed';
+            tooltipStyle.zIndex = '10000';
+            tooltipStyle.visibility = 'visible';
+            tooltipStyle.pointerEvents = 'auto';
+
+            const { top:offsetTop, left:offsetLeft } = this.constructor.parseOffset(hasOffset);
+            const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
+
+            const { padding } = this.options;
+            tooltipStyle.top = `${offsetTop}px`;
+            tooltipStyle.left = `${offsetLeft + width + padding}px`;
+            tooltipStyle.right = 'auto';
+            tooltipStyle.bottom = 'auto';
+            tooltipStyle.transform = 'none';
+
+            if (overlayEls.length > 0) {
+                const overlayEl = overlayEls[0];
+                if (overlayEl.classList.contains("gc-overlay-hidden")) {
+                    overlayEl.classList.remove("gc-overlay-hidden");
+                }
+            }
+
+            if (this.currentStep.animationType) {
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+            }
+
+            return this;
+        }
     
         if (!hasElement && hasOffset) {
             tooltipEl.setAttribute('data-guidechimp-position', 'offset');
@@ -961,11 +1090,11 @@ export default class GuideChimp {
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
 
-            if (typeof hasOffset.top !== 'undefined') {
-                tooltipStyle.top = typeof hasOffset.top === 'number' ? `${hasOffset.top}px` : hasOffset.top;
+            if (typeof offsetTop !== 'undefined') {
+                tooltipStyle.top = typeof offsetTop === 'number' ? `${offsetTop}px` : offsetTop;
             }
-            if (typeof hasOffset.left !== 'undefined') {
-                tooltipStyle.left = typeof hasOffset.left === 'number' ? `${hasOffset.left}px` : hasOffset.left;
+            if (typeof offsetLeft !== 'undefined') {
+                tooltipStyle.left = typeof offsetLeft === 'number' ? `${offsetLeft}px` : offsetLeft;
             }
 
             if (overlayEls.length > 0) {
@@ -1399,6 +1528,33 @@ export default class GuideChimp {
         return this.removeEl('fakeStep');
     }
 
+    mountOffsetFakeStepEl(data = {}) {
+        const { offset, width, height } = data;
+        
+        this.removeFakeStepEl();
+        
+        const fakeEl = this.createFakeStepEl(data);
+        
+        if (fakeEl && offset && width && height) {
+            const { top, left } = this.constructor.parseOffset(offset);
+            const w = typeof width === 'number' ? width : parseFloat(width) || 0;
+            const h = typeof height === 'number' ? height : parseFloat(height) || 0;
+            
+            fakeEl.style.cssText = `
+                position: fixed !important;
+                top: ${top}px !important;
+                left: ${left}px !important;
+                width: ${w}px !important;
+                height: ${h}px !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                z-index: -1 !important;
+            `;
+        }
+        
+        return this.mountEl(fakeEl, document.body);
+    }
+
     getPreloaderTmpl() {
         return preloaderTmpl;
     }
@@ -1426,7 +1582,35 @@ export default class GuideChimp {
     }
 
     getOverlayStepPath(step) {
+        // Check if step has offset with width and height
+        if (step && step.offset && step.width && step.height) {
+            return this.getOverlayOffsetPath(step);
+        }
         return this.getOverlayElPath(this.getStepEl(step));
+    }
+
+    getOverlayOffsetPath(step) {
+        let { padding } = this.options;
+        padding = (padding) ? padding / 2 : 0;
+
+        const { offset, width, height } = step;
+        
+        const { top, left } = this.constructor.parseOffset(offset);
+        
+        const r = 4;
+
+        let path = this.getOverlayDocumentPath();
+
+        path += `M ${left - padding + r} ${top - padding}
+                 a ${r},${r} 0 0 0 -${r},${r}
+                 V ${height + top + padding - r}
+                 a ${r},${r} 0 0 0 ${r},${r}
+                 H ${width + left + padding - r}
+                 a ${r},${r} 0 0 0 ${r},-${r}
+                 V ${top - padding + r}
+                 a ${r},${r} 0 0 0 -${r},-${r}Z`;
+
+        return path;
     }
 
     getOverlayElPath(el) {
