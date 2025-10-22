@@ -261,7 +261,7 @@ class AHD extends GuideChimp {
               showProgressbar: this.options.showProgressbar,
               width:step.width,
               height:step.height,
-              offset:JSON.stringify((step.offset.spit(',').map(value=>value)))
+              offset:step.offset,
             }))
           : []
       );

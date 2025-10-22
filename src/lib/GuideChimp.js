@@ -222,7 +222,6 @@ export default class GuideChimp {
             return { top: 0, left: 0 };
         }
 
-        // If offset is already an object, return it
         if (typeof offset === 'object' && !Array.isArray(offset)) {
             return {
                 top: typeof offset.top === 'number' ? offset.top : parseFloat(offset.top) || 0,
@@ -230,7 +229,6 @@ export default class GuideChimp {
             };
         }
 
-        // If offset is a string like "100,200", parse it
         if (typeof offset === 'string') {
             const parts = offset.split(',').map(p => parseFloat(p.trim()));
             return {
@@ -849,31 +847,31 @@ export default class GuideChimp {
         const hasOffset = this.currentStep?.offset;
         const hasWidth = this.currentStep?.width;
         const hasHeight = this.currentStep?.height;
-        
+
         if (hasOffset && hasWidth && hasHeight) {
             if (!interactionEl) {
                 return this;
             }
-            
+
             let { padding } = this.options;
             const { interaction } = this.options;
-            
+
             const { top, left } = this.constructor.parseOffset(hasOffset);
             const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
             const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
-            
+
             const { style } = interactionEl;
-            
+
             style.cssText = `position: fixed;
             width: ${width + padding}px;
             height: ${height + padding}px;
             top: ${top - (padding / 2)}px;
             left: ${left - (padding / 2)}px;
             z-index: 6403;`;
-            
+
             return this;
         }
-        
+
         const el = this.getStepEl(this.currentStep);
 
         if (!interactionEl || !el) {
@@ -906,12 +904,12 @@ export default class GuideChimp {
         const hasOffset = this.currentStep?.offset;
         const hasWidth = this.currentStep?.width;
         const hasHeight = this.currentStep?.height;
-        
+
         if (hasOffset && hasWidth && hasHeight) {
             if (!controlEl) {
                 return this;
             }
-            
+
             const { style } = controlEl;
             style.position = 'fixed';
             style.width = 'auto';
@@ -921,11 +919,11 @@ export default class GuideChimp {
             style.right = '0';
             style.bottom = '0';
             style.pointerEvents = 'none';
-            style.visibility = 'visible'; 
-            
+            style.visibility = 'visible';
+
             return this;
         }
-        
+
         const el = this.getStepEl(this.currentStep);
         if (this.options.type === "snackbar") {
             switch (this.currentStep.position) {
@@ -1060,7 +1058,7 @@ export default class GuideChimp {
             tooltipStyle.visibility = 'visible';
             tooltipStyle.pointerEvents = 'auto';
 
-            const { top:offsetTop, left:offsetLeft } = this.constructor.parseOffset(hasOffset);
+            const { top: offsetTop, left: offsetLeft } = this.constructor.parseOffset(hasOffset);
             const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
 
             const { padding } = this.options;
@@ -1083,7 +1081,7 @@ export default class GuideChimp {
 
             return this;
         }
-    
+
         if (!hasElement && hasOffset) {
             tooltipEl.setAttribute('data-guidechimp-position', 'offset');
             tooltipStyle.position = 'fixed';
@@ -1530,16 +1528,16 @@ export default class GuideChimp {
 
     mountOffsetFakeStepEl(data = {}) {
         const { offset, width, height } = data;
-        
+
         this.removeFakeStepEl();
-        
+
         const fakeEl = this.createFakeStepEl(data);
-        
+
         if (fakeEl && offset && width && height) {
             const { top, left } = this.constructor.parseOffset(offset);
             const w = typeof width === 'number' ? width : parseFloat(width) || 0;
             const h = typeof height === 'number' ? height : parseFloat(height) || 0;
-            
+
             fakeEl.style.cssText = `
                 position: fixed !important;
                 top: ${top}px !important;
@@ -1551,7 +1549,7 @@ export default class GuideChimp {
                 z-index: -1 !important;
             `;
         }
-        
+
         return this.mountEl(fakeEl, document.body);
     }
 
@@ -1594,9 +1592,9 @@ export default class GuideChimp {
         padding = (padding) ? padding / 2 : 0;
 
         const { offset, width, height } = step;
-        
+
         const { top, left } = this.constructor.parseOffset(offset);
-        
+
         const r = 4;
 
         let path = this.getOverlayDocumentPath();
