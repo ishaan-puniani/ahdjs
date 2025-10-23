@@ -259,9 +259,10 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
-              offset: step.offset,
               width: parseInt(step.width),
               height: parseInt(step.height),
+              top: parseInt(step.top),
+              left: parseInt(step.left),
             }))
           : []
       );
@@ -348,7 +349,8 @@ class AHD extends GuideChimp {
                       ? behavior.isCaret
                       : true,
                 position: step.position || behavior.position,
-                offset: step.offset,
+                top: parseInt(step.top),
+                left: parseInt(step.left),
                 width: parseInt(step.width),
                 height: parseInt(step.height),
               },
