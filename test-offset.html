@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Offset Highlight Feature</title>
+    <link rel="stylesheet" href="./build/css/index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+            font-weight: bold;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 150px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .reference-grid {
+            position: absolute;
+            top: 200px;
+            left: 50px;
+            right: 50px;
+            bottom: 50px;
+            border: 2px dashed #ccc;
+            pointer-events: none;
+        }
+
+        .reference-area {
+            position: absolute;
+            border: 2px solid #28a745;
+            background-color: rgba(40, 167, 69, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+        }
+
+        .info h3 {
+            margin-top: 0;
+        }
+
+        .info code {
+            background-color: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Test Offset Highlight Feature</h1>
+
+    <div class="controls">
+        <h3>Configure Highlight Area</h3>
+
+        <div class="control-group">
+            <label for="offsetTop">Offset Top:</label>
+            <input type="number" id="offsetTop" value="250" min="0" max="1000">
+            <span style="margin-left: 20px;">px</span>
+        </div>
+
+        <div class="control-group">
+            <label for="offsetLeft">Offset Left:</label>
+            <input type="number" id="offsetLeft" value="100" min="0" max="1000">
+            <span style="margin-left: 20px;">px</span>
+        </div>
+
+        <div class="control-group">
+            <label for="width">Width:</label>
+            <input type="number" id="width" value="400" min="50" max="1000">
+            <span style="margin-left: 20px;">px</span>
+        </div>
+
+        <div class="control-group">
+            <label for="height">Height:</label>
+            <input type="number" id="height" value="200" min="50" max="1000">
+            <span style="margin-left: 20px;">px</span>
+        </div>
+
+        <div class="control-group">
+            <label for="title">Title:</label>
+            <input type="text" id="title" value="Test Highlight" style="width: 300px;">
+        </div>
+
+        <div class="control-group">
+            <label for="description">Description:</label>
+            <input type="text" id="description"
+                value="This is a test of the offset highlight feature with custom dimensions." style="width: 300px;">
+        </div>
+
+        <div class="control-group" style="margin-top: 20px;">
+            <button class="btn" onclick="showPreview()">Show Preview Area</button>
+            <button class="btn" onclick="startTour()">Start Tour</button>
+            <button class="btn btn-secondary" onclick="stopTour()">Stop Tour</button>
+        </div>
+    </div>
+
+    <div class="info">
+        <h3>How it works:</h3>
+        <p>
+            1. Adjust the offset (top, left) and dimensions (width, height) using the controls above<br>
+            2. Click <strong>"Show Preview Area"</strong> to see where the highlight will appear (green box)<br>
+            3. Click <strong>"Start Tour"</strong> to see the actual tour with overlay and tooltip<br>
+            4. The tooltip will appear on the right side of the highlighted area
+        </p>
+        <p>
+            <strong>Example usage in code:</strong><br>
+            <code>{<br>
+                &nbsp;&nbsp;offset: { top: 250, left: 100 },<br>
+                &nbsp;&nbsp;width: 400,<br>
+                &nbsp;&nbsp;height: 200,<br>
+                &nbsp;&nbsp;title: "Your Title",<br>
+                &nbsp;&nbsp;description: "Your Description"<br>
+            }</code>
+        </p>
+    </div>
+
+    <div class="reference-grid"></div>
+    <div id="previewArea" class="reference-area" style="display: none;"></div>
+
+    <script src="./build/index.js"></script>
+    <script>
+        let currentTour = null;
+
+        function getValues() {
+            return {
+                top: parseInt(document.getElementById('offsetTop').value),
+                left: parseInt(document.getElementById('offsetLeft').value),
+                width: parseInt(document.getElementById('width').value),
+                height: parseInt(document.getElementById('height').value),
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value
+            };
+        }
+
+        function showPreview() {
+            const values = getValues();
+            const previewArea = document.getElementById('previewArea');
+
+            previewArea.style.display = 'flex';
+            previewArea.style.top = values.top + 'px';
+            previewArea.style.left = values.left + 'px';
+            previewArea.style.width = values.width + 'px';
+            previewArea.style.height = values.height + 'px';
+            previewArea.textContent = `Preview: ${values.width}x${values.height} at (${values.left}, ${values.top})`;
+
+            // Hide preview after 3 seconds
+            setTimeout(() => {
+                previewArea.style.display = 'none';
+            }, 3000);
+        }
+
+        function startTour() {
+            const values = getValues();
+
+            const tour = [
+                {
+                    title: values.title,
+                    description: values.description,
+                    top: values.top,
+                    left: values.left,
+                    width: values.width,
+                    height: values.height,
+                }
+            ];
+
+            const AHDjs = window.AHDjs.default;
+            const userId = "test-user-" + Date.now();
+
+            currentTour = new AHDjs(undefined, {
+                applicationId: "test-app",
+                apiHost: "https://pagepilot.fabbuilder.com",
+                userId: userId,
+            });
+
+            currentTour.setTour(tour);
+            currentTour.start();
+        }
+
+        function stopTour() {
+            if (currentTour) {
+                currentTour.stop();
+                currentTour = null;
+            }
+        }
+
+        // Update preview when values change
+        ['offsetTop', 'offsetLeft', 'width', 'height'].forEach(id => {
+            document.getElementById(id).addEventListener('input', () => {
+                const previewArea = document.getElementById('previewArea');
+                if (previewArea.style.display !== 'none') {
+                    showPreview();
+                }
+            });
+        });
+
+        // Show initial info
+        console.log('Test Offset Highlight Feature loaded!');
+        console.log('Use the controls to configure and test the offset highlight feature.');
+    </script>
+</body>
+
+</html>
