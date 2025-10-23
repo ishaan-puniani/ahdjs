@@ -1059,13 +1059,73 @@ export default class GuideChimp {
 
             const { top: offsetTop, left: offsetLeft } = this.constructor.parseOffset(hasOffset);
             const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
+            const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
 
             const { padding } = this.options;
-            tooltipStyle.top = `${offsetTop}px`;
-            tooltipStyle.left = `${offsetLeft + width + padding}px`;
+            
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Get tooltip dimensions (need to calculate after it's rendered)
+            const { width: tooltipWidth, height: tooltipHeight } = tooltipEl.getBoundingClientRect();
+            
+            // Calculate available space on each side
+            const spaceRight = viewportWidth - (offsetLeft + width);
+            const spaceLeft = offsetLeft;
+            const spaceBottom = viewportHeight - (offsetTop + height);
+            const spaceTop = offsetTop;
+            
+            const minSpaceNeeded = tooltipWidth + padding + 10; 
+            
+            tooltipStyle.top = 'auto';
+            tooltipStyle.left = 'auto';
             tooltipStyle.right = 'auto';
             tooltipStyle.bottom = 'auto';
             tooltipStyle.transform = 'none';
+            
+            let position = 'right';
+            
+            // Check if tooltip fits on right
+            if (spaceRight >= minSpaceNeeded) {
+                position = 'right';
+                tooltipStyle.top = `${offsetTop}px`;
+                tooltipStyle.left = `${offsetLeft + width + padding + 10}px`;
+            }
+            // Check if tooltip fits on left
+            else if (spaceLeft >= minSpaceNeeded) {
+                position = 'left';
+                tooltipStyle.top = `${offsetTop}px`;
+                tooltipStyle.right = `${viewportWidth - offsetLeft + padding + 10}px`;
+            }
+            // Check if tooltip fits on bottom
+            else if (spaceBottom >= tooltipHeight + padding + 10) {
+                position = 'bottom';
+                tooltipStyle.top = `${offsetTop + height + padding + 10}px`;
+                tooltipStyle.left = `${offsetLeft}px`;
+            }
+            // Check if tooltip fits on top
+            else if (spaceTop >= tooltipHeight + padding + 10) {
+                position = 'top';
+                tooltipStyle.bottom = `${viewportHeight - offsetTop + padding + 10}px`;
+                tooltipStyle.left = `${offsetLeft}px`;
+            }
+            // If no space is sufficient, center on mobile or position on right for desktop
+            else {
+                if (viewportWidth < 768) {
+                    position = 'center';
+                    tooltipStyle.top = '50%';
+                    tooltipStyle.left = '50%';
+                    tooltipStyle.transform = 'translate(-50%, -50%)';
+                } else {
+                    position = 'right';
+                    tooltipStyle.top = `${offsetTop}px`;
+                    tooltipStyle.left = `${offsetLeft + width + padding + 10}px`;
+                }
+            }
+            
+            tooltipEl.setAttribute('data-guidechimp-position', `offset-with-highlight-${position}`);
+            tooltipStyle.pointerEvents = 'auto';
 
             if (overlayEls.length > 0) {
                 const overlayEl = overlayEls[0];
