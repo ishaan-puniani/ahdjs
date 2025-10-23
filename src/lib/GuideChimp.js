@@ -34,7 +34,6 @@ import copyrightTmpl from './templates/copyright.html';
 import notificationTmpl from './templates/notification.html';
 import fakeStepTmpl from './templates/fake-step.html';
 import { animationMode, DISMISSAL_SETTINGS } from './utils/constants';
-import { has } from 'lodash';
 
 export default class GuideChimp {
     /**
@@ -212,8 +211,6 @@ export default class GuideChimp {
 
         return this.isFixed(parentNode);
     }
-
-
 
     setDefaults() {
         this.previousStep = null;
@@ -727,16 +724,16 @@ export default class GuideChimp {
             const path = overlay.querySelector('path');
             const animate = path.querySelector('animate');
 
-            // Check if we have top/left with width and height for highlighting
+            // Check if we have top/left with width and height for virtual highlight
             const hasTop = this.currentStep?.top !== undefined;
             const hasLeft = this.currentStep?.left !== undefined;
             const hasWidth = this.currentStep?.width;
             const hasHeight = this.currentStep?.height;
 
             const isCurrentElFake = this.isEl(el, 'fakeStep');
-            const isPositionWithDimensions = hasTop && hasLeft && hasWidth && hasHeight;
+            const isTopLeftWithDimensions = hasTop && hasLeft && hasWidth && hasHeight;
 
-            const to = (isCurrentElFake && !isPositionWithDimensions)
+            const to = (isCurrentElFake && !isTopLeftWithDimensions)
                 ? this.getOverlayDocumentPath()
                 : this.getOverlayStepPath(this.currentStep);
 
@@ -773,7 +770,8 @@ export default class GuideChimp {
             }
         }
 
-        if (!(this.currentStep?.top !== undefined && this.currentStep?.left !== undefined && this.currentStep?.width && this.currentStep?.height)) {
+        // Only add classes to real elements, not for top/left-based highlights
+        if (this.currentStep?.top === undefined || this.currentStep?.left === undefined || !this.currentStep?.width || !this.currentStep?.height) {
             const elStyle = getComputedStyle(el);
 
             if (!['absolute', 'relative', 'fixed'].includes(elStyle.getPropertyValue('position'))) {
@@ -806,8 +804,8 @@ export default class GuideChimp {
 
         const el = this.getStepEl(this.currentStep);
 
-        // Only remove classes if they were added (not for position-based highlights)
-        if (!(this.currentStep?.top !== undefined && this.currentStep?.left !== undefined && this.currentStep?.width && this.currentStep?.height)) {
+        // Only remove classes if they were added (not for top/left-based highlights)
+        if (this.currentStep?.top === undefined || this.currentStep?.left === undefined || !this.currentStep?.width || !this.currentStep?.height) {
             el.classList.remove(this.constructor.getRelativePositionClass());
             el.classList.remove(this.constructor.getHighlightClass());
         }
@@ -823,32 +821,32 @@ export default class GuideChimp {
         const hasLeft = this.currentStep?.left !== undefined;
         const hasWidth = this.currentStep?.width;
         const hasHeight = this.currentStep?.height;
-
+        
         if (hasTop && hasLeft && hasWidth && hasHeight) {
             if (!interactionEl) {
                 return this;
             }
-
+            
             let { padding } = this.options;
             const { interaction } = this.options;
-
+            
             const top = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
             const left = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
             const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
             const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
-
+            
             const { style } = interactionEl;
-
+            
             style.cssText = `position: fixed;
             width: ${width + padding}px;
             height: ${height + padding}px;
             top: ${top - (padding / 2)}px;
             left: ${left - (padding / 2)}px;
             z-index: 6403;`;
-
+            
             return this;
         }
-
+        
         const el = this.getStepEl(this.currentStep);
 
         if (!interactionEl || !el) {
@@ -882,12 +880,12 @@ export default class GuideChimp {
         const hasLeft = this.currentStep?.left !== undefined;
         const hasWidth = this.currentStep?.width;
         const hasHeight = this.currentStep?.height;
-
+        
         if (hasTop && hasLeft && hasWidth && hasHeight) {
             if (!controlEl) {
                 return this;
             }
-
+            
             const { style } = controlEl;
             style.position = 'fixed';
             style.width = 'auto';
@@ -897,11 +895,11 @@ export default class GuideChimp {
             style.right = '0';
             style.bottom = '0';
             style.pointerEvents = 'none';
-            style.visibility = 'visible';
-
+            style.visibility = 'visible'; 
+            
             return this;
         }
-
+        
         const el = this.getStepEl(this.currentStep);
         if (this.options.type === "snackbar") {
             switch (this.currentStep.position) {
@@ -1025,42 +1023,25 @@ export default class GuideChimp {
         }
 
         const hasElement = this.currentStep.element;
-        const hasWidth = this.currentStep?.width;
-        const hasHeight = this.currentStep?.height;
         const hasTop = this.currentStep?.top !== undefined;
         const hasLeft = this.currentStep?.left !== undefined;
+        const hasWidth = this.currentStep?.width;
+        const hasHeight = this.currentStep?.height;
 
         if (hasTop && hasLeft && hasWidth && hasHeight) {
-            tooltipEl.setAttribute('data-guidechimp-position', 'offset-with-highlight');
+            tooltipEl.setAttribute('data-guidechimp-position', 'top-left-with-highlight');
             tooltipStyle.position = 'fixed';
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
             tooltipStyle.pointerEvents = 'auto';
 
-            const offsetTop = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
-            const offsetLeft = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
+            const top = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
+            const left = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
             const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
-            const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
 
             const { padding } = this.options;
-            
-            // Get viewport dimensions
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            // Get tooltip dimensions (need to calculate after it's rendered)
-            const { width: tooltipWidth, height: tooltipHeight } = tooltipEl.getBoundingClientRect();
-            
-            // Calculate available space on each side
-            const spaceRight = viewportWidth - (offsetLeft + width);
-            const spaceLeft = offsetLeft;
-            const spaceBottom = viewportHeight - (offsetTop + height);
-            const spaceTop = offsetTop;
-            
-            const minSpaceNeeded = tooltipWidth + padding + 10; 
-            
-            tooltipStyle.top = 'auto';
-            tooltipStyle.left = 'auto';
+            tooltipStyle.top = `${top}px`;
+            tooltipStyle.left = `${left + width + padding}px`;
             tooltipStyle.right = 'auto';
             tooltipStyle.bottom = 'auto';
             tooltipStyle.transform = 'none';
@@ -1070,26 +1051,26 @@ export default class GuideChimp {
             // Check if tooltip fits on right
             if (spaceRight >= minSpaceNeeded) {
                 position = 'right';
-                tooltipStyle.top = `${offsetTop}px`;
-                tooltipStyle.left = `${offsetLeft + width + padding + 10}px`;
+                tooltipStyle.top = `${hasTop}px`;
+                tooltipStyle.left = `${hasLeft + width + padding + 10}px`;
             }
             // Check if tooltip fits on left
             else if (spaceLeft >= minSpaceNeeded) {
                 position = 'left';
-                tooltipStyle.top = `${offsetTop}px`;
-                tooltipStyle.right = `${viewportWidth - offsetLeft + padding + 10}px`;
+                tooltipStyle.top = `${hasTop}px`;
+                tooltipStyle.right = `${viewportWidth - hasLeft + padding + 10}px`;
             }
             // Check if tooltip fits on bottom
             else if (spaceBottom >= tooltipHeight + padding + 10) {
                 position = 'bottom';
-                tooltipStyle.top = `${offsetTop + height + padding + 10}px`;
-                tooltipStyle.left = `${offsetLeft}px`;
+                tooltipStyle.top = `${hasTop + height + padding + 10}px`;
+                tooltipStyle.left = `${hasLeft}px`;
             }
             // Check if tooltip fits on top
             else if (spaceTop >= tooltipHeight + padding + 10) {
                 position = 'top';
-                tooltipStyle.bottom = `${viewportHeight - offsetTop + padding + 10}px`;
-                tooltipStyle.left = `${offsetLeft}px`;
+                tooltipStyle.bottom = `${viewportHeight - hasTop + padding + 10}px`;
+                tooltipStyle.left = `${hasLeft}px`;
             }
             // If no space is sufficient, center on mobile or position on right for desktop
             else {
@@ -1100,8 +1081,8 @@ export default class GuideChimp {
                     tooltipStyle.transform = 'translate(-50%, -50%)';
                 } else {
                     position = 'right';
-                    tooltipStyle.top = `${offsetTop}px`;
-                    tooltipStyle.left = `${offsetLeft + width + padding + 10}px`;
+                    tooltipStyle.top = `${hasTop}px`;
+                    tooltipStyle.left = `${hasLeft + width + padding + 10}px`;
                 }
             }
             
@@ -1121,20 +1102,20 @@ export default class GuideChimp {
 
             return this;
         }
-
+    
         if (!hasElement && (hasTop || hasLeft)) {
-            tooltipEl.setAttribute('data-guidechimp-position', 'offset');
+            tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
             tooltipStyle.position = 'fixed';
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
 
             if (hasTop) {
-                const topValue = this.currentStep.top;
-                tooltipStyle.top = typeof topValue === 'number' ? `${topValue}px` : topValue;
+                const top = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
+                tooltipStyle.top = `${top}px`;
             }
             if (hasLeft) {
-                const leftValue = this.currentStep.left;
-                tooltipStyle.left = typeof leftValue === 'number' ? `${leftValue}px` : leftValue;
+                const left = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
+                tooltipStyle.left = `${left}px`;
             }
 
             if (overlayEls.length > 0) {
@@ -1570,17 +1551,17 @@ export default class GuideChimp {
 
     mountOffsetFakeStepEl(data = {}) {
         const { top, left, width, height } = data;
-
+        
         this.removeFakeStepEl();
-
+        
         const fakeEl = this.createFakeStepEl(data);
-
+        
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
             const t = typeof top === 'number' ? top : parseFloat(top) || 0;
             const l = typeof left === 'number' ? left : parseFloat(left) || 0;
             const w = typeof width === 'number' ? width : parseFloat(width) || 0;
             const h = typeof height === 'number' ? height : parseFloat(height) || 0;
-
+            
             fakeEl.style.cssText = `
                 position: fixed !important;
                 top: ${t}px !important;
@@ -1592,7 +1573,7 @@ export default class GuideChimp {
                 z-index: -1 !important;
             `;
         }
-
+        
         return this.mountEl(fakeEl, document.body);
     }
 
@@ -1623,6 +1604,7 @@ export default class GuideChimp {
     }
 
     getOverlayStepPath(step) {
+        // Check if step has top/left with width and height
         if (step && step.top !== undefined && step.left !== undefined && step.width && step.height) {
             return this.getOverlayOffsetPath(step);
         }
@@ -1634,23 +1616,23 @@ export default class GuideChimp {
         padding = (padding) ? padding / 2 : 0;
 
         const { top, left, width, height } = step;
-
-        const t = typeof top === 'number' ? top : parseFloat(top) || 0;
-        const l = typeof left === 'number' ? left : parseFloat(left) || 0;
-        const w = typeof width === 'number' ? width : parseFloat(width) || 0;
-        const h = typeof height === 'number' ? height : parseFloat(height) || 0;
-
+        
+        const topValue = typeof top === 'number' ? top : parseFloat(top) || 0;
+        const leftValue = typeof left === 'number' ? left : parseFloat(left) || 0;
+        const widthValue = typeof width === 'number' ? width : parseFloat(width) || 0;
+        const heightValue = typeof height === 'number' ? height : parseFloat(height) || 0;
+        
         const r = 4;
 
         let path = this.getOverlayDocumentPath();
 
-        path += `M ${l - padding + r} ${t - padding}
+        path += `M ${leftValue - padding + r} ${topValue - padding}
                  a ${r},${r} 0 0 0 -${r},${r}
-                 V ${h + t + padding - r}
+                 V ${heightValue + topValue + padding - r}
                  a ${r},${r} 0 0 0 ${r},${r}
-                 H ${w + l + padding - r}
+                 H ${widthValue + leftValue + padding - r}
                  a ${r},${r} 0 0 0 ${r},-${r}
-                 V ${t - padding + r}
+                 V ${topValue - padding + r}
                  a ${r},${r} 0 0 0 -${r},-${r}Z`;
 
         return path;
