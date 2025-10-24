@@ -478,7 +478,7 @@ export default class GuideChimp {
         }
 
         this.stopPreloader();
-
+        this.acknowledgeStep('tour', this.currentStep.id);
         return this.go(this.nextStepIndex, true, ...args);
     }
 
@@ -512,15 +512,14 @@ export default class GuideChimp {
         // remove all layers and keys
         this.unmountStep();
 
-        // remove overlay
         this.removeOverlayEl();
 
         this.cache.clear();
         this.elements.clear();
 
-        // set step variables to defaults
-        this.setDefaults();
 
+        this.setDefaults();
+        this.acknowledgeStep('tour', this.currentStep.id);
         return this;
     }
 
@@ -2254,6 +2253,7 @@ export default class GuideChimp {
     }
 
     beforeChangeStep() {
+        const currentStep = this.currentStep;
         this.unmountStep();
         this.unobserveStep();
     }

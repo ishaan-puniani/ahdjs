@@ -641,6 +641,19 @@ class AHD extends GuideChimp {
     return visits;
   }
 
+  private async acknowledgeStep(type: string, id: string) {
+    // console.log('acknowledgeStep', type, id);
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+    const respons: any = await fetch(
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}`,
+      requestOptions
+    ).then((res) => res.json());
+
+  }
+
   private async markPageVisited(slug: string, type: string, entityId: string) {
     let visits;
     const respons: any = await fetch(
