@@ -168,6 +168,11 @@ class AHD extends GuideChimp {
   constructor(tour, options = {}) {
     super(tour, options);
     this.attachPlugins();
+    // Keep top-level copies of critical identifiers so they survive any
+    // mutations to `this.options` that may happen inside GuideChimp.
+    this.applicationId = options.applicationId;
+    this.visitorId = options.visitorId;
+    this.apiHost = options.apiHost;
   }
 
   async attachPlugins() {
@@ -282,8 +287,11 @@ class AHD extends GuideChimp {
   }
 
   async fetchFaqs(slug) {
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+
     const response: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
+      `${apiHost}/api/tenant/${applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
     ).then((res) => res.json());
 
     return response;
@@ -531,8 +539,11 @@ class AHD extends GuideChimp {
     });
   }
   private async fetchAndCacheHighlightsData(highlightsData: any) {
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/highlights?filter[isActive]=true`
+      `${apiHost}/api/tenant/${applicationId}/client/highlights?filter[isActive]=true`
     ).then((res) => res.json());
     if (respons.rows) {
       highlightsData = respons.rows.filter((row: any) => !!row.content);
@@ -546,8 +557,12 @@ class AHD extends GuideChimp {
   }
 
   private async fetchAndCacheTourData(toursData: any, slug: string) {
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+    const visitorId = this.options?.visitorId || this.visitorId;
+
     const response: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}`
+      `${apiHost}/api/tenant/${applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${visitorId}`
     ).then((res) => res.json());
     if (response) {
       toursData = response;
@@ -563,8 +578,11 @@ class AHD extends GuideChimp {
 
 
   private async fetchAndCacheBannerData(appBannerData: any) {
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banners?filter[isActive]=true`
+      `${apiHost}/api/tenant/${applicationId}/client/app-banners?filter[isActive]=true`
     ).then((res) => res.json());
     if (respons.rows) {
       appBannerData = respons.rows.filter((row: any) => !!row.content);
@@ -593,8 +611,12 @@ class AHD extends GuideChimp {
   // }
 
   private async fetchAndCachePageVisitsData(visits: any) {
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+    const visitorId = this.options?.visitorId || this.visitorId;
+
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/stats/${this.options.visitorId}?filter[device]=web`
+      `${apiHost}/api/tenant/${applicationId}/client/stats/${visitorId}?filter[device]=web`
     ).then((res) => res.json());
     if (respons) {
       LocalStorage.put(
@@ -608,8 +630,12 @@ class AHD extends GuideChimp {
 
   private async updateVisitorStats(dataToPatch: any, type: string) {
     let visits;
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+    const visitorId = this.options?.visitorId || this.visitorId;
+
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/visitor-stats`,
+      `${apiHost}/api/tenant/${applicationId}/client/visitor-stats`,
       {
         method: "POST", // *GET, POST, PUT, DELETE, etc.
         mode: "cors", // no-cors, *cors, same-origin
@@ -624,7 +650,7 @@ class AHD extends GuideChimp {
         body: JSON.stringify({
           data: {
             dataToPatch,
-            visitorId: this.options.visitorId,
+            visitorId: visitorId,
             channel: "web",
             type,
           },
@@ -647,8 +673,17 @@ class AHD extends GuideChimp {
       method: "GET",
       redirect: "follow",
     };
+    const apiHost = this.options?.apiHost || this.apiHost;
+    const applicationId = this.options?.applicationId || this.applicationId;
+    const visitorId = this.options?.visitorId || this.visitorId;
+
+    // Debug logging to help track down cases where these IDs are missing.
+    // Keep this in development; remove or guard behind a flag in production.
+    // eslint-disable-next-line no-console
+    console.debug('acknowledgeStep:', { apiHost, applicationId, visitorId, id, type });
+
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}`,
+      `${apiHost}/api/tenant/${applicationId}/client/acknowledge?userId=${visitorId}&id=${id}&type=${type}`,
       requestOptions
     ).then((res) => res.json());
 
