@@ -228,7 +228,6 @@ class AHD extends GuideChimp {
       url,
       false
     );
-    console.log('showPageTour', applicableTours);
 
     if (applicableTours?.length > 0) {
       const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
@@ -272,6 +271,7 @@ class AHD extends GuideChimp {
             }))
           : []
       );
+      console.log('Tour', onboardTour);
       this.setTour(onboardTour);
       this.start();
     }
@@ -308,12 +308,10 @@ class AHD extends GuideChimp {
       url,
       true
     );
-    console.log('showPageBeacons', applicableTours);
     if (applicableTours.length > 0) {
       const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
       const visited = stats?.visited || [];
       const nVisited = new Set(visited);
-      console.log('nVisited', nVisited);
       applicableTours.forEach((tour: any) => {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);

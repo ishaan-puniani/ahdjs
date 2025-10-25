@@ -464,7 +464,7 @@ export default class GuideChimp {
             return false;
         }
 
-        const { id, onNext } = this.currentStep;
+        const { type, id, onNext } = this.currentStep;
 
         this.startPreloader();
 
@@ -482,8 +482,7 @@ export default class GuideChimp {
         }
 
         this.stopPreloader();
-        console.log(this.currentStep)
-        this.acknowledgeStep('tour', id)
+        this.acknowledgeStep(type, id)
         return this.go(this.nextStepIndex, true, ...args);
     }
 
@@ -491,7 +490,7 @@ export default class GuideChimp {
         if (!this.isDisplayed) {
             return this;
         }
-        const { id } = this.currentStep;
+        const { type, id } = this.currentStep;
         if (this.currentStepIndex === this.steps.length - 1) {
             this.startPreloader();
             await this.emit('onComplete', ...args);
@@ -524,8 +523,7 @@ export default class GuideChimp {
 
 
         this.setDefaults();
-        console.log(this.currentStep)
-        this.acknowledgeStep('tour', id)
+        this.acknowledgeStep(type, id)
         return this;
     }
 
