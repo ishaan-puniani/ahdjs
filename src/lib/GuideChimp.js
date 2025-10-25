@@ -256,7 +256,11 @@ export default class GuideChimp {
      * @return {this}
      */
     setOptions(options) {
-        this.options = { ...this.constructor.getDefaultOptions(), ...options };
+        if (!this.options || Object.keys(this.options).length === 0) {
+            this.options = { ...this.constructor.getDefaultOptions(), ...options };
+        } else {
+            this.options = { ...this.options, ...options };
+        }
         return this;
     }
 
@@ -460,7 +464,7 @@ export default class GuideChimp {
             return false;
         }
 
-        const { onNext, id } = this.currentStep;
+        const { id, onNext } = this.currentStep;
 
         this.startPreloader();
 
@@ -478,7 +482,8 @@ export default class GuideChimp {
         }
 
         this.stopPreloader();
-        this.acknowledgeStep('tour', id);
+        console.log(this.currentStep)
+        this.acknowledgeStep('tour', id)
         return this.go(this.nextStepIndex, true, ...args);
     }
 
@@ -519,7 +524,8 @@ export default class GuideChimp {
 
 
         this.setDefaults();
-        this.acknowledgeStep('tour', id);
+        console.log(this.currentStep)
+        this.acknowledgeStep('tour', id)
         return this;
     }
 
