@@ -653,7 +653,7 @@ class AHD extends GuideChimp {
       redirect: "follow",
     };
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}`,
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}&device=web`,
       requestOptions
     ).then((res) => res.json());
 
