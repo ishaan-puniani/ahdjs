@@ -1,4 +1,4 @@
-// @ts-nocheck
+//@ts-nocheck
 // import GuideChimp from "./GuideChimp";
 // //import  Beacons from "./plugins/beacons";
 // import "./index.scss";
@@ -166,7 +166,7 @@ const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
 class AHD extends GuideChimp {
   constructor(tour, options = {}) {
-   
+
     if (options.userId && !options.visitorId) {
       options.visitorId = options.userId;
     }
@@ -216,13 +216,10 @@ class AHD extends GuideChimp {
     return applicableHelp;
   }
 
-  async showPageTour(url: string, refetch: boolean,) {
+  async showPageTour(url: string,) {
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
-    if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, url);
-    }
     const applicableTours = this.getApplicabeDataForUrl(
       toursData.tours,
       url,
@@ -266,7 +263,8 @@ class AHD extends GuideChimp {
               height: parseInt(step.height),
               top: parseInt(step.top),
               left: parseInt(step.left),
-              id:step.id,
+              stepId: step.id,
+              id: row.id,
               type: "tour",
             }))
           : []
@@ -295,16 +293,11 @@ class AHD extends GuideChimp {
     return response;
   }
 
-  async showPageBeacons(url: string, refetch: boolean) {
+  async showPageBeacons(url:string) {
     await this.stop();
-    debugger;
-    let tooltipData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-
-    if (!tooltipData || refetch) {
-      tooltipData = await this.fetchAndCacheTourData(tooltipData, url);
-    }
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     const applicableTours = this.getApplicabeDataForUrl(
-      tooltipData.tooltips,
+      toursData.tooltips,
       url,
       true
     );
@@ -357,7 +350,8 @@ class AHD extends GuideChimp {
                 left: parseInt(step.left),
                 width: parseInt(step.width),
                 height: parseInt(step.height),
-                id:step.id,
+                stepId: step.id,
+                id: tour.id,
                 type: "tooltip",
               },
             ];
@@ -411,6 +405,20 @@ class AHD extends GuideChimp {
     AHDjs.beacons(beacons, {
       boundary: "outer",
     }).showAll();
+  }
+
+  async showHighlights(url: string, refetch: boolean) {
+    await this.stop();
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheTourData(toursData, url);
+    }
+    if (toursData.tours?.length > 0) {
+      this.showPageTour(url);
+    }
+    if (toursData.tooltips?.length > 0) {
+      this.showPageBeacons(url);
+    }
   }
 
   async showPageHighlights(url: string, refetch: boolean, force = false) {
@@ -524,14 +532,10 @@ class AHD extends GuideChimp {
       if (!tourFound) {
         return false;
       }
-      const isOneTimeOnly = td.oneTimeOnly === true;
-      const hasBeenVisited = visited.includes(td.slug);
       if (forceShow) {
         return true;
       }
-      if (isOneTimeOnly) {
-        return !hasBeenVisited;
-      } else {
+      else {
         return true;
       }
     });
@@ -552,7 +556,7 @@ class AHD extends GuideChimp {
   }
 
   private async fetchAndCacheTourData(toursData: any, slug: string) {
-    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=web`;
+    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop`;
     const response: any = await fetch(url).then((res) => res.json());
     if (response) {
       toursData = response;
@@ -646,14 +650,14 @@ class AHD extends GuideChimp {
     return visits;
   }
 
-  private async acknowledgeStep(type: string, id: string) {
+  private async acknowledgeStep(type: string, id: string, stepId: string) {
     // console.log('acknowledgeStep', type, id);
     const requestOptions = {
       method: "GET",
       redirect: "follow",
     };
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}&device=web`,
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}&stepId=${stepId}&device=desktop`,
       requestOptions
     ).then((res) => res.json());
 
