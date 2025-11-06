@@ -73,6 +73,7 @@ export default class GuideChimp {
             onNextStep: this.onNextStep.bind(this),
             onPrevStep: this.onPrevStep.bind(this),
             onCloseStep: this.onCloseStep.bind(this),
+            onGotoStep: this.onGotoStep.bind(this),
         };
 
 
@@ -110,6 +111,10 @@ export default class GuideChimp {
 
     onCloseStep() {
         this.stop({ event: "change" })
+    }
+
+    onGotoStep(index) {
+        this.go(index, ...args)
     }
 
     // options -------------------------
@@ -464,7 +469,7 @@ export default class GuideChimp {
             return false;
         }
 
-        const { type, id, onNext ,stepId } = this.currentStep;
+        const { type, id, onNext, stepId } = this.currentStep;
 
         this.startPreloader();
 
@@ -482,7 +487,7 @@ export default class GuideChimp {
         }
 
         this.stopPreloader();
-        this.acknowledgeStep(type, id,stepId)
+        this.acknowledgeStep(type, id, stepId)
         return this.go(this.nextStepIndex, true, ...args);
     }
 
