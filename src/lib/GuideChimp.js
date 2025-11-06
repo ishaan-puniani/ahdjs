@@ -114,7 +114,7 @@ export default class GuideChimp {
     }
 
     onGotoStep(index) {
-        this.go(index, ...args)
+        this.go(index, true, { event: "click" })
     }
 
     // options -------------------------
