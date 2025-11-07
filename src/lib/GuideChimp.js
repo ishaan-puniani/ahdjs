@@ -73,7 +73,6 @@ export default class GuideChimp {
             onNextStep: this.onNextStep.bind(this),
             onPrevStep: this.onPrevStep.bind(this),
             onCloseStep: this.onCloseStep.bind(this),
-            onGotoStep: this.onGotoStep.bind(this),
         };
 
 
@@ -113,9 +112,6 @@ export default class GuideChimp {
         this.stop({ event: "change" })
     }
 
-    onGotoStep(index) {
-        this.go(index, true, { event: "click" })
-    }
 
     // options -------------------------
 
@@ -395,7 +391,10 @@ export default class GuideChimp {
         if (abort) {
             return false;
         }
-
+        if (fromStep) {
+            this.unmountStep();
+            this.unobserveStep();
+        }
         this.beforeChangeStep({ toStep, toStepIndex, currentStep, currentStepIndex, fromStep, fromStepIndex });
 
         this.toStep = toStep;
