@@ -115,7 +115,7 @@ export default class GuideChimp {
     onGotoStep(index) {
         this.unobserveStep();
         this.unmountStep();
-        this.goto(index, true, { event: "change" })
+        this.go(index, true, { event: "change" })
     }
 
 
