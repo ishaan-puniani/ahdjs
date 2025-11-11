@@ -902,7 +902,7 @@ export default class GuideChimp {
             style.left = '0';
             style.right = '0';
             style.bottom = '0';
-            style.pointerEvents = 'none';
+            style.pointerEvents = 'auto';
             style.visibility = 'visible';
 
             return this;

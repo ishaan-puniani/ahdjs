@@ -4,8 +4,8 @@
   }
 
   .gc-fixed {
-    position: fixed;
-    // position: absolute;
+    // position: fixed;
+    position: absolute;
   }
 
   &.gc-loading {
@@ -23,17 +23,25 @@
   }
 }
 
-
- @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-
-   @keyframes slideUp {
-    from { transform: translateX(-100%); opacity: 0; }
-    to   { transform: translateX(0); opacity: 1; }
+  to {
+    opacity: 1;
   }
+}
 
+@keyframes slideUp {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
 
 .gc-overlay {
   position: fixed;
@@ -185,7 +193,6 @@
   }
 }
 
-
 .gc-tooltip-tail-hidden {
   display: none;
 }
@@ -288,6 +295,7 @@
 
 .gc-description {
   font-size: 14px;
+  line-height: 1.5;
   overflow-y: auto;
   overflow-x: hidden;
   // margin-bottom: 10px;
@@ -295,6 +303,9 @@
   text-align: justify;
   scroll-behavior: smooth;
 
+  table {
+    line-height: 1.5;
+  }
   &.gc-hidden {
     display: none;
   }
