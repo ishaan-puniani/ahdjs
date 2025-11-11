@@ -293,7 +293,7 @@ class AHD extends GuideChimp {
     return response;
   }
 
-  async showPageBeacons(url:string) {
+  async showPageBeacons(url: string) {
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     const applicableTours = this.getApplicabeDataForUrl(
