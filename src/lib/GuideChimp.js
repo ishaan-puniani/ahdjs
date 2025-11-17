@@ -782,11 +782,11 @@ export default class GuideChimp {
         // Add classes to real elements (element takes priority)
         // Only skip classes if NO element provided AND we have coordinate-based highlight
         const hasElement = this.currentStep?.element;
-        const hasCoordinates = !hasElement &&
-            this.currentStep?.top !== undefined &&
-            this.currentStep?.left !== undefined &&
-            this.currentStep?.width &&
-            this.currentStep?.height;
+        const hasCoordinates = !hasElement && 
+                               this.currentStep?.top !== undefined && 
+                               this.currentStep?.left !== undefined && 
+                               this.currentStep?.width && 
+                               this.currentStep?.height;
 
         if (!hasCoordinates) {
             const elStyle = getComputedStyle(el);
@@ -824,11 +824,11 @@ export default class GuideChimp {
         // Only remove classes if they were added (element takes priority)
         // Skip removal only if NO element AND we have coordinate-based highlight
         const hasElement = this.currentStep?.element;
-        const hasCoordinates = !hasElement &&
-            this.currentStep?.top !== undefined &&
-            this.currentStep?.left !== undefined &&
-            this.currentStep?.width &&
-            this.currentStep?.height;
+        const hasCoordinates = !hasElement && 
+                               this.currentStep?.top !== undefined && 
+                               this.currentStep?.left !== undefined && 
+                               this.currentStep?.width && 
+                               this.currentStep?.height;
 
         if (!hasCoordinates) {
             el.classList.remove(this.constructor.getRelativePositionClass());
@@ -1009,7 +1009,7 @@ export default class GuideChimp {
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
         tooltipStyle.position = null;
-
+        
         if (this.currentStep.delay) {
             tooltipStyle.visibility = "hidden";
             setTimeout(() => {
@@ -1020,20 +1020,20 @@ export default class GuideChimp {
         const overlayEls = document.getElementsByClassName("gc-overlay");
 
         if (overlayEls.length > 0) {
-            const overlayEl = overlayEls[0];
+        const overlayEl = overlayEls[0];
 
-            if (!this.currentStep.isBackdrop) {
+        if (!this.currentStep.isBackdrop) {
                 if (!overlayEl.classList.contains("gc-overlay-hidden")) {
-                    overlayEl.classList.add("gc-overlay-hidden");
+                overlayEl.classList.add("gc-overlay-hidden");
                 }
             } else {
                 if (overlayEl.classList.contains("gc-overlay-hidden")) {
-                    overlayEl.classList.remove("gc-overlay-hidden");
+                overlayEl.classList.remove("gc-overlay-hidden");
                 }
             }
         }
 
-        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.dismissButtonClickOnly
             || this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.buttonClickOnly
         ) {
             this.setOptions({
@@ -1045,7 +1045,7 @@ export default class GuideChimp {
             })
         }
 
-        if (this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
+        if(this.currentStep?.dismissalSetting === DISMISSAL_SETTINGS.onOutsideClick) {
             this.setOptions({
                 exitOverlay: true,
             })
@@ -1237,164 +1237,164 @@ export default class GuideChimp {
                 height: elHeight,
             } = el.getBoundingClientRect();
 
-            const { height: tooltipHeight, width: tooltipWith } = tooltipEl.getBoundingClientRect();
+        const { height: tooltipHeight, width: tooltipWith } = tooltipEl.getBoundingClientRect();
 
-            // find out min tooltip width
-            const cloneTooltip = tooltipEl.cloneNode(true);
-            cloneTooltip.style.visibility = 'hidden';
-            cloneTooltip.innerHTML = '';
+        // find out min tooltip width
+        const cloneTooltip = tooltipEl.cloneNode(true);
+        cloneTooltip.style.visibility = 'hidden';
+        cloneTooltip.innerHTML = '';
 
-            tooltipEl.parentElement.appendChild(cloneTooltip);
+        tooltipEl.parentElement.appendChild(cloneTooltip);
 
-            const { width: minTooltipWidth } = cloneTooltip.getBoundingClientRect();
+        const { width: minTooltipWidth } = cloneTooltip.getBoundingClientRect();
 
-            cloneTooltip.parentElement.removeChild(cloneTooltip);
+        cloneTooltip.parentElement.removeChild(cloneTooltip);
 
-            let boundaryRect = new DOMRect(0, 0, window.innerWidth, window.innerHeight);
+        let boundaryRect = new DOMRect(0, 0, window.innerWidth, window.innerHeight);
 
-            if (!(boundary instanceof Window)) {
-                const { x, y } = boundary.getBoundingClientRect();
-                boundaryRect = new DOMRect(x, y, boundary.scrollWidth, boundary.scrollHeight);
+        if (!(boundary instanceof Window)) {
+            const { x, y } = boundary.getBoundingClientRect();
+            boundaryRect = new DOMRect(x, y, boundary.scrollWidth, boundary.scrollHeight);
+        }
+
+        const {
+            top: boundaryTop,
+            bottom: boundaryBottom,
+            left: boundaryLeft,
+            right: boundaryRight,
+        } = boundaryRect;
+        // if the element is default element, skip position and alignment calculation
+        if (this.isEl(el, 'fakeStep')) {
+            position = 'floating';
+        } else {
+            // calculate position
+            const positions = ['bottom', 'right', 'left', 'top'];
+             let {
+                marginTop: tooltipMarginTop,
+                marginLeft: tooltipMarginLeft,
+                marginRight: tooltipMarginRight,
+                marginBottom: tooltipMarginBottom,
+            } = getComputedStyle(tooltipEl);
+
+            tooltipMarginTop = parseInt(tooltipMarginTop, 10);
+            tooltipMarginLeft = parseInt(tooltipMarginLeft, 10);
+            tooltipMarginRight = parseInt(tooltipMarginRight, 10);
+            tooltipMarginBottom = parseInt(tooltipMarginBottom, 10);
+
+            // check if the tooltip can be placed on top
+            if (tooltipHeight + tooltipMarginTop + tooltipMarginBottom > (elTop - boundaryTop)) {
+                positions.splice(positions.indexOf('top'), 1);
             }
 
-            const {
-                top: boundaryTop,
-                bottom: boundaryBottom,
-                left: boundaryLeft,
-                right: boundaryRight,
-            } = boundaryRect;
-            // if the element is default element, skip position and alignment calculation
-            if (this.isEl(el, 'fakeStep')) {
+            // check if the tooltip can be placed on bottom
+            if (tooltipHeight + tooltipMarginTop + tooltipMarginBottom > boundaryBottom - elBottom) {
+                positions.splice(positions.indexOf('bottom'), 1);
+            }
+
+            // check if the tooltip can be placed on left
+            if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
+                positions.splice(positions.indexOf('left'), 1);
+            }
+
+            // check if the tooltip can be placed on right
+            if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
+                positions.splice(positions.indexOf('right'), 1);
+            }
+
+            if (positions.length) {
+                position = positions.includes(position) ? position : positions[0];
+            } else {
                 position = 'floating';
-            } else {
-                // calculate position
-                const positions = ['bottom', 'right', 'left', 'top'];
-                let {
-                    marginTop: tooltipMarginTop,
-                    marginLeft: tooltipMarginLeft,
-                    marginRight: tooltipMarginRight,
-                    marginBottom: tooltipMarginBottom,
-                } = getComputedStyle(tooltipEl);
+            }
 
-                tooltipMarginTop = parseInt(tooltipMarginTop, 10);
-                tooltipMarginLeft = parseInt(tooltipMarginLeft, 10);
-                tooltipMarginRight = parseInt(tooltipMarginRight, 10);
-                tooltipMarginBottom = parseInt(tooltipMarginBottom, 10);
+            if (position === 'top' || position === 'bottom') {
+                const alignments = ['left', 'right', 'middle'];
 
-                // check if the tooltip can be placed on top
-                if (tooltipHeight + tooltipMarginTop + tooltipMarginBottom > (elTop - boundaryTop)) {
-                    positions.splice(positions.indexOf('top'), 1);
+                // valid left space must be at least tooltip width
+                if (boundaryRight - elLeft < minTooltipWidth) {
+                    alignments.splice(alignments.indexOf('left'), 1);
                 }
 
-                // check if the tooltip can be placed on bottom
-                if (tooltipHeight + tooltipMarginTop + tooltipMarginBottom > boundaryBottom - elBottom) {
-                    positions.splice(positions.indexOf('bottom'), 1);
+                // valid right space must be at least tooltip width
+                if (elRight - boundaryLeft < minTooltipWidth) {
+                    alignments.splice(alignments.indexOf('right'), 1);
                 }
 
-                // check if the tooltip can be placed on left
-                if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
-                    positions.splice(positions.indexOf('left'), 1);
+                // valid middle space must be at least half width from both sides
+                if (((elLeft + (elWidth / 2)) - boundaryLeft) < (minTooltipWidth / 2)
+                    || (boundaryRight - (elRight - (elWidth / 2))) < (minTooltipWidth / 2)) {
+                    alignments.splice(alignments.indexOf('middle'), 1);
                 }
 
-                // check if the tooltip can be placed on right
-                if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
-                    positions.splice(positions.indexOf('right'), 1);
-                }
-
-                if (positions.length) {
-                    position = positions.includes(position) ? position : positions[0];
+                if (alignments.length) {
+                    alignment = alignments.includes(alignment) ? alignment : alignments[0];
                 } else {
-                    position = 'floating';
+                    alignment = 'middle';
                 }
+            }
+        }
 
-                if (position === 'top' || position === 'bottom') {
-                    const alignments = ['left', 'right', 'middle'];
+        tooltipEl.setAttribute('data-guidechimp-position', position);
 
-                    // valid left space must be at least tooltip width
-                    if (boundaryRight - elLeft < minTooltipWidth) {
-                        alignments.splice(alignments.indexOf('left'), 1);
-                    }
+        const root = document.documentElement;
 
-                    // valid right space must be at least tooltip width
-                    if (elRight - boundaryLeft < minTooltipWidth) {
-                        alignments.splice(alignments.indexOf('right'), 1);
-                    }
+        if (this.currentStep.animationType) {
+            tooltipStyle.animation = animationMode(this.currentStep.animationType);
+        }
 
-                    // valid middle space must be at least half width from both sides
-                    if (((elLeft + (elWidth / 2)) - boundaryLeft) < (minTooltipWidth / 2)
-                        || (boundaryRight - (elRight - (elWidth / 2))) < (minTooltipWidth / 2)) {
-                        alignments.splice(alignments.indexOf('middle'), 1);
-                    }
+        if(this.options.type === "snackbar"){
+            switch (this.currentStep.position) {    
+                case 'top':{
+                    tooltipStyle.top = `${0 + padding}px`;
+                    break; 
+                }
+            }
+        } else {
+        switch (position) {
+            case 'top':
+                tooltipStyle.bottom = `${elHeight + padding}px`;
+                break;
+            case 'right':
+                tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
+                break;
+            case 'left':
+                tooltipStyle.right = `${root.clientWidth - (elLeft - (padding / 2))}px`;
+                break;
+            case 'bottom':
+                tooltipStyle.top = `${elHeight + padding}px`;
+                break;
+            default:{
+               
+                    tooltipStyle.left = '50%';
+                    tooltipStyle.top = '50%';
+                    tooltipStyle.transform = 'translate(-50%,-50%)';
+                     
+            }
+        }
+    }
+        tooltipEl.removeAttribute('data-guidechimp-alignment');
 
-                    if (alignments.length) {
-                        alignment = alignments.includes(alignment) ? alignment : alignments[0];
+        if (alignment) {
+            tooltipEl.setAttribute('data-guidechimp-alignment', alignment);
+            switch (alignment) {
+                case 'left': {
+                    tooltipStyle.left = `${elLeft - (padding / 2)}px`;
+                    break;
+                }
+                case 'right': {
+                    tooltipStyle.right = `${root.clientWidth - elRight - (padding / 2)}px`;
+                    break;
+                }
+                default: {
+                    if ((elLeft + (elWidth / 2)) < (tooltipWith / 2)
+                        || (elLeft + (elWidth / 2) + (tooltipWith / 2)) > root.clientWidth) {
+                        tooltipStyle.left = `${((root.clientWidth) / 2) - (tooltipWith / 2)}px`;
                     } else {
-                        alignment = 'middle';
+                        tooltipStyle.left = `${elLeft + (elWidth / 2) - (tooltipWith / 2)}px`;
                     }
                 }
             }
-
-            tooltipEl.setAttribute('data-guidechimp-position', position);
-
-            const root = document.documentElement;
-
-            if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType);
-            }
-
-            if (this.options.type === "snackbar") {
-                switch (this.currentStep.position) {
-                    case 'top': {
-                        tooltipStyle.top = `${0 + padding}px`;
-                        break;
-                    }
-                }
-            } else {
-                switch (position) {
-                    case 'top':
-                        tooltipStyle.bottom = `${elHeight + padding}px`;
-                        break;
-                    case 'right':
-                        tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
-                        break;
-                    case 'left':
-                        tooltipStyle.right = `${root.clientWidth - (elLeft - (padding / 2))}px`;
-                        break;
-                    case 'bottom':
-                        tooltipStyle.top = `${elHeight + padding}px`;
-                        break;
-                    default: {
-
-                        tooltipStyle.left = '50%';
-                        tooltipStyle.top = '50%';
-                        tooltipStyle.transform = 'translate(-50%,-50%)';
-
-                    }
-                }
-            }
-            tooltipEl.removeAttribute('data-guidechimp-alignment');
-
-            if (alignment) {
-                tooltipEl.setAttribute('data-guidechimp-alignment', alignment);
-                switch (alignment) {
-                    case 'left': {
-                        tooltipStyle.left = `${elLeft - (padding / 2)}px`;
-                        break;
-                    }
-                    case 'right': {
-                        tooltipStyle.right = `${root.clientWidth - elRight - (padding / 2)}px`;
-                        break;
-                    }
-                    default: {
-                        if ((elLeft + (elWidth / 2)) < (tooltipWith / 2)
-                            || (elLeft + (elWidth / 2) + (tooltipWith / 2)) > root.clientWidth) {
-                            tooltipStyle.left = `${((root.clientWidth) / 2) - (tooltipWith / 2)}px`;
-                        } else {
-                            tooltipStyle.left = `${elLeft + (elWidth / 2) - (tooltipWith / 2)}px`;
-                        }
-                    }
-                }
-            }
+        }
         }
 
         return this;
@@ -1557,7 +1557,7 @@ export default class GuideChimp {
     removeEl(key) {
         const el = this.getEl(key);
 
-        if (el && el.parentElement) {
+        if (el) {
             el.parentElement.removeChild(el);
         }
 
@@ -1646,7 +1646,7 @@ export default class GuideChimp {
         // Element takes priority - only use coordinates if NO element is provided
         const hasElement = step && step.element;
         const hasCoordinates = step && step.top !== undefined && step.left !== undefined && step.width && step.height;
-
+        
         if (!hasElement && hasCoordinates) {
             return this.getOverlayOffsetPath(step);
         }
@@ -2312,7 +2312,7 @@ export default class GuideChimp {
         this.setControlPosition(this.getEl('control'));
         this.setInteractionPosition(this.getEl('interaction'));
         this.setTooltipPosition(this.getEl('tooltip'));
-
+ 
         return this;
     }
 }
