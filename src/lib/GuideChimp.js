@@ -1021,15 +1021,10 @@ export default class GuideChimp {
 
         if (overlayEls.length > 0) {
             const overlayEl = overlayEls[0];
-
-            if (!this.currentStep.isBackdrop) {
-                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
-                    overlayEl.classList.add("gc-overlay-hidden");
-                }
+            if (this.currentStep && !this.currentStep.isBackdrop) {
+                overlayEl.classList.remove("gc-overlay-hidden");
             } else {
-                if (overlayEl.classList.contains("gc-overlay-hidden")) {
-                    overlayEl.classList.remove("gc-overlay-hidden");
-                }
+                overlayEl.classList.add("gc-overlay-hidden");
             }
         }
 
@@ -1063,23 +1058,31 @@ export default class GuideChimp {
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
             tooltipStyle.pointerEvents = 'auto';
+            const parsePct = (v, axis) => {
+                if (typeof v === 'string' && v.trim().endsWith('%')) {
+                    const pct = parseFloat(v) || 0;
+                    const px = (axis === 'x') ? (pct / 100) * window.innerWidth : (pct / 100) * window.innerHeight;
+                    return { isPct: true, pct, px, raw: v.trim() };
+                }
+                const px = (typeof v === 'number') ? v : parseFloat(v) || 0;
+                return { isPct: false, px, raw: `${px}px` };
+            };
 
-            const top = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
-            const left = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
-            const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
-            const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
+            const topInfo = parsePct(this.currentStep.top, 'y');
+            const leftInfo = parsePct(this.currentStep.left, 'x');
+            const widthPx = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
+            const heightPx = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
 
             const { padding } = this.options;
-
             const { height: tooltipHeight, width: tooltipWidth } = tooltipEl.getBoundingClientRect();
 
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            const spaceRight = viewportWidth - (left + width);
-            const spaceLeft = left;
-            const spaceBottom = viewportHeight - (top + height);
-            const spaceTop = top;
+            const spaceRight = viewportWidth - (leftInfo.px + widthPx);
+            const spaceLeft = leftInfo.px;
+            const spaceBottom = viewportHeight - (topInfo.px + heightPx);
+            const spaceTop = topInfo.px;
 
             const minSpaceNeeded = tooltipWidth + padding + 10;
 
@@ -1091,28 +1094,30 @@ export default class GuideChimp {
             tooltipStyle.bottom = 'auto';
             tooltipStyle.transform = 'none';
 
+            const setTopCssPx = (valInfo) => `${valInfo.px}px`;
+
             if (spaceRight >= minSpaceNeeded) {
                 position = 'right';
-                tooltipStyle.top = `${top}px`;
-                tooltipStyle.left = `${left + width + padding}px`;
+                tooltipStyle.top = setTopCssPx(topInfo);
+                tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
             }
             // Check if tooltip fits on left
             else if (spaceLeft >= minSpaceNeeded) {
                 position = 'left';
-                tooltipStyle.top = `${top}px`;
-                tooltipStyle.right = `${viewportWidth - left + padding}px`;
+                tooltipStyle.top = setTopCssPx(topInfo);
+                tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
             }
             // Check if tooltip fits on bottom
             else if (spaceBottom >= tooltipHeight + padding + 10) {
                 position = 'bottom';
-                tooltipStyle.top = `${top + height + padding}px`;
-                tooltipStyle.left = `${left}px`;
+                tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                tooltipStyle.left = `${leftInfo.px}px`;
             }
             // Check if tooltip fits on top
             else if (spaceTop >= tooltipHeight + padding + 10) {
                 position = 'top';
-                tooltipStyle.bottom = `${viewportHeight - top + padding}px`;
-                tooltipStyle.left = `${left}px`;
+                tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                tooltipStyle.left = `${leftInfo.px}px`;
             }
             // If no space is sufficient, center on mobile or position on right for desktop
             else {
@@ -1132,8 +1137,10 @@ export default class GuideChimp {
 
             if (overlayEls.length > 0) {
                 const overlayEl = overlayEls[0];
-                if (overlayEl.classList.contains("gc-overlay-hidden")) {
+                if (this.currentStep && this.currentStep.isBackdrop) {
                     overlayEl.classList.remove("gc-overlay-hidden");
+                } else {
+                    overlayEl.classList.add("gc-overlay-hidden");
                 }
             }
 
@@ -1149,17 +1156,33 @@ export default class GuideChimp {
             tooltipStyle.visibility = 'visible';
 
             if (hasTop) {
-                const top = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
-                tooltipStyle.top = `${top}px`;
+                const topVal = this.currentStep.top;
+                let topPx;
+                if (typeof topVal === 'string' && topVal.trim().endsWith('%')) {
+                    topPx = (parseFloat(topVal) || 0) / 100 * window.innerHeight;
+                } else {
+                    topPx = (typeof topVal === 'number') ? topVal : parseFloat(topVal) || 0;
+                }
+                tooltipStyle.top = `${topPx}px`;
+                try { console.log('[GuideChimp] top-left branch top computed', { topVal, topPx }); } catch (e) {}
             }
             if (hasLeft) {
-                const left = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
-                tooltipStyle.left = `${left}px`;
+                const leftVal = this.currentStep.left;
+                let leftPx;
+                if (typeof leftVal === 'string' && leftVal.trim().endsWith('%')) {
+                    leftPx = (parseFloat(leftVal) || 0) / 100 * window.innerWidth;
+                } else {
+                    leftPx = (typeof leftVal === 'number') ? leftVal : parseFloat(leftVal) || 0;
+                }
+                tooltipStyle.left = `${leftPx}px`;
+                try { console.log('[GuideChimp] top-left branch left computed', { leftVal, leftPx }); } catch (e) {}
             }
 
             if (overlayEls.length > 0) {
                 const overlayEl = overlayEls[0];
-                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                if (this.currentStep && this.currentStep.isBackdrop) {
+                    overlayEl.classList.remove("gc-overlay-hidden");
+                } else {
                     overlayEl.classList.add("gc-overlay-hidden");
                 }
             }
@@ -1216,7 +1239,9 @@ export default class GuideChimp {
 
                 if (overlayEls.length > 0) {
                     const overlayEl = overlayEls[0];
-                    if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                    if (this.currentStep && !this.currentStep.isBackdrop) {
+                        overlayEl.classList.remove("gc-overlay-hidden");
+                    } else {
                         overlayEl.classList.add("gc-overlay-hidden");
                     }
                 }
@@ -1596,15 +1621,32 @@ export default class GuideChimp {
         const fakeEl = this.createFakeStepEl(data);
 
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
-            const t = typeof top === 'number' ? top : parseFloat(top) || 0;
-            const l = typeof left === 'number' ? left : parseFloat(left) || 0;
             const w = typeof width === 'number' ? width : parseFloat(width) || 0;
             const h = typeof height === 'number' ? height : parseFloat(height) || 0;
 
+            let topPx;
+            let leftPx;
+
+            if (typeof top === 'string' && top.trim().endsWith('%')) {
+                topPx = (parseFloat(top) || 0) / 100 * window.innerHeight;
+            } else if (typeof top === 'number') {
+                topPx = top;
+            } else {
+                topPx = parseFloat(top) || 0;
+            }
+
+            if (typeof left === 'string' && left.trim().endsWith('%')) {
+                leftPx = (parseFloat(left) || 0) / 100 * window.innerWidth;
+            } else if (typeof left === 'number') {
+                leftPx = left;
+            } else {
+                leftPx = parseFloat(left) || 0;
+            }
+
             fakeEl.style.cssText = `
                 position: fixed !important;
-                top: ${t}px !important;
-                left: ${l}px !important;
+                top: ${topPx}px !important;
+                left: ${leftPx}px !important;
                 width: ${w}px !important;
                 height: ${h}px !important;
                 visibility: hidden !important;
