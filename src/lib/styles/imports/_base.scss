@@ -99,8 +99,11 @@
   position: absolute;
   visibility: visible;
   box-sizing: content-box;
-  min-width: 300px;
-  max-width: 550px;
+  //for testing need to remove if not needed
+  width: auto;
+  height: auto;
+  // min-width: 300px;
+  // max-width: 550px;
   // padding: 25px;
   -moz-transition: opacity 0.1s ease-out;
   -o-transition: opacity 0.1s ease-out;
