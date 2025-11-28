@@ -1701,21 +1701,10 @@ export default class GuideChimp {
 
         const { top, left, width, height } = step;
 
-        const docWidth = Math.max(document.documentElement.scrollWidth || 0, document.body.scrollWidth || 0, window.innerWidth || 0);
-        const docHeight = Math.max(document.documentElement.scrollHeight || 0, document.body.scrollHeight || 0, window.innerHeight || 0);
-
-        const toPx = (v, axis) => {
-            if (typeof v === 'string' && v.trim().endsWith('%')) {
-                const pct = parseFloat(v) || 0;
-                return (axis === 'x') ? (pct / 100) * docWidth : (pct / 100) * docHeight;
-            }
-            return (typeof v === 'number') ? v : parseFloat(v) || 0;
-        };
-
-        const topValue = toPx(top, 'y');
-        const leftValue = toPx(left, 'x');
-        const widthValue = toPx(width, 'x');
-        const heightValue = toPx(height, 'y');
+        const topValue = typeof top === 'number' ? top : parseFloat(top) || 0;
+        const leftValue = typeof left === 'number' ? left : parseFloat(left) || 0;
+        const widthValue = typeof width === 'number' ? width : parseFloat(width) || 0;
+        const heightValue = typeof height === 'number' ? height : parseFloat(height) || 0;
 
         const r = 4;
 
