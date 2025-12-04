@@ -313,12 +313,22 @@ export default class Beacons {
     boundary = boundary || this.options.boundary;
     boundary = boundary === "inner" ? "inner" : "outer";
 
-    const {
-      offsetLeft: elLeft,
-      offsetTop: elTop,
-      offsetWidth: elWidth,
-      offsetHeight: elHeight,
-    } = el;
+    const elRect = el.getBoundingClientRect();
+    const isFixed = beaconEl.classList.contains(this.constructor.getFixedClass());
+    
+    let elLeft, elTop;
+    if (isFixed) {
+      elLeft = elRect.left;
+      elTop = elRect.top;
+    } else {
+      const parentRect = beaconEl.parentElement.getBoundingClientRect();
+      elLeft = elRect.left - parentRect.left;
+      elTop = elRect.top - parentRect.top;
+    }
+    
+    const elWidth = elRect.width;
+    const elHeight = elRect.height;
+    
     const { style: beaconStyle } = beaconEl;
     let { width: beaconWidth, height: beaconHeight } =
       getComputedStyle(beaconEl);

@@ -174,7 +174,7 @@ class AHD extends GuideChimp {
     this.attachPlugins();
   }
 
-  async attachPlugins() {
+  attachPlugins() {
     const pluginsToLoad = [Beacons];
     pluginsToLoad.forEach((pluginClass) => {
       AHDjs.extend(pluginClass);
