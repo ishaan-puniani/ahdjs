@@ -864,7 +864,7 @@ export default class GuideChimp {
                     return (axis === 'x') 
                         ? (percentage / 100) * window.innerWidth 
                         : (percentage / 100) * window.innerHeight;
-                }
+                 }
                 return typeof value === 'number' ? value : parseFloat(value) || 0;
             };
 
