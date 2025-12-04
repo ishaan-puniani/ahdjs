@@ -857,8 +857,19 @@ export default class GuideChimp {
             let { padding } = this.options;
             const { interaction } = this.options;
 
-            const top = typeof this.currentStep.top === 'number' ? this.currentStep.top : parseFloat(this.currentStep.top) || 0;
-            const left = typeof this.currentStep.left === 'number' ? this.currentStep.left : parseFloat(this.currentStep.left) || 0;
+            // Helper function to convert percentage or number to pixels
+            const convertToPx = (value, axis) => {
+                if (typeof value === 'string' && value.trim().endsWith('%')) {
+                    const percentage = parseFloat(value) || 0;
+                    return (axis === 'x') 
+                        ? (percentage / 100) * window.innerWidth 
+                        : (percentage / 100) * window.innerHeight;
+                }
+                return typeof value === 'number' ? value : parseFloat(value) || 0;
+            };
+
+            const top = convertToPx(this.currentStep.top, 'y');
+            const left = convertToPx(this.currentStep.left, 'x');
             const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
             const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
 
@@ -1621,12 +1632,12 @@ export default class GuideChimp {
         const fakeEl = this.createFakeStepEl(data);
 
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
-            const w = typeof width === 'number' ? width : parseFloat(width) || 0;
-            const h = typeof height === 'number' ? height : parseFloat(height) || 0;
-
             let topPx;
             let leftPx;
+            let widthPx;
+            let heightPx;
 
+            // Handle top
             if (typeof top === 'string' && top.trim().endsWith('%')) {
                 topPx = (parseFloat(top) || 0) / 100 * window.innerHeight;
             } else if (typeof top === 'number') {
@@ -1635,6 +1646,7 @@ export default class GuideChimp {
                 topPx = parseFloat(top) || 0;
             }
 
+            // Handle left
             if (typeof left === 'string' && left.trim().endsWith('%')) {
                 leftPx = (parseFloat(left) || 0) / 100 * window.innerWidth;
             } else if (typeof left === 'number') {
@@ -1643,12 +1655,30 @@ export default class GuideChimp {
                 leftPx = parseFloat(left) || 0;
             }
 
+            // Handle width - support percentages
+            if (typeof width === 'string' && width.trim().endsWith('%')) {
+                widthPx = (parseFloat(width) || 0) / 100 * window.innerWidth;
+            } else if (typeof width === 'number') {
+                widthPx = width;
+            } else {
+                widthPx = parseFloat(width) || 0;
+            }
+
+            // Handle height - support percentages
+            if (typeof height === 'string' && height.trim().endsWith('%')) {
+                heightPx = (parseFloat(height) || 0) / 100 * window.innerHeight;
+            } else if (typeof height === 'number') {
+                heightPx = height;
+            } else {
+                heightPx = parseFloat(height) || 0;
+            }
+
             fakeEl.style.cssText = `
                 position: fixed !important;
                 top: ${topPx}px !important;
                 left: ${leftPx}px !important;
-                width: ${w}px !important;
-                height: ${h}px !important;
+                width: ${widthPx}px !important;
+                height: ${heightPx}px !important;
                 visibility: hidden !important;
                 pointer-events: none !important;
                 z-index: -1 !important;
@@ -1701,8 +1731,19 @@ export default class GuideChimp {
 
         const { top, left, width, height } = step;
 
-        const topValue = typeof top === 'number' ? top : parseFloat(top) || 0;
-        const leftValue = typeof left === 'number' ? left : parseFloat(left) || 0;
+        // Helper function to convert percentage or number to pixels
+        const convertToPx = (value, axis) => {
+            if (typeof value === 'string' && value.trim().endsWith('%')) {
+                const percentage = parseFloat(value) || 0;
+                return (axis === 'x') 
+                    ? (percentage / 100) * window.innerWidth 
+                    : (percentage / 100) * window.innerHeight;
+            }
+            return typeof value === 'number' ? value : parseFloat(value) || 0;
+        };
+
+        const topValue = convertToPx(top, 'y');
+        const leftValue = convertToPx(left, 'x');
         const widthValue = typeof width === 'number' ? width : parseFloat(width) || 0;
         const heightValue = typeof height === 'number' ? height : parseFloat(height) || 0;
 
