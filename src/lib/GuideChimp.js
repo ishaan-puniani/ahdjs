@@ -610,7 +610,7 @@ export default class GuideChimp {
     }
 
     getStepEl(step) {
-        const { element, top, left, width, height } = step || {};
+        const { element, top, left, width, height, canvasWidth, canvasHeight } = step || {};
 
         if (element) {
             const getEl = (selector, def = null) => {
@@ -637,7 +637,7 @@ export default class GuideChimp {
         }
 
         if (top !== undefined && left !== undefined && width && height) {
-            return this.mountOffsetFakeStepEl({ top, left, width, height });
+            return this.mountOffsetFakeStepEl({ top, left, width, height, canvasWidth, canvasHeight });
         }
         return this.mountFakeStepEl();
     }
@@ -870,8 +870,8 @@ export default class GuideChimp {
 
             const top = convertToPx(this.currentStep.top, 'y');
             const left = convertToPx(this.currentStep.left, 'x');
-            const width = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
-            const height = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
+            const width = convertToPx(this.currentStep.width, 'x');
+            const height = convertToPx(this.currentStep.height, 'y');
 
             const { style } = interactionEl;
 
@@ -1081,8 +1081,10 @@ export default class GuideChimp {
 
             const topInfo = parsePct(this.currentStep.top, 'y');
             const leftInfo = parsePct(this.currentStep.left, 'x');
-            const widthPx = typeof hasWidth === 'number' ? hasWidth : parseFloat(hasWidth) || 0;
-            const heightPx = typeof hasHeight === 'number' ? hasHeight : parseFloat(hasHeight) || 0;
+            const widthInfo = parsePct(this.currentStep.width, 'x');
+            const heightInfo = parsePct(this.currentStep.height, 'y');
+            const widthPx = widthInfo.px;
+            const heightPx = heightInfo.px;
 
             const { padding } = this.options;
             const { height: tooltipHeight, width: tooltipWidth } = tooltipEl.getBoundingClientRect();
@@ -1625,13 +1627,17 @@ export default class GuideChimp {
     }
 
     mountOffsetFakeStepEl(data = {}) {
-        const { top, left, width, height } = data;
+        const { top, left, width, height, canvasWidth, canvasHeight } = data;
 
         this.removeFakeStepEl();
 
         const fakeEl = this.createFakeStepEl(data);
 
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
+            // Use canvas dimensions if provided, otherwise use viewport
+            const refWidth = canvasWidth || window.innerWidth;
+            const refHeight = canvasHeight || window.innerHeight;
+
             let topPx;
             let leftPx;
             let widthPx;
@@ -1639,7 +1645,7 @@ export default class GuideChimp {
 
             // Handle top
             if (typeof top === 'string' && top.trim().endsWith('%')) {
-                topPx = (parseFloat(top) || 0) / 100 * window.innerHeight;
+                topPx = (parseFloat(top) || 0) / 100 * refHeight;
             } else if (typeof top === 'number') {
                 topPx = top;
             } else {
@@ -1648,7 +1654,7 @@ export default class GuideChimp {
 
             // Handle left
             if (typeof left === 'string' && left.trim().endsWith('%')) {
-                leftPx = (parseFloat(left) || 0) / 100 * window.innerWidth;
+                leftPx = (parseFloat(left) || 0) / 100 * refWidth;
             } else if (typeof left === 'number') {
                 leftPx = left;
             } else {
@@ -1657,7 +1663,7 @@ export default class GuideChimp {
 
             // Handle width - support percentages
             if (typeof width === 'string' && width.trim().endsWith('%')) {
-                widthPx = (parseFloat(width) || 0) / 100 * window.innerWidth;
+                widthPx = (parseFloat(width) || 0) / 100 * refWidth;
             } else if (typeof width === 'number') {
                 widthPx = width;
             } else {
@@ -1666,7 +1672,7 @@ export default class GuideChimp {
 
             // Handle height - support percentages
             if (typeof height === 'string' && height.trim().endsWith('%')) {
-                heightPx = (parseFloat(height) || 0) / 100 * window.innerHeight;
+                heightPx = (parseFloat(height) || 0) / 100 * refHeight;
             } else if (typeof height === 'number') {
                 heightPx = height;
             } else {
@@ -1744,8 +1750,8 @@ export default class GuideChimp {
 
         const topValue = convertToPx(top, 'y');
         const leftValue = convertToPx(left, 'x');
-        const widthValue = typeof width === 'number' ? width : parseFloat(width) || 0;
-        const heightValue = typeof height === 'number' ? height : parseFloat(height) || 0;
+        const widthValue = convertToPx(width, 'x');
+        const heightValue = convertToPx(height, 'y');
 
         const r = 4;
 

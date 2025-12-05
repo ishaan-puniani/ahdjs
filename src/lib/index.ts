@@ -259,10 +259,26 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
-              width: (typeof step.canvasWidth === 'string' && step.canvasWidth.trim().endsWith('%')) ? step.canvasWidth.trim() : (step.canvasWidth !== undefined ? (typeof step.canvasWidth === 'number' ? step.canvasWidth : parseInt(step.canvasWidth)) : undefined),
-              height: (typeof step.canvasHeight === 'string' && step.canvasHeight.trim().endsWith('%')) ? step.canvasHeight.trim() : (step.canvasHeight !== undefined ? (typeof step.canvasHeight === 'number' ? step.canvasHeight : parseInt(step.canvasHeight)) : undefined),
-              top: (typeof step.top === 'string' && step.top.trim().endsWith('%')) ? step.top.trim() : (step.top !== undefined ? (typeof step.top === 'number' ? step.top : parseInt(step.top)) : undefined),
-              left: (typeof step.left === 'string' && step.left.trim().endsWith('%')) ? step.left.trim() : (step.left !== undefined ? (typeof step.left === 'number' ? step.left : parseInt(step.left)) : undefined),
+              width: (() => {
+                const val = step.styles?.width || step.width || step.canvasWidth;
+                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+              })(),
+              height: (() => {
+                const val = step.styles?.height || step.height || step.canvasHeight;
+                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+              })(),
+              top: (() => {
+                const val = step.styles?.top || step.canvasTop;
+                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+              })(),
+              left: (() => {
+                const val = step.styles?.left || step.canvasLeft;
+                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+              })(),
               stepId: step.id,
               id: row.id,
               type: "tour",
@@ -346,10 +362,26 @@ class AHD extends GuideChimp {
                       ? behavior.isCaret
                       : true,
                 position: step.position || behavior.position,
-                top: (typeof step.top === 'string' && step.top.trim().endsWith('%')) ? step.top.trim() : (step.top !== undefined ? (typeof step.top === 'number' ? step.top : parseInt(step.top)) : undefined),
-                left: (typeof step.left === 'string' && step.left.trim().endsWith('%')) ? step.left.trim() : (step.left !== undefined ? (typeof step.left === 'number' ? step.left : parseInt(step.left)) : undefined),
-                width: (typeof step.canvasWidth === 'string' && step.canvasWidth.trim().endsWith('%')) ? step.canvasWidth.trim() : (step.canvasWidth !== undefined ? (typeof step.canvasWidth === 'number' ? step.canvasWidth : parseInt(step.canvasWidth)) : undefined),
-                height: (typeof step.canvasHeight === 'string' && step.canvasHeight.trim().endsWith('%')) ? step.canvasHeight.trim() : (step.canvasHeight !== undefined ? (typeof step.canvasHeight === 'number' ? step.canvasHeight : parseInt(step.canvasHeight)) : undefined),
+                top: (() => {
+                  const val = step.styles?.top || step.canvasTop;
+                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+                })(),
+                left: (() => {
+                  const val = step.styles?.left || step.canvasLeft;
+                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+                })(),
+                width: (() => {
+                  const val = step.styles?.width || step.width || step.canvasWidth;
+                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+                })(),
+                height: (() => {
+                  const val = step.styles?.height || step.height || step.canvasHeight;
+                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
+                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
+                })(),
                 stepId: step.id,
                 id: tour.id,
                 type: "tooltip",
