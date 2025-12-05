@@ -216,6 +216,15 @@ class AHD extends GuideChimp {
     return applicableHelp;
   }
 
+  private normalizeDimension(val: any): string | number | undefined {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      return trimmed.endsWith('%') ? trimmed : trimmed;
+    }
+    return typeof val === 'number' ? val : parseInt(val);
+  }
+
   async showPageTour(url: string,) {
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
@@ -259,10 +268,10 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
-              width: (typeof step.canvasWidth === 'string' && step.canvasWidth.trim().endsWith('%')) ? step.canvasWidth.trim() : (step.canvasWidth !== undefined ? (typeof step.canvasWidth === 'number' ? step.canvasWidth : parseInt(step.canvasWidth)) : undefined),
-              height: (typeof step.canvasHeight === 'string' && step.canvasHeight.trim().endsWith('%')) ? step.canvasHeight.trim() : (step.canvasHeight !== undefined ? (typeof step.canvasHeight === 'number' ? step.canvasHeight : parseInt(step.canvasHeight)) : undefined),
-              top: (typeof step.top === 'string' && step.top.trim().endsWith('%')) ? step.top.trim() : (step.top !== undefined ? (typeof step.top === 'number' ? step.top : parseInt(step.top)) : undefined),
-              left: (typeof step.left === 'string' && step.left.trim().endsWith('%')) ? step.left.trim() : (step.left !== undefined ? (typeof step.left === 'number' ? step.left : parseInt(step.left)) : undefined),
+              width: this.normalizeDimension(step.canvasWidth || step.styles?.width),
+              height: this.normalizeDimension(step.canvasHeight || step.styles?.height),
+              top: this.normalizeDimension(step.styles?.top || step.top),
+              left: this.normalizeDimension(step.styles?.left || step.left),
               stepId: step.id,
               id: row.id,
               type: "tour",
@@ -346,10 +355,6 @@ class AHD extends GuideChimp {
                       ? behavior.isCaret
                       : true,
                 position: step.position || behavior.position,
-                top: (typeof step.top === 'string' && step.top.trim().endsWith('%')) ? step.top.trim() : (step.top !== undefined ? (typeof step.top === 'number' ? step.top : parseInt(step.top)) : undefined),
-                left: (typeof step.left === 'string' && step.left.trim().endsWith('%')) ? step.left.trim() : (step.left !== undefined ? (typeof step.left === 'number' ? step.left : parseInt(step.left)) : undefined),
-                width: (typeof step.canvasWidth === 'string' && step.canvasWidth.trim().endsWith('%')) ? step.canvasWidth.trim() : (step.canvasWidth !== undefined ? (typeof step.canvasWidth === 'number' ? step.canvasWidth : parseInt(step.canvasWidth)) : undefined),
-                height: (typeof step.canvasHeight === 'string' && step.canvasHeight.trim().endsWith('%')) ? step.canvasHeight.trim() : (step.canvasHeight !== undefined ? (typeof step.canvasHeight === 'number' ? step.canvasHeight : parseInt(step.canvasHeight)) : undefined),
                 stepId: step.id,
                 id: tour.id,
                 type: "tooltip",
