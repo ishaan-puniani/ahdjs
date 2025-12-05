@@ -1099,8 +1099,6 @@ export default class GuideChimp {
 
             const minSpaceNeeded = tooltipWidth + padding + 10;
 
-            let position = 'right';
-
             tooltipStyle.top = 'auto';
             tooltipStyle.left = 'auto';
             tooltipStyle.right = 'auto';
@@ -1109,41 +1107,38 @@ export default class GuideChimp {
 
             const setTopCssPx = (valInfo) => `${valInfo.px}px`;
 
-            if (spaceRight >= minSpaceNeeded) {
-                position = 'right';
-                tooltipStyle.top = setTopCssPx(topInfo);
-                tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
-            }
-            // Check if tooltip fits on left
-            else if (spaceLeft >= minSpaceNeeded) {
-                position = 'left';
-                tooltipStyle.top = setTopCssPx(topInfo);
-                tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
-            }
-            // Check if tooltip fits on bottom
-            else if (spaceBottom >= tooltipHeight + padding + 10) {
-                position = 'bottom';
-                tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                tooltipStyle.left = `${leftInfo.px}px`;
-            }
-            // Check if tooltip fits on top
-            else if (spaceTop >= tooltipHeight + padding + 10) {
-                position = 'top';
-                tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
-                tooltipStyle.left = `${leftInfo.px}px`;
-            }
-            // If no space is sufficient, center on mobile or position on right for desktop
-            else {
-                if (viewportWidth < 768) {
+            // Use the position from currentStep.position (behaviour panel setting)
+            // Parse position to extract base position (ignore alignment for now)
+            const configuredPosition = (this.currentStep.position || pos || 'right').split('-')[0];
+
+            // Apply position based on configured position from behaviour panel
+            switch (configuredPosition) {
+                case 'top':
+                    position = 'top';
+                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    break;
+                case 'bottom':
+                    position = 'bottom';
+                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    break;
+                case 'left':
+                    position = 'left';
+                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+                    break;
+                case 'center':
                     position = 'center';
-                    tooltipStyle.top = '50%';
-                    tooltipStyle.left = '50%';
-                    tooltipStyle.transform = 'translate(-50%, -50%)';
-                } else {
+                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    break;
+                case 'right':
+                default:
                     position = 'right';
-                    tooltipStyle.top = `${top}px`;
-                    tooltipStyle.left = `${left + width + padding}px`;
-                }
+                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
+                    break;
             }
 
             tooltipEl.setAttribute('data-guidechimp-position', `top-left-with-highlight-${position}`);
