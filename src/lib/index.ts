@@ -260,22 +260,22 @@ class AHD extends GuideChimp {
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
               width: (() => {
-                const val = step.styles?.width || step.width || step.canvasWidth;
+                const val = step.canvasWidth||step.styles?.width ;
                 if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
                 return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
               })(),
               height: (() => {
-                const val = step.styles?.height || step.height || step.canvasHeight;
+                const val = step.canvasHeight || step.styles?.height;
                 if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
                 return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
               })(),
               top: (() => {
-                const val = step.styles?.top || step.canvasTop;
+                const val = step.styles?.top || step.top;
                 if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
                 return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
               })(),
               left: (() => {
-                const val = step.styles?.left || step.canvasLeft;
+                const val = step.styles?.left || step.left;
                 if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
                 return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
               })(),
