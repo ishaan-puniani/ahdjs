@@ -1107,21 +1107,38 @@ export default class GuideChimp {
 
             const setTopCssPx = (valInfo) => `${valInfo.px}px`;
 
-            // Use the position from currentStep.position (behaviour panel setting)
-            // Parse position to extract base position (ignore alignment for now)
-            const configuredPosition = (this.currentStep.position || pos || 'right').split('-')[0];
+           const configuredPosition = this.currentStep.position || pos || 'right';
 
-            // Apply position based on configured position from behaviour panel
             switch (configuredPosition) {
                 case 'top':
                     position = 'top';
                     tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
+                case 'top-left':
+                    position = 'top-left';
+                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+                    break;
+                case 'top-right':
+                    position = 'top-right';
+                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
+                    break;
                 case 'bottom':
                     position = 'bottom';
                     tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    break;
+                case 'bottom-left':
+                    position = 'bottom-left';
+                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+                    break;
+                case 'bottom-right':
+                    position = 'bottom-right';
+                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
                 case 'left':
                     position = 'left';

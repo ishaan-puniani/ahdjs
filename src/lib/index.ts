@@ -216,6 +216,15 @@ class AHD extends GuideChimp {
     return applicableHelp;
   }
 
+  private normalizeDimension(val: any): string | number | undefined {
+    if (val === undefined || val === null) return undefined;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      return trimmed.endsWith('%') ? trimmed : trimmed;
+    }
+    return typeof val === 'number' ? val : parseInt(val);
+  }
+
   async showPageTour(url: string,) {
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
@@ -259,26 +268,10 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
-              width: (() => {
-                const val = step.canvasWidth||step.styles?.width ;
-                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-              })(),
-              height: (() => {
-                const val = step.canvasHeight || step.styles?.height;
-                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-              })(),
-              top: (() => {
-                const val = step.styles?.top || step.top;
-                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-              })(),
-              left: (() => {
-                const val = step.styles?.left || step.left;
-                if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-              })(),
+              width: this.normalizeDimension(step.canvasWidth || step.styles?.width),
+              height: this.normalizeDimension(step.canvasHeight || step.styles?.height),
+              top: this.normalizeDimension(step.styles?.top || step.top),
+              left: this.normalizeDimension(step.styles?.left || step.left),
               stepId: step.id,
               id: row.id,
               type: "tour",
@@ -362,26 +355,6 @@ class AHD extends GuideChimp {
                       ? behavior.isCaret
                       : true,
                 position: step.position || behavior.position,
-                top: (() => {
-                  const val = step.styles?.top || step.canvasTop;
-                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-                })(),
-                left: (() => {
-                  const val = step.styles?.left || step.canvasLeft;
-                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-                })(),
-                width: (() => {
-                  const val = step.styles?.width || step.width || step.canvasWidth;
-                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-                })(),
-                height: (() => {
-                  const val = step.styles?.height || step.height || step.canvasHeight;
-                  if (typeof val === 'string') return val.trim().endsWith('%') ? val.trim() : val;
-                  return val !== undefined ? (typeof val === 'number' ? val : parseInt(val)) : undefined;
-                })(),
                 stepId: step.id,
                 id: tour.id,
                 type: "tooltip",
