@@ -1107,7 +1107,59 @@ export default class GuideChimp {
 
             const setTopCssPx = (valInfo) => `${valInfo.px}px`;
 
-           const configuredPosition = this.currentStep.position || pos || 'right';
+           let configuredPosition = this.currentStep.position || pos || 'right';
+
+            // Check if configured position would cause overflow and auto-select best position
+            const canFitTop = spaceTop >= tooltipHeight + padding;
+            const canFitBottom = spaceBottom >= tooltipHeight + padding;
+            const canFitLeft = spaceLeft >= tooltipWidth + padding;
+            const canFitRight = spaceRight >= tooltipWidth + padding;
+
+            // Auto-fallback logic if preferred position doesn't fit
+            if (!canFitTop && !canFitBottom && !canFitLeft && !canFitRight) {
+                // Nothing fits perfectly, choose position with most space
+                const maxSpace = Math.max(spaceTop, spaceBottom, spaceLeft, spaceRight);
+                if (maxSpace === spaceRight) configuredPosition = 'right';
+                else if (maxSpace === spaceBottom) configuredPosition = 'bottom';
+                else if (maxSpace === spaceLeft) configuredPosition = 'left';
+                else configuredPosition = 'top';
+            } else {
+                // Check if configured position fits, otherwise pick best alternative
+                switch (configuredPosition) {
+                    case 'top':
+                    case 'top-left':
+                    case 'top-right':
+                        if (!canFitTop) {
+                            if (canFitBottom) configuredPosition = 'bottom';
+                            else if (canFitRight) configuredPosition = 'right';
+                            else if (canFitLeft) configuredPosition = 'left';
+                        }
+                        break;
+                    case 'bottom':
+                    case 'bottom-left':
+                    case 'bottom-right':
+                        if (!canFitBottom) {
+                            if (canFitTop) configuredPosition = 'top';
+                            else if (canFitRight) configuredPosition = 'right';
+                            else if (canFitLeft) configuredPosition = 'left';
+                        }
+                        break;
+                    case 'left':
+                        if (!canFitLeft) {
+                            if (canFitRight) configuredPosition = 'right';
+                            else if (canFitBottom) configuredPosition = 'bottom';
+                            else if (canFitTop) configuredPosition = 'top';
+                        }
+                        break;
+                    case 'right':
+                        if (!canFitRight) {
+                            if (canFitLeft) configuredPosition = 'left';
+                            else if (canFitBottom) configuredPosition = 'bottom';
+                            else if (canFitTop) configuredPosition = 'top';
+                        }
+                        break;
+                }
+            }
 
             switch (configuredPosition) {
                 case 'top':
@@ -1142,8 +1194,12 @@ export default class GuideChimp {
                     break;
                 case 'left':
                     position = 'left';
-                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                    tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+                    // Align tooltip top with the highlight top to match editor behaviour
+                    tooltipStyle.top = `${topInfo.px}px`;
+                    // Set explicit left so calculation mirrors the 'right' placement (avoid using 'right' css which
+                    // can produce slight layout differences across browsers). Place tooltip to the left of the
+                    // element: left = elementLeft - tooltipWidth - gap
+                    tooltipStyle.left = `${Math.max(0, leftInfo.px - tooltipWidth - padding)}px`;
                     break;
                 case 'center':
                     position = 'center';
@@ -1153,9 +1209,47 @@ export default class GuideChimp {
                 case 'right':
                 default:
                     position = 'right';
-                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    // Align tooltip top with the highlight top to match editor behaviour
+                    tooltipStyle.top = `${topInfo.px}px`;
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
+            }
+
+            // Clamp computed top/left so tooltip never overflows viewport
+            const clamp = (v, a, b) => Math.max(a, Math.min(v, b));
+
+            // compute numeric top
+            let computedTop = null;
+            if (tooltipStyle.top && tooltipStyle.top !== 'auto') {
+                computedTop = parseFloat(tooltipStyle.top) || 0;
+            } else if (tooltipStyle.bottom && tooltipStyle.bottom !== 'auto') {
+                const bottomPx = parseFloat(tooltipStyle.bottom) || 0;
+                computedTop = viewportHeight - bottomPx - tooltipHeight;
+            }
+
+            // compute numeric left
+            let computedLeft = null;
+            if (tooltipStyle.left && tooltipStyle.left !== 'auto') {
+                computedLeft = parseFloat(tooltipStyle.left) || 0;
+            } else if (tooltipStyle.right && tooltipStyle.right !== 'auto') {
+                const rightPx = parseFloat(tooltipStyle.right) || 0;
+                computedLeft = viewportWidth - rightPx - tooltipWidth;
+            }
+
+            // apply clamping with padding as margin
+            // ensure a reasonable minimum gutter so tooltips don't hug viewport edges
+            const pad = Math.max(20, padding || 0);
+            if (computedTop !== null) {
+                const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
+                tooltipStyle.top = `${clampedTop}px`;
+                // remove bottom to avoid conflicting CSS
+                tooltipStyle.bottom = 'auto';
+            }
+            if (computedLeft !== null) {
+                const clampedLeft = clamp(computedLeft, pad, Math.max(pad, viewportWidth - tooltipWidth - pad));
+                tooltipStyle.left = `${clampedLeft}px`;
+                // remove right to avoid conflicting CSS
+                tooltipStyle.right = 'auto';
             }
 
             tooltipEl.setAttribute('data-guidechimp-position', `top-left-with-highlight-${position}`);
