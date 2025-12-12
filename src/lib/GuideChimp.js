@@ -1250,7 +1250,7 @@ export default class GuideChimp {
                 case 'right':
                 default:
                     position = 'right';
-                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.top = `${topInfo.px}px`;
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
             }
