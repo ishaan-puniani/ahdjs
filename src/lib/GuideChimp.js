@@ -777,7 +777,7 @@ export default class GuideChimp {
             }
         }
 
-       const hasElement = this.currentStep?.element;
+        const hasElement = this.currentStep?.element;
         const hasCoordinates = !hasElement &&
             this.currentStep?.top !== undefined &&
             this.currentStep?.left !== undefined &&
@@ -848,15 +848,14 @@ export default class GuideChimp {
             }
 
             let { padding } = this.options;
-            const { interaction } = this.options;
 
             const convertToPx = (value, axis) => {
                 if (typeof value === 'string' && value.trim().endsWith('%')) {
                     const percentage = parseFloat(value) || 0;
-                    return (axis === 'x') 
-                        ? (percentage / 100) * window.innerWidth 
+                    return (axis === 'x')
+                        ? (percentage / 100) * window.innerWidth
                         : (percentage / 100) * window.innerHeight;
-                 }
+                }
                 return typeof value === 'number' ? value : parseFloat(value) || 0;
             };
 
@@ -1146,7 +1145,6 @@ export default class GuideChimp {
             const spaceBottom = viewportHeight - (topInfo.px + heightPx);
             const spaceTop = topInfo.px;
 
-            const minSpaceNeeded = tooltipWidth + padding + 10;
 
             tooltipStyle.top = 'auto';
             tooltipStyle.left = 'auto';
@@ -1156,7 +1154,7 @@ export default class GuideChimp {
 
             const setTopCssPx = (valInfo) => `${valInfo.px}px`;
 
-           let configuredPosition = this.currentStep.position || pos || 'right';
+            let configuredPosition = this.currentStep.position || pos || 'right';
 
             const canFitTop = spaceTop >= tooltipHeight + padding;
             const canFitBottom = spaceBottom >= tooltipHeight + padding;
@@ -1273,7 +1271,7 @@ export default class GuideChimp {
                 computedLeft = viewportWidth - rightPx - tooltipWidth;
             }
 
-           const pad = Math.max(20, padding || 0);
+            const pad = Math.max(20, padding || 0);
             if (computedTop !== null) {
                 const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
                 tooltipStyle.top = `${clampedTop}px`;
@@ -1317,7 +1315,6 @@ export default class GuideChimp {
                     topPx = (typeof topVal === 'number') ? topVal : parseFloat(topVal) || 0;
                 }
                 tooltipStyle.top = `${topPx}px`;
-                try { console.log('[GuideChimp] top-left branch top computed', { topVal, topPx }); } catch (e) {}
             }
             if (hasLeft) {
                 const leftVal = this.currentStep.left;
@@ -1328,7 +1325,6 @@ export default class GuideChimp {
                     leftPx = (typeof leftVal === 'number') ? leftVal : parseFloat(leftVal) || 0;
                 }
                 tooltipStyle.left = `${leftPx}px`;
-                try { console.log('[GuideChimp] top-left branch left computed', { leftVal, leftPx }); } catch (e) {}
             }
 
             if (overlayEls.length > 0) {
@@ -1872,8 +1868,8 @@ export default class GuideChimp {
         const convertToPx = (value, axis) => {
             if (typeof value === 'string' && value.trim().endsWith('%')) {
                 const percentage = parseFloat(value) || 0;
-                return (axis === 'x') 
-                    ? (percentage / 100) * window.innerWidth 
+                return (axis === 'x')
+                    ? (percentage / 100) * window.innerWidth
                     : (percentage / 100) * window.innerHeight;
             }
             return typeof value === 'number' ? value : parseFloat(value) || 0;
@@ -1888,13 +1884,13 @@ export default class GuideChimp {
 
         let path = this.getOverlayDocumentPath();
 
-        path += `M ${leftValue - padding + r} ${topValue - padding}
+        path += `M ${leftValue  + r} ${topValue }
                  a ${r},${r} 0 0 0 -${r},${r}
-                 V ${heightValue + topValue + padding - r}
+                 V ${heightValue + topValue  - r}
                  a ${r},${r} 0 0 0 ${r},${r}
-                 H ${widthValue + leftValue + padding - r}
+                 H ${widthValue + leftValue  - r}
                  a ${r},${r} 0 0 0 ${r},-${r}
-                 V ${topValue - padding + r}
+                 V ${topValue  + r}
                  a ${r},${r} 0 0 0 -${r},-${r}Z`;
 
         return path;
@@ -1912,13 +1908,13 @@ export default class GuideChimp {
         const x1 = Math.max(0, left - padding + r);
         const x2 = Math.min(window.innerWidth, width + left + padding - r);
 
-        path += `M ${x1} ${top - padding}
+        path += `M ${x1} ${top }
          a ${r},${r} 0 0 0 -${r},${r}
-         V ${height + top + padding - r}
+         V ${height + top  - r}
          a ${r},${r} 0 0 0 ${r},${r}
          H ${x2}
          a ${r},${r} 0 0 0 ${r},-${r}
-         V ${top - padding + r}
+         V ${top  + r}
          a ${r},${r} 0 0 0 -${r},-${r} Z`;
 
         return path;
