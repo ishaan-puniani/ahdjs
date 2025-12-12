@@ -731,7 +731,6 @@ export default class GuideChimp {
             const path = overlay.querySelector('path');
             const animate = path.querySelector('animate');
 
-            // Check if we have element (element takes priority over coordinates)
             const hasElement = this.currentStep?.element;
             const hasTop = this.currentStep?.top !== undefined;
             const hasLeft = this.currentStep?.left !== undefined;
@@ -739,7 +738,6 @@ export default class GuideChimp {
             const hasHeight = this.currentStep?.height;
 
             const isCurrentElFake = this.isEl(el, 'fakeStep');
-            // Only use coordinate-based highlight if NO element is provided
             const isTopLeftWithDimensions = !hasElement && hasTop && hasLeft && hasWidth && hasHeight;
 
             const to = (isCurrentElFake && !isTopLeftWithDimensions)
@@ -779,9 +777,7 @@ export default class GuideChimp {
             }
         }
 
-        // Add classes to real elements (element takes priority)
-        // Only skip classes if NO element provided AND we have coordinate-based highlight
-        const hasElement = this.currentStep?.element;
+       const hasElement = this.currentStep?.element;
         const hasCoordinates = !hasElement &&
             this.currentStep?.top !== undefined &&
             this.currentStep?.left !== undefined &&
@@ -821,8 +817,6 @@ export default class GuideChimp {
 
         const el = this.getStepEl(this.currentStep);
 
-        // Only remove classes if they were added (element takes priority)
-        // Skip removal only if NO element AND we have coordinate-based highlight
         const hasElement = this.currentStep?.element;
         const hasCoordinates = !hasElement &&
             this.currentStep?.top !== undefined &&
@@ -842,7 +836,6 @@ export default class GuideChimp {
     }
 
     setInteractionPosition(interactionEl) {
-        // Element takes priority - only use coordinates if NO element is provided
         const hasElement = this.currentStep?.element;
         const hasTop = this.currentStep?.top !== undefined;
         const hasLeft = this.currentStep?.left !== undefined;
@@ -857,7 +850,6 @@ export default class GuideChimp {
             let { padding } = this.options;
             const { interaction } = this.options;
 
-            // Helper function to convert percentage or number to pixels
             const convertToPx = (value, axis) => {
                 if (typeof value === 'string' && value.trim().endsWith('%')) {
                     const percentage = parseFloat(value) || 0;
@@ -914,7 +906,6 @@ export default class GuideChimp {
     }
 
     setControlPosition(controlEl) {
-        // Element takes priority - only use coordinates if NO element is provided
         const hasElement = this.currentStep?.element;
         const hasTop = this.currentStep?.top !== undefined;
         const hasLeft = this.currentStep?.left !== undefined;
@@ -982,7 +973,6 @@ export default class GuideChimp {
 
         controlEl.classList.toggle(this.constructor.getFixedClass(), this.constructor.isFixed(el));
         const { style } = controlEl;
-        // set new position
         style.cssText = `width: ${width}px;
         height: ${height}px;
         top: ${top}px;
@@ -1000,6 +990,66 @@ export default class GuideChimp {
             return this;
         }
 
+        const clampToViewport = (el, pad = 12, depth = 0) => {
+            if (!el) return;
+            const gutter = Math.max(pad, 12);
+            const { innerWidth, innerHeight } = window;
+            const { width, height, left, top } = el.getBoundingClientRect();
+
+            let newLeft = left;
+            let newTop = top;
+            let changed = false;
+
+            if (left < gutter) {
+                newLeft = gutter;
+                changed = true;
+            } else if (left + width > innerWidth - gutter) {
+                newLeft = Math.max(gutter, innerWidth - gutter - width);
+                changed = true;
+            }
+
+            if (top < gutter) {
+                newTop = gutter;
+                changed = true;
+            } else if (top + height > innerHeight - gutter) {
+                newTop = Math.max(gutter, innerHeight - gutter - height);
+                changed = true;
+            }
+
+            const s = el.style;
+            if (!s.top || s.top === 'auto') {
+                s.top = `${top}px`;
+                changed = true;
+            }
+            if (!s.left || s.left === 'auto') {
+                s.left = `${left}px`;
+                changed = true;
+            }
+
+            if (changed) {
+                s.right = 'auto';
+                s.bottom = 'auto';
+                s.transform = 'none';
+                s.left = `${newLeft}px`;
+                s.top = `${newTop}px`;
+            }
+
+            if (depth < 2) {
+                requestAnimationFrame(() => {
+                    const { width: w2, height: h2, left: l2, top: t2 } = el.getBoundingClientRect();
+                    if (
+                        l2 < gutter ||
+                        l2 + w2 > innerWidth - gutter ||
+                        t2 < gutter ||
+                        t2 + h2 > innerHeight - gutter
+                    ) {
+                        clampToViewport(el, gutter, depth + 1);
+                    }
+                });
+                setTimeout(() => clampToViewport(el, gutter, depth + 1), 50);
+            }
+        };
+
         let { boundary, position: pos } = options;
         let { padding } = this.options;
 
@@ -1012,7 +1062,6 @@ export default class GuideChimp {
 
         const { style: tooltipStyle } = tooltipEl;
 
-        // reset tooltip styles
         tooltipStyle.top = null;
         tooltipStyle.right = null;
         tooltipStyle.bottom = null;
@@ -1109,22 +1158,18 @@ export default class GuideChimp {
 
            let configuredPosition = this.currentStep.position || pos || 'right';
 
-            // Check if configured position would cause overflow and auto-select best position
             const canFitTop = spaceTop >= tooltipHeight + padding;
             const canFitBottom = spaceBottom >= tooltipHeight + padding;
             const canFitLeft = spaceLeft >= tooltipWidth + padding;
             const canFitRight = spaceRight >= tooltipWidth + padding;
 
-            // Auto-fallback logic if preferred position doesn't fit
             if (!canFitTop && !canFitBottom && !canFitLeft && !canFitRight) {
-                // Nothing fits perfectly, choose position with most space
                 const maxSpace = Math.max(spaceTop, spaceBottom, spaceLeft, spaceRight);
                 if (maxSpace === spaceRight) configuredPosition = 'right';
                 else if (maxSpace === spaceBottom) configuredPosition = 'bottom';
                 else if (maxSpace === spaceLeft) configuredPosition = 'left';
                 else configuredPosition = 'top';
             } else {
-                // Check if configured position fits, otherwise pick best alternative
                 switch (configuredPosition) {
                     case 'top':
                     case 'top-left':
@@ -1194,11 +1239,7 @@ export default class GuideChimp {
                     break;
                 case 'left':
                     position = 'left';
-                    // Align tooltip top with the highlight top to match editor behaviour
-                    tooltipStyle.top = `${topInfo.px}px`;
-                    // Set explicit left so calculation mirrors the 'right' placement (avoid using 'right' css which
-                    // can produce slight layout differences across browsers). Place tooltip to the left of the
-                    // element: left = elementLeft - tooltipWidth - gap
+                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
                     tooltipStyle.left = `${Math.max(0, leftInfo.px - tooltipWidth - padding)}px`;
                     break;
                 case 'center':
@@ -1209,16 +1250,13 @@ export default class GuideChimp {
                 case 'right':
                 default:
                     position = 'right';
-                    // Align tooltip top with the highlight top to match editor behaviour
                     tooltipStyle.top = `${topInfo.px}px`;
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
             }
 
-            // Clamp computed top/left so tooltip never overflows viewport
             const clamp = (v, a, b) => Math.max(a, Math.min(v, b));
 
-            // compute numeric top
             let computedTop = null;
             if (tooltipStyle.top && tooltipStyle.top !== 'auto') {
                 computedTop = parseFloat(tooltipStyle.top) || 0;
@@ -1227,7 +1265,6 @@ export default class GuideChimp {
                 computedTop = viewportHeight - bottomPx - tooltipHeight;
             }
 
-            // compute numeric left
             let computedLeft = null;
             if (tooltipStyle.left && tooltipStyle.left !== 'auto') {
                 computedLeft = parseFloat(tooltipStyle.left) || 0;
@@ -1236,19 +1273,15 @@ export default class GuideChimp {
                 computedLeft = viewportWidth - rightPx - tooltipWidth;
             }
 
-            // apply clamping with padding as margin
-            // ensure a reasonable minimum gutter so tooltips don't hug viewport edges
-            const pad = Math.max(20, padding || 0);
+           const pad = Math.max(20, padding || 0);
             if (computedTop !== null) {
                 const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
                 tooltipStyle.top = `${clampedTop}px`;
-                // remove bottom to avoid conflicting CSS
                 tooltipStyle.bottom = 'auto';
             }
             if (computedLeft !== null) {
                 const clampedLeft = clamp(computedLeft, pad, Math.max(pad, viewportWidth - tooltipWidth - pad));
                 tooltipStyle.left = `${clampedLeft}px`;
-                // remove right to avoid conflicting CSS
                 tooltipStyle.right = 'auto';
             }
 
@@ -1267,6 +1300,7 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
+            clampToViewport(tooltipEl, padding);
             return this;
         } else if (!hasElement && (hasTop || hasLeft)) {
             tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
@@ -1310,6 +1344,7 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
+            clampToViewport(tooltipEl, padding);
             return this;
         } else if (!hasElement && !hasTop && !hasLeft) {
             tooltipEl.setAttribute('data-guidechimp-position', 'floating');
@@ -1331,6 +1366,7 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
+            clampToViewport(tooltipEl, padding);
             return this;
         } else {
             const el = this.getStepEl(this.currentStep);
@@ -1369,6 +1405,7 @@ export default class GuideChimp {
                     tooltipStyle.animation = animationMode(this.currentStep.animationType);
                 }
 
+                clampToViewport(tooltipEl, padding);
                 return this;
             }
 
@@ -1383,7 +1420,6 @@ export default class GuideChimp {
 
             const { height: tooltipHeight, width: tooltipWith } = tooltipEl.getBoundingClientRect();
 
-            // find out min tooltip width
             const cloneTooltip = tooltipEl.cloneNode(true);
             cloneTooltip.style.visibility = 'hidden';
             cloneTooltip.innerHTML = '';
@@ -1407,11 +1443,9 @@ export default class GuideChimp {
                 left: boundaryLeft,
                 right: boundaryRight,
             } = boundaryRect;
-            // if the element is default element, skip position and alignment calculation
             if (this.isEl(el, 'fakeStep')) {
                 position = 'floating';
             } else {
-                // calculate position
                 const positions = ['bottom', 'right', 'left', 'top'];
                 let {
                     marginTop: tooltipMarginTop,
@@ -1425,22 +1459,18 @@ export default class GuideChimp {
                 tooltipMarginRight = parseInt(tooltipMarginRight, 10);
                 tooltipMarginBottom = parseInt(tooltipMarginBottom, 10);
 
-                // check if the tooltip can be placed on top
                 if (tooltipHeight + tooltipMarginTop + tooltipMarginBottom > (elTop - boundaryTop)) {
                     positions.splice(positions.indexOf('top'), 1);
                 }
 
-                // check if the tooltip can be placed on bottom
                 if (tooltipHeight + tooltipMarginTop + tooltipMarginBottom > boundaryBottom - elBottom) {
                     positions.splice(positions.indexOf('bottom'), 1);
                 }
 
-                // check if the tooltip can be placed on left
                 if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
                     positions.splice(positions.indexOf('left'), 1);
                 }
 
-                // check if the tooltip can be placed on right
                 if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
                     positions.splice(positions.indexOf('right'), 1);
                 }
@@ -1454,17 +1484,14 @@ export default class GuideChimp {
                 if (position === 'top' || position === 'bottom') {
                     const alignments = ['left', 'right', 'middle'];
 
-                    // valid left space must be at least tooltip width
                     if (boundaryRight - elLeft < minTooltipWidth) {
                         alignments.splice(alignments.indexOf('left'), 1);
                     }
 
-                    // valid right space must be at least tooltip width
                     if (elRight - boundaryLeft < minTooltipWidth) {
                         alignments.splice(alignments.indexOf('right'), 1);
                     }
 
-                    // valid middle space must be at least half width from both sides
                     if (((elLeft + (elWidth / 2)) - boundaryLeft) < (minTooltipWidth / 2)
                         || (boundaryRight - (elRight - (elWidth / 2))) < (minTooltipWidth / 2)) {
                         alignments.splice(alignments.indexOf('middle'), 1);
@@ -1500,9 +1527,13 @@ export default class GuideChimp {
                         break;
                     case 'right':
                         tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
+                        tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
                         break;
                     case 'left':
                         tooltipStyle.right = `${root.clientWidth - (elLeft - (padding / 2))}px`;
+                        tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
                         break;
                     case 'bottom':
                         tooltipStyle.top = `${elHeight + padding}px`;
@@ -1541,6 +1572,7 @@ export default class GuideChimp {
             }
         }
 
+        clampToViewport(tooltipEl, padding);
         return this;
     }
 
@@ -1740,7 +1772,6 @@ export default class GuideChimp {
         const fakeEl = this.createFakeStepEl(data);
 
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
-            // Use canvas dimensions if provided, otherwise use viewport
             const refWidth = canvasWidth || window.innerWidth;
             const refHeight = canvasHeight || window.innerHeight;
 
@@ -1749,7 +1780,6 @@ export default class GuideChimp {
             let widthPx;
             let heightPx;
 
-            // Handle top
             if (typeof top === 'string' && top.trim().endsWith('%')) {
                 topPx = (parseFloat(top) || 0) / 100 * refHeight;
             } else if (typeof top === 'number') {
@@ -1758,7 +1788,6 @@ export default class GuideChimp {
                 topPx = parseFloat(top) || 0;
             }
 
-            // Handle left
             if (typeof left === 'string' && left.trim().endsWith('%')) {
                 leftPx = (parseFloat(left) || 0) / 100 * refWidth;
             } else if (typeof left === 'number') {
@@ -1767,7 +1796,6 @@ export default class GuideChimp {
                 leftPx = parseFloat(left) || 0;
             }
 
-            // Handle width - support percentages
             if (typeof width === 'string' && width.trim().endsWith('%')) {
                 widthPx = (parseFloat(width) || 0) / 100 * refWidth;
             } else if (typeof width === 'number') {
@@ -1776,7 +1804,6 @@ export default class GuideChimp {
                 widthPx = parseFloat(width) || 0;
             }
 
-            // Handle height - support percentages
             if (typeof height === 'string' && height.trim().endsWith('%')) {
                 heightPx = (parseFloat(height) || 0) / 100 * refHeight;
             } else if (typeof height === 'number') {
@@ -1827,7 +1854,6 @@ export default class GuideChimp {
     }
 
     getOverlayStepPath(step) {
-        // Element takes priority - only use coordinates if NO element is provided
         const hasElement = step && step.element;
         const hasCoordinates = step && step.top !== undefined && step.left !== undefined && step.width && step.height;
 
@@ -1843,7 +1869,6 @@ export default class GuideChimp {
 
         const { top, left, width, height } = step;
 
-        // Helper function to convert percentage or number to pixels
         const convertToPx = (value, axis) => {
             if (typeof value === 'string' && value.trim().endsWith('%')) {
                 const percentage = parseFloat(value) || 0;
@@ -1975,7 +2000,6 @@ export default class GuideChimp {
         return tooltipTmpl;
     }
 
-    // main element made here
     createTooltipEl(data = {}) {
         const defaults = {
             ...this.getDefaultTmplData(),
