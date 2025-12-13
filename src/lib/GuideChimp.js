@@ -991,6 +991,14 @@ export default class GuideChimp {
 
         const clampToViewport = (el, pad = 12, depth = 0) => {
             if (!el) return;
+           try {
+                const elStyleCheck = el.style || {};
+                if (elStyleCheck.transform && elStyleCheck.transform.indexOf('translate(-50%') !== -1) {
+                    return;
+                }
+            } catch (err) {
+              console.log(err)
+            }
             const gutter = Math.max(pad, 12);
             const { innerWidth, innerHeight } = window;
             const { width, height, left, top } = el.getBoundingClientRect();
@@ -1204,35 +1212,74 @@ export default class GuideChimp {
                 }
             }
 
+            // Check if there's enough space on both top and bottom to center vertically
+            const canCenterVertically = canFitTop && canFitBottom;
+
             switch (configuredPosition) {
                 case 'top':
                     position = 'top';
-                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    if (canCenterVertically) {
+                        // Center vertically when there's enough space on both sides
+                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
+                    } else {
+                        tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    }
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'top-left':
                     position = 'top-left';
-                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    if (canCenterVertically) {
+                        // Center vertically when there's enough space on both sides
+                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
+                    } else {
+                        tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    }
                     tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
                     break;
                 case 'top-right':
                     position = 'top-right';
-                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    if (canCenterVertically) {
+                        // Center vertically when there's enough space on both sides
+                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
+                    } else {
+                        tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
+                    }
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
                 case 'bottom':
                     position = 'bottom';
-                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    if (canCenterVertically) {
+                        // Center vertically when there's enough space on both sides
+                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
+                    } else {
+                        tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    }
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'bottom-left':
                     position = 'bottom-left';
-                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    if (canCenterVertically) {
+                        // Center vertically when there's enough space on both sides
+                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
+                    } else {
+                        tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    }
                     tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
                     break;
                 case 'bottom-right':
                     position = 'bottom-right';
-                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    if (canCenterVertically) {
+                        // Center vertically when there's enough space on both sides
+                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                        tooltipStyle.bottom = 'auto';
+                    } else {
+                        tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
+                    }
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
                 case 'left':
@@ -1248,7 +1295,7 @@ export default class GuideChimp {
                 case 'right':
                 default:
                     position = 'right';
-                    tooltipStyle.top = `${topInfo.px}px`;
+                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
             }
@@ -1517,9 +1564,21 @@ export default class GuideChimp {
                     }
                 }
             } else {
+                // Check if there's enough space on both top and bottom to center vertically
+                const spaceTop = elTop - boundaryTop;
+                const spaceBottom = boundaryBottom - elBottom;
+                const requiredSpace = tooltipHeight + tooltipMarginTop + tooltipMarginBottom + padding;
+                const canCenterVertically = spaceTop >= requiredSpace && spaceBottom >= requiredSpace;
+
                 switch (position) {
                     case 'top':
-                        tooltipStyle.bottom = `${elHeight + padding}px`;
+                        if (canCenterVertically) {
+                            // Center vertically when there's enough space on both sides
+                            tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
+                            tooltipStyle.bottom = 'auto';
+                        } else {
+                            tooltipStyle.bottom = `${elHeight + padding}px`;
+                        }
                         break;
                     case 'right':
                         tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
@@ -1532,7 +1591,13 @@ export default class GuideChimp {
                         tooltipStyle.bottom = 'auto';
                         break;
                     case 'bottom':
-                        tooltipStyle.top = `${elHeight + padding}px`;
+                        if (canCenterVertically) {
+                            // Center vertically when there's enough space on both sides
+                            tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
+                            tooltipStyle.bottom = 'auto';
+                        } else {
+                            tooltipStyle.top = `${elHeight + padding}px`;
+                        }
                         break;
                     default: {
 
