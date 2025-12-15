@@ -692,7 +692,6 @@ export default class GuideChimp {
     }
 
     scrollParentsToEl(el, scrollPadding = 0) {
-        // get all scrollable parents
         const parents = this.getScrollableParentsEls(el);
 
         parents.forEach((parent) => {
@@ -991,13 +990,13 @@ export default class GuideChimp {
 
         const clampToViewport = (el, pad = 12, depth = 0) => {
             if (!el) return;
-           try {
+            try {
                 const elStyleCheck = el.style || {};
                 if (elStyleCheck.transform && elStyleCheck.transform.indexOf('translate(-50%') !== -1) {
                     return;
                 }
             } catch (err) {
-              console.log(err)
+                console.log(err)
             }
             const gutter = Math.max(pad, 12);
             const { innerWidth, innerHeight } = window;
@@ -1212,25 +1211,18 @@ export default class GuideChimp {
                 }
             }
 
-            // Check if there's enough space on both top and bottom to center vertically
             const canCenterVertically = canFitTop && canFitBottom;
 
             switch (configuredPosition) {
                 case 'top':
                     position = 'top';
-                    if (canCenterVertically) {
-                        // Center vertically when there's enough space on both sides
-                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                    } else {
-                        tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
-                    }
+
+                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'top-left':
                     position = 'top-left';
                     if (canCenterVertically) {
-                        // Center vertically when there's enough space on both sides
                         tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
                         tooltipStyle.bottom = 'auto';
                     } else {
@@ -1241,7 +1233,6 @@ export default class GuideChimp {
                 case 'top-right':
                     position = 'top-right';
                     if (canCenterVertically) {
-                        // Center vertically when there's enough space on both sides
                         tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
                         tooltipStyle.bottom = 'auto';
                     } else {
@@ -1251,19 +1242,12 @@ export default class GuideChimp {
                     break;
                 case 'bottom':
                     position = 'bottom';
-                    if (canCenterVertically) {
-                        // Center vertically when there's enough space on both sides
-                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                    } else {
-                        tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                    }
+                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'bottom-left':
                     position = 'bottom-left';
                     if (canCenterVertically) {
-                        // Center vertically when there's enough space on both sides
                         tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
                         tooltipStyle.bottom = 'auto';
                     } else {
@@ -1274,7 +1258,6 @@ export default class GuideChimp {
                 case 'bottom-right':
                     position = 'bottom-right';
                     if (canCenterVertically) {
-                        // Center vertically when there's enough space on both sides
                         tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
                         tooltipStyle.bottom = 'auto';
                     } else {
@@ -1564,7 +1547,6 @@ export default class GuideChimp {
                     }
                 }
             } else {
-                // Check if there's enough space on both top and bottom to center vertically
                 const spaceTop = elTop - boundaryTop;
                 const spaceBottom = boundaryBottom - elBottom;
                 const requiredSpace = tooltipHeight + tooltipMarginTop + tooltipMarginBottom + padding;
@@ -1573,7 +1555,6 @@ export default class GuideChimp {
                 switch (position) {
                     case 'top':
                         if (canCenterVertically) {
-                            // Center vertically when there's enough space on both sides
                             tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
                             tooltipStyle.bottom = 'auto';
                         } else {
@@ -1592,7 +1573,6 @@ export default class GuideChimp {
                         break;
                     case 'bottom':
                         if (canCenterVertically) {
-                            // Center vertically when there's enough space on both sides
                             tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
                             tooltipStyle.bottom = 'auto';
                         } else {
@@ -1949,13 +1929,13 @@ export default class GuideChimp {
 
         let path = this.getOverlayDocumentPath();
 
-        path += `M ${leftValue  + r} ${topValue }
+        path += `M ${leftValue + r} ${topValue}
                  a ${r},${r} 0 0 0 -${r},${r}
-                 V ${heightValue + topValue  - r}
+                 V ${heightValue + topValue - r}
                  a ${r},${r} 0 0 0 ${r},${r}
-                 H ${widthValue + leftValue  - r}
+                 H ${widthValue + leftValue - r}
                  a ${r},${r} 0 0 0 ${r},-${r}
-                 V ${topValue  + r}
+                 V ${topValue + r}
                  a ${r},${r} 0 0 0 -${r},-${r}Z`;
 
         return path;
@@ -1973,13 +1953,13 @@ export default class GuideChimp {
         const x1 = Math.max(0, left - padding + r);
         const x2 = Math.min(window.innerWidth, width + left + padding - r);
 
-        path += `M ${x1} ${top }
+        path += `M ${x1} ${top}
          a ${r},${r} 0 0 0 -${r},${r}
-         V ${height + top  - r}
+         V ${height + top - r}
          a ${r},${r} 0 0 0 ${r},${r}
          H ${x2}
          a ${r},${r} 0 0 0 ${r},-${r}
-         V ${top  + r}
+         V ${top + r}
          a ${r},${r} 0 0 0 -${r},-${r} Z`;
 
         return path;
