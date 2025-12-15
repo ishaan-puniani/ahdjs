@@ -216,6 +216,8 @@
   margin: 10px;
   cursor: pointer;
   opacity: 0.4;
+  background: var(--gc-close-color, #000000);
+  box-sizing: border-box;
 
   &:hover {
     opacity: 1;
@@ -231,7 +233,8 @@
     margin-top: -1px;
     content: "";
     border-radius: 5px;
-    background: #000;
+    /* cross lines use foreground color (default white) for contrast against background */
+    background: var(--gc-close-foreground, #fff);
   }
 
   &::before {

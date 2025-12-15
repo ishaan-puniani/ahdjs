@@ -2065,7 +2065,10 @@ export default class GuideChimp {
     }
 
     createCloseEl(data = {}) {
-        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), ...data });
+        const step = this.currentStep || {};
+        const closeColor =  step.iconCloseColor || '#000000';
+
+        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), closeColor, ...data });
     }
 
     getProgressbarTmpl() {
