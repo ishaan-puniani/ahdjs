@@ -1077,13 +1077,11 @@ export default class GuideChimp {
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
         tooltipStyle.position = null;
+        tooltipStyle.visibility = "hidden";
+        setTimeout(() => {
+            tooltipStyle.visibility = "visible";
+        }, this.currentStep.delay || 1000);
 
-        if (this.currentStep.delay) {
-            tooltipStyle.visibility = "hidden";
-            setTimeout(() => {
-                tooltipStyle.visibility = "visible";
-            }, this.currentStep.delay);
-        }
 
         const overlayEls = document.getElementsByClassName("gc-overlay");
 
@@ -2072,9 +2070,9 @@ export default class GuideChimp {
 
     createCloseEl(data = {}) {
         const step = this.currentStep || {};
-        const closeIconColor = data.closeIconColor ?? step.closeIconColor ?? '#000000';
+        const iconCloseColor = data.iconCloseColor ?? step.styles?.iconCloseColor ?? '#000000';
 
-        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), closeIconColor, ...data });
+        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), iconCloseColor, ...data });
     }
 
     getProgressbarTmpl() {
