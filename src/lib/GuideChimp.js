@@ -990,13 +990,15 @@ export default class GuideChimp {
 
         const clampToViewport = (el, pad = 12, depth = 0) => {
             if (!el) return;
+            let removedTransform = null;
             try {
                 const elStyleCheck = el.style || {};
                 if (elStyleCheck.transform && elStyleCheck.transform.indexOf('translate(-50%') !== -1) {
-                    return;
+                    removedTransform = el.style.transform;
+                    el.style.transform = 'none';
                 }
             } catch (err) {
-                console.log(err)
+                // ignore and continue
             }
             const gutter = Math.max(pad, 12);
             const { innerWidth, innerHeight } = window;
@@ -1775,7 +1777,11 @@ export default class GuideChimp {
         const el = this.getEl(key);
 
         if (el) {
-            el.parentElement.removeChild(el);
+            if (el.parentElement && typeof el.parentElement.removeChild === 'function') {
+                el.parentElement.removeChild(el);
+            } else if (typeof el.remove === 'function') {
+                el.remove();
+            }
         }
 
         this.elements.delete(key);
@@ -2066,9 +2072,9 @@ export default class GuideChimp {
 
     createCloseEl(data = {}) {
         const step = this.currentStep || {};
-        const closeColor =  step.iconCloseColor || '#000000';
+        const closeIconColor = data.closeIconColor ?? step.closeIconColor ?? '#000000';
 
-        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), closeColor, ...data });
+        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), closeIconColor, ...data });
     }
 
     getProgressbarTmpl() {

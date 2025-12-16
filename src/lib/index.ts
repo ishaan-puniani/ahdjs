@@ -275,7 +275,7 @@ class AHD extends GuideChimp {
               stepId: step.id,
               id: row.id,
               type: "tour",
-              iconCloseColor:step.iconCloseColor,
+              iconCloseColor:step.iconCloseColor ,
             }))
           : []
       );
