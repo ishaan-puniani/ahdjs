@@ -2070,7 +2070,7 @@ export default class GuideChimp {
 
     createCloseEl(data = {}) {
         const step = this.currentStep || {};
-        const iconCloseColor = data.iconCloseColor ?? step.styles?.iconCloseColor ?? '#000000';
+        const iconCloseColor =  step?.iconCloseColor ?? '#000000';
 
         return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), iconCloseColor, ...data });
     }
