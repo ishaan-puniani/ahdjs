@@ -2070,9 +2070,17 @@ export default class GuideChimp {
 
     createCloseEl(data = {}) {
         const step = this.currentStep || {};
-        const iconCloseColor =  step?.iconCloseColor ?? '#000000';
+        let iconCloseColor = step?.iconCloseColor;
 
-        return this.createEl('close', this.getCloseTmpl(), { ...this.getDefaultTmplData(), iconCloseColor, ...data });
+        if (typeof iconCloseColor !== 'string' || !iconCloseColor.trim()) {
+            iconCloseColor = '#000000';
+        }
+
+        return this.createEl('close', this.getCloseTmpl(), {
+            ...this.getDefaultTmplData(),
+            iconCloseColor,
+            ...data,
+        });
     }
 
     getProgressbarTmpl() {
