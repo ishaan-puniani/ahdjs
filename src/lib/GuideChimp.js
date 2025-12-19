@@ -136,7 +136,7 @@ export default class GuideChimp {
             paginationTheme: 'numbers', // if="paginationTheme === 'numbers' || steps.length >= paginationCirclesMaxItems"
             paginationCirclesMaxItems: 10,
             interaction: true,
-            padding: 8,
+            padding: 4,
             scrollPadding: 10,
             scrollBehavior: 'auto',
             apiHost: 'https://ahd-be-jggub5n6qq-em.a.run.app',

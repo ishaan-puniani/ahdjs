@@ -1,41 +1,60 @@
-@media (max-width: 360px) {
-  .gc-tooltip {
-    min-width: 260px;
-    max-width: 290px;
-    transform: scale(0.85);
-  }
+// Responsive tooltip adjustments — prefer viewport-relative sizing with sensible caps
+.gc-tooltip {
+  /* max width: at most 90% of the viewport, but no wider than 22rem */
+  max-width: min(90vw, 22rem);
+
+  /* font-size scales with viewport but stays between 12px and 14px */
+  font-size: clamp(12px, 1vw, 14px);
+
+  /* padding scales with viewport but stays between 8px and 12px */
+  // padding: clamp(8px, 1vw, 12px);
+
+  box-sizing: border-box;
 }
 
-@media (max-width: 480px) {
-  .gc-tooltip {
-    min-width: 280px;
-    max-width: 320px;
-    font-size: 0.9rem;
-    transform: scale(0.9);
-  }
+/* Ensure tails and other tooltip internals scale naturally */
+.gc-tooltip .gc-tooltip-tail {
+  transform-origin: center;
 }
 
-@media (max-width: 768px) {
-  .gc-tooltip {
-    min-width: 300px;
-    max-width: 400px;
-    font-size: 0.95rem;
-    transform: scale(0.95);
-  }
-}
+// @media (max-width: 360px) {
+//   .gc-tooltip {
+//     min-width: 260px;
+//     max-width: 290px;
+//     transform: scale(0.85);
+//   }
+// }
 
-@media (min-width: 769px) {
-  .gc-tooltip {
-    min-width: 320px;
-    max-width: 500px;
-    transform: scale(1);
-  }
-}
+// @media (max-width: 480px) {
+//   .gc-tooltip {
+//     min-width: 280px;
+//     max-width: 320px;
+//     font-size: 0.9rem;
+//     transform: scale(0.9);
+//   }
+// }
 
-@media (min-width: 1024px) {
-  .gc-tooltip {
-    min-width: 350px;
-    max-width: 600px;
-    transform: scale(1.05);
-  }
-}
+// @media (max-width: 768px) {
+//   .gc-tooltip {
+//     min-width: 300px;
+//     max-width: 400px;
+//     font-size: 0.95rem;
+//     transform: scale(0.95);
+//   }
+// }
+
+// @media (min-width: 769px) {
+//   .gc-tooltip {
+//     min-width: 320px;
+//     max-width: 500px;
+//     transform: scale(1);
+//   }
+// }
+
+// @media (min-width: 1024px) {
+//   .gc-tooltip {
+//     min-width: 350px;
+//     max-width: 600px;
+//     transform: scale(1.05);
+//   }
+// }
