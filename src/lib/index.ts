@@ -725,14 +725,15 @@ function applyGuideChimpScaling() {
   const scale = Math.min(window.innerWidth / BASE_WIDTH, 1);
 
   const originMap: { [key: string]: string } = {
-    'Top': 'bottom center',
-    'Top Left': 'bottom left',
-    'Top Right': 'bottom right',
-    'Bottom': 'top center',
-    'Bottom Left': 'top left',
-    'Bottom Right': 'top right',
-    'Left': 'center right',
-    'Right': 'center left',
+    'top': 'bottom center',
+    'top-left': 'bottom left',
+    'top-right': 'bottom right',
+    'bottom': 'top center',
+    'bottom-left': 'top left',
+    'bottom-right': 'top right',
+    'left': 'center right',
+    'right': 'center left',
+    'floating': 'center',
   };
 
   document.querySelectorAll('[data-guidechimp-position]').forEach((el) => {
@@ -745,5 +746,6 @@ function applyGuideChimpScaling() {
 
 applyGuideChimpScaling();
 window.addEventListener('resize', applyGuideChimpScaling);
+window.addEventListener('load', applyGuideChimpScaling);
 
 export default AHDjs;

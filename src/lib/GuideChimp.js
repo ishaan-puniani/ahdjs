@@ -990,13 +990,13 @@ export default class GuideChimp {
 
         const clampToViewport = (el, pad = 12, depth = 0) => {
             if (!el) return;
-           try {
+            try {
                 const elStyleCheck = el.style || {};
                 if (elStyleCheck.transform && elStyleCheck.transform.indexOf('translate(-50%') !== -1) {
                     return;
                 }
             } catch (err) {
-              console.log(err)
+                console.log(err)
             }
             const gutter = Math.max(pad, 12);
             const { innerWidth, innerHeight } = window;
@@ -1117,7 +1117,7 @@ export default class GuideChimp {
         const hasHeight = this.currentStep?.height;
 
         if (!hasElement && hasTop && hasLeft && hasWidth && hasHeight) {
-            tooltipEl.setAttribute('data-guidechimp-position', 'top-left-with-highlight');
+            tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
             tooltipStyle.position = 'fixed';
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
@@ -1207,34 +1207,21 @@ export default class GuideChimp {
                         break;
                 }
             }
-
-            const canCenterVertically = canFitTop && canFitBottom;
-
             switch (configuredPosition) {
                 case 'top':
                     position = 'top';
-
                     tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
                     tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'top-left':
                     position = 'top-left';
-                    if (canCenterVertically) {
-                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                    } else {
-                        tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
-                    }
+                    tooltipStyle.top = `${topInfo.px - tooltipHeight - padding}px`;
                     tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+
                     break;
                 case 'top-right':
                     position = 'top-right';
-                    if (canCenterVertically) {
-                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                    } else {
-                        tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
-                    }
+                    tooltipStyle.top = `${topInfo.px - tooltipHeight - padding}px`;
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
                 case 'bottom':
@@ -1244,22 +1231,13 @@ export default class GuideChimp {
                     break;
                 case 'bottom-left':
                     position = 'bottom-left';
-                    if (canCenterVertically) {
-                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                    } else {
-                        tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                    }
+                    
+                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
                     tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
                     break;
                 case 'bottom-right':
                     position = 'bottom-right';
-                    if (canCenterVertically) {
-                        tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                    } else {
-                        tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                    }
+                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
                     tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
                     break;
                 case 'left':
@@ -1310,7 +1288,7 @@ export default class GuideChimp {
                 tooltipStyle.right = 'auto';
             }
 
-            tooltipEl.setAttribute('data-guidechimp-position', `top-left-with-highlight-${position}`);
+            tooltipEl.setAttribute('data-guidechimp-position', `${position}`);
 
             if (overlayEls.length > 0) {
                 const overlayEl = overlayEls[0];
