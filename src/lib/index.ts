@@ -719,4 +719,31 @@ AHDjs.extend = (plugin, ...args) => {
   return AHDjs;
 };
 
+const BASE_WIDTH = 1280;
+
+function applyGuideChimpScaling() {
+  const scale = Math.min(window.innerWidth / BASE_WIDTH, 1);
+
+  const originMap: { [key: string]: string } = {
+    'Top': 'bottom center',
+    'Top Left': 'bottom left',
+    'Top Right': 'bottom right',
+    'Bottom': 'top center',
+    'Bottom Left': 'top left',
+    'Bottom Right': 'top right',
+    'Left': 'center right',
+    'Right': 'center left',
+  };
+
+  document.querySelectorAll('[data-guidechimp-position]').forEach((el) => {
+    const position = (el as Element).getAttribute('data-guidechimp-position') || '';
+
+    (el as HTMLElement).style.transformOrigin = originMap[position] || 'top left';
+    (el as HTMLElement).style.transform = `scale(${scale})`;
+  });
+}
+
+applyGuideChimpScaling();
+window.addEventListener('resize', applyGuideChimpScaling);
+
 export default AHDjs;

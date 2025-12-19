@@ -1,20 +1,6 @@
-@media (max-width: 600px) {
-  .gc-tooltip {
-    max-width: 92vw;
-    padding: 12px 14px;
-    box-sizing: border-box;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    resize: vertical;
-    overflow: auto;
-  }
-}
-
 @media (max-width: 360px) {
   .gc-tooltip {
-    max-width: 96vw;
-    padding: 10px 12px;
-    resize: vertical;
-    overflow: auto;
+    min-width: 260px;
+    max-width: 290px;
   }
 }

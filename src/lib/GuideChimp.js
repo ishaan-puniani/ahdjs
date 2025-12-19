@@ -1157,7 +1157,6 @@ export default class GuideChimp {
             tooltipStyle.bottom = 'auto';
             tooltipStyle.transform = 'none';
 
-            const setTopCssPx = (valInfo) => `${valInfo.px}px`;
 
             let configuredPosition = this.currentStep.position || pos || 'right';
 
