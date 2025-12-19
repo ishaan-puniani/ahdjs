@@ -2,5 +2,40 @@
   .gc-tooltip {
     min-width: 260px;
     max-width: 290px;
+    transform: scale(0.85);
+  }
+}
+
+@media (max-width: 480px) {
+  .gc-tooltip {
+    min-width: 280px;
+    max-width: 320px;
+    font-size: 0.9rem;
+    transform: scale(0.9);
+  }
+}
+
+@media (max-width: 768px) {
+  .gc-tooltip {
+    min-width: 300px;
+    max-width: 400px;
+    font-size: 0.95rem;
+    transform: scale(0.95);
+  }
+}
+
+@media (min-width: 769px) {
+  .gc-tooltip {
+    min-width: 320px;
+    max-width: 500px;
+    transform: scale(1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .gc-tooltip {
+    min-width: 350px;
+    max-width: 600px;
+    transform: scale(1.05);
   }
 }
