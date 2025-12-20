@@ -988,7 +988,7 @@ export default class GuideChimp {
             return this;
         }
 
-        const clampToViewport = (el, pad = 12, depth = 0) => {
+        const clampToViewport = (el, pad = 0, depth = 0) => {
             if (!el) return;
             try {
                 const elStyleCheck = el.style || {};
@@ -998,19 +998,19 @@ export default class GuideChimp {
             } catch (err) {
                 console.log(err)
             }
-            const gutter = Math.max(pad, 12);
+            const gutter = Math.max(pad, 0);
             const { innerWidth, innerHeight } = window;
             const { width, height, left, top } = el.getBoundingClientRect();
 
-            let newLeft = left;
+            let newLeft = window.innerWidth >= 1024 ? (left + 14) : left;
             let newTop = top;
             let changed = false;
 
             if (left < gutter) {
-                newLeft = gutter;
+                newLeft = window.innerWidth >= 1024 ? gutter + 14 : gutter;
                 changed = true;
             } else if (left + width > innerWidth - gutter) {
-                newLeft = Math.max(gutter, innerWidth - gutter - width);
+                newLeft = window.innerWidth >= 1024? Math.max(gutter, innerWidth - gutter - width):Math.max(gutter+14, innerWidth - gutter - width);
                 changed = true;
             }
 
@@ -1049,10 +1049,10 @@ export default class GuideChimp {
                         t2 < gutter ||
                         t2 + h2 > innerHeight - gutter
                     ) {
-                        clampToViewport(el, gutter, depth + 1);
+                        clampToViewport(el, 0, depth + 1);
                     }
                 });
-                setTimeout(() => clampToViewport(el, gutter, depth + 1), 50);
+                setTimeout(() => clampToViewport(el, 0, depth + 1), 50);
             }
         };
 
@@ -1231,7 +1231,7 @@ export default class GuideChimp {
                     break;
                 case 'bottom-left':
                     position = 'bottom-left';
-                    
+
                     tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
                     tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
                     break;
@@ -1243,7 +1243,7 @@ export default class GuideChimp {
                 case 'left':
                     position = 'left';
                     tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                    tooltipStyle.left = `${Math.max(0, leftInfo.px - tooltipWidth - padding)}px`;
+                    tooltipStyle.left = `${leftInfo.px - tooltipWidth}px`;
                     break;
                 case 'center':
                     position = 'center';
@@ -1276,7 +1276,9 @@ export default class GuideChimp {
                 computedLeft = viewportWidth - rightPx - tooltipWidth;
             }
 
-            const pad = Math.max(20, padding || 0);
+            // For large screens avoid extra clamping so tooltip left/top
+            // align precisely with calculated coordinates (prevents ~14px shift).
+            const pad = (window.innerWidth >= 1024) ? 0 : Math.max(0, padding || 0);
             if (computedTop !== null) {
                 const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
                 tooltipStyle.top = `${clampedTop}px`;
@@ -1303,7 +1305,7 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
-            clampToViewport(tooltipEl, padding);
+            clampToViewport(tooltipEl, 0);
             return this;
         } else if (!hasElement && (hasTop || hasLeft)) {
             tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
@@ -1345,7 +1347,7 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
-            clampToViewport(tooltipEl, padding);
+            clampToViewport(tooltipEl, 0);
             return this;
         } else if (!hasElement && !hasTop && !hasLeft) {
             tooltipEl.setAttribute('data-guidechimp-position', 'floating');
@@ -1367,7 +1369,7 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
-            clampToViewport(tooltipEl, padding);
+            clampToViewport(tooltipEl, 0);
             return this;
         } else {
             const el = this.getStepEl(this.currentStep);
@@ -1406,7 +1408,7 @@ export default class GuideChimp {
                     tooltipStyle.animation = animationMode(this.currentStep.animationType);
                 }
 
-                clampToViewport(tooltipEl, padding);
+                clampToViewport(tooltipEl, 0);
                 return this;
             }
 
@@ -1588,7 +1590,7 @@ export default class GuideChimp {
             }
         }
 
-        clampToViewport(tooltipEl, padding);
+        clampToViewport(tooltipEl, 0);
         return this;
     }
 

@@ -726,21 +726,28 @@ function applyGuideChimpScaling() {
 
   const originMap: { [key: string]: string } = {
     'top': 'bottom center',
-    'top-left': 'bottom left',
-    'top-right': 'bottom right',
-    'bottom': 'top center',
-    'bottom-left': 'top left',
-    'bottom-right': 'top right',
-    'left': 'center right',
-    'right': 'center left',
-    'floating': 'center',
+    'top-left': 'bottom right',
+    'top-right': 'bottom left',
+    'bottom': 'right top',
+    'bottom-left': 'top right',
+    'bottom-right': 'top left',
+    'left': ' right',
+    'right': ' left',
+    'floating': 'floating',
   };
 
   document.querySelectorAll('[data-guidechimp-position]').forEach((el) => {
     const position = (el as Element).getAttribute('data-guidechimp-position') || '';
-
-    (el as HTMLElement).style.transformOrigin = originMap[position] || 'top left';
-    (el as HTMLElement).style.transform = `scale(${scale})`;
+    const origin = originMap[position];
+    if (origin === 'floating') {
+      (el as HTMLElement).style.transformOrigin = 'none';
+      (el as HTMLElement).style.transform = ` translate(-50%, -50%)`;
+      return;
+    }
+    else {
+      (el as HTMLElement).style.transformOrigin = originMap[position];
+      (el as HTMLElement).style.transform = `scale(${scale})`;
+    }
   });
 }
 
