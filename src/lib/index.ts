@@ -746,7 +746,7 @@ function applyGuideChimpScaling() {
     }
     else {
       (el as HTMLElement).style.transformOrigin = originMap[position];
-      (el as HTMLElement).style.transform = `scale(${scale})`;
+      (el as HTMLElement).style.transform = `scale(${scale+0.25})`;
     }
   });
 }
