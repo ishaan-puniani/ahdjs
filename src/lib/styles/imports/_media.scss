@@ -1,18 +1,9 @@
-// Responsive tooltip adjustments — prefer viewport-relative sizing with sensible caps
 .gc-tooltip {
-  /* max width: at most 90% of the viewport, but no wider than 22rem */
-  max-width: min(90vw, 22rem);
-
-  /* font-size scales with viewport but stays between 12px and 14px */
   font-size: clamp(12px, 1vw, 14px);
-
-  /* padding scales with viewport but stays between 8px and 12px */
-  // padding: clamp(8px, 1vw, 12px);
-
   box-sizing: border-box;
+  transform: scale(1);
 }
 
-/* Ensure tails and other tooltip internals scale naturally */
 .gc-tooltip .gc-tooltip-tail {
   transform-origin: center;
 }
@@ -20,34 +11,34 @@
 @media (min-width: 0px) and (max-width: 360px) {
   .gc-tooltip {
     min-width: 260px;
-    max-width: 320px;
-    transform: scale(0.85);
+    // max-width: 320px;
+    transform: scale(0.65);
   }
 }
 
 @media (min-width: 361px) and (max-width: 480px) {
   .gc-tooltip {
     min-width: 280px;
-    max-width: 320px;
+    // max-width: 320px;
     font-size: 0.9rem;
-    transform: scale(0.9);
+    transform: scale(0.65);
   }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
   .gc-tooltip {
     min-width: 300px;
-    max-width: 400px;
+    // max-width: 400px;
     font-size: 0.95rem;
-    transform: scale(0.95);
+    transform: scale(0.75);
   }
 }
 
 @media (min-width: 769px) and (max-width: 1023px) {
   .gc-tooltip {
     min-width: 320px;
-    max-width: 500px;
-    transform: scale(1);
+    // max-width: 500px;
+    transform: scale(0.85);
   }
 }
 

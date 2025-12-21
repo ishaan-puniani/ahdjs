@@ -722,7 +722,7 @@ AHDjs.extend = (plugin, ...args) => {
 const BASE_WIDTH = 1280;
 
 function applyGuideChimpScaling() {
-  const scale = Math.min(window.innerWidth / BASE_WIDTH, 1);
+  const scale = Math.min(window.innerWidth / BASE_WIDTH, 1).toFixed(2);
 
   const originMap: { [key: string]: string } = {
     'top': 'bottom center',
@@ -746,7 +746,7 @@ function applyGuideChimpScaling() {
     }
     else {
       (el as HTMLElement).style.transformOrigin = originMap[position];
-      (el as HTMLElement).style.transform = `scale(${scale+0.25})`;
+      (el as HTMLElement).style.transform = `scale(${(parseFloat(scale) + 0.25).toFixed(2)})`;
     }
   });
 }

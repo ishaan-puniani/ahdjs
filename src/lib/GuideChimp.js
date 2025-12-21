@@ -1035,7 +1035,7 @@ export default class GuideChimp {
             if (changed) {
                 s.right = 'auto';
                 s.bottom = 'auto';
-                s.transform = 'none';
+                // s.transform = 'none';
                 s.left = `${newLeft}px`;
                 s.top = `${newTop}px`;
             }
@@ -1155,7 +1155,7 @@ export default class GuideChimp {
             tooltipStyle.left = 'auto';
             tooltipStyle.right = 'auto';
             tooltipStyle.bottom = 'auto';
-            tooltipStyle.transform = 'none';
+            // tooltipStyle.transform = 'none';
 
 
             let configuredPosition = this.currentStep.position || pos || 'right';
