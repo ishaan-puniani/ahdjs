@@ -719,7 +719,7 @@ AHDjs.extend = (plugin, ...args) => {
   return AHDjs;
 };
 
-const BASE_WIDTH = 1280;
+const BASE_WIDTH = 2560;
 
 function applyGuideChimpScaling() {
   const scale = Math.min(window.innerWidth / BASE_WIDTH, 1).toFixed(2);
