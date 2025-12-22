@@ -719,40 +719,40 @@ AHDjs.extend = (plugin, ...args) => {
   return AHDjs;
 };
 
-const BASE_WIDTH = 2560;
+// const BASE_WIDTH = 2560;
 
-function applyGuideChimpScaling() {
-  const scale = Math.min(window.innerWidth / BASE_WIDTH, 1).toFixed(2);
+// function applyGuideChimpScaling() {
+//   const scale = Math.min(window.innerWidth / BASE_WIDTH, 1).toFixed(2);
 
-  const originMap: { [key: string]: string } = {
-    'top': 'bottom center',
-    'top-left': 'bottom right',
-    'top-right': 'bottom left',
-    'bottom': 'right top',
-    'bottom-left': 'top right',
-    'bottom-right': 'top left',
-    'left': ' right',
-    'right': ' left',
-    'floating': 'floating',
-  };
+//   const originMap: { [key: string]: string } = {
+//     'top': 'bottom center',
+//     'top-left': 'bottom right',
+//     'top-right': 'bottom left',
+//     'bottom': 'right top',
+//     'bottom-left': 'top right',
+//     'bottom-right': 'top left',
+//     'left': ' right',
+//     'right': ' left',
+//     'floating': 'floating',
+//   };
 
-  document.querySelectorAll('[data-guidechimp-position]').forEach((el) => {
-    const position = (el as Element).getAttribute('data-guidechimp-position') || '';
-    const origin = originMap[position];
-    if (origin === 'floating') {
-      (el as HTMLElement).style.transformOrigin = 'none';
-      (el as HTMLElement).style.transform = ` translate(-50%, -50%)`;
-      return;
-    }
-    else {
-      (el as HTMLElement).style.transformOrigin = originMap[position];
-      (el as HTMLElement).style.transform = `scale(${(parseFloat(scale) + 0.25).toFixed(2)})`;
-    }
-  });
-}
+//   document.querySelectorAll('[data-guidechimp-position]').forEach((el) => {
+//     const position = (el as Element).getAttribute('data-guidechimp-position') || '';
+//     const origin = originMap[position];
+//     if (origin === 'floating') {
+//       (el as HTMLElement).style.transformOrigin = 'none';
+//       (el as HTMLElement).style.transform = ` translate(-50%, -50%)`;
+//       return;
+//     }
+//     else {
+//       (el as HTMLElement).style.transformOrigin = originMap[position];
+//       (el as HTMLElement).style.transform = `scale(${(parseFloat(scale) + 0.25).toFixed(2)})`;
+//     }
+//   });
+// }
 
-applyGuideChimpScaling();
-window.addEventListener('resize', applyGuideChimpScaling);
-window.addEventListener('load', applyGuideChimpScaling);
+// applyGuideChimpScaling();
+// window.addEventListener('resize', applyGuideChimpScaling);
+// window.addEventListener('load', applyGuideChimpScaling);
 
 export default AHDjs;
