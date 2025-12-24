@@ -274,7 +274,7 @@ class AHD extends GuideChimp {
               left: this.normalizeDimension(step.styles?.left || step.left),
               stepId: step.id,
               id: row.id,
-              type: "tour",
+              type: row.type || "tour",
               iconCloseColor: step.style?.iconCloseColor ?? step.behaviour?.iconCloseColor,
             }))
           : []

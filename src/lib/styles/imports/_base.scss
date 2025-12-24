@@ -52,7 +52,7 @@
   left: 0;
   box-sizing: content-box;
   opacity: 0.4;
-  pointer-events: none;
+  pointer-events: auto;
 
   & svg {
     fill: #222222;
@@ -67,7 +67,7 @@
 
 .gc-overlay-hidden {
   opacity: 0;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .gc-control {
