@@ -1713,6 +1713,11 @@ export default class GuideChimp {
 
     unmountStep() {
         this.resetHighlightStepEl();
+        try {
+            this.removeEl('tooltip');
+        } catch (err) {
+            // ignore
+        }
 
         this.removeInteractionEl();
         this.removeControlEl();
