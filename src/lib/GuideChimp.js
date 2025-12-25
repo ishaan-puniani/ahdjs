@@ -172,9 +172,7 @@ export default class GuideChimp {
         return 'gc-loading';
     }
 
-    static getHighlightClass() {
-        return 'gc-highlight';
-    }
+
 
     static getFixedClass() {
         return 'gc-fixed';
@@ -790,7 +788,6 @@ export default class GuideChimp {
                 el.classList.add(this.constructor.getRelativePositionClass());
             }
 
-            el.classList.add(this.constructor.getHighlightClass());
         }
 
         el.setAttribute(`data-guidechimp-${this.uid}`, 'highlight');
@@ -825,7 +822,6 @@ export default class GuideChimp {
 
         if (!hasCoordinates) {
             el.classList.remove(this.constructor.getRelativePositionClass());
-            el.classList.remove(this.constructor.getHighlightClass());
         }
 
         el.removeAttribute(`data-guidechimp-${this.uid}`);
@@ -965,9 +961,13 @@ export default class GuideChimp {
         const height = elHeight + padding;
         const top = elTop - (padding / 2);
         const left = (pageXOffset < pageXOffset + (elLeft - (padding / 2))) ? pageXOffset : (elLeft - (padding / 2));
-        const width = (pageXOffset + docElWidth > pageXOffset + (elRight + (padding / 2)))
+        let width = (pageXOffset + docElWidth > pageXOffset + (elRight + (padding / 2)))
             ? docElWidth
             : (elRight + (padding / 2));
+
+        // Clamp width so the control doesn't overflow the viewport when 'left' is non-zero
+        const maxAvailableWidth = Math.max(0, (pageXOffset + docElWidth) - left);
+        width = Math.max(0, Math.min(width, maxAvailableWidth));
 
         controlEl.classList.toggle(this.constructor.getFixedClass(), this.constructor.isFixed(el));
         const { style } = controlEl;
@@ -1010,7 +1010,7 @@ export default class GuideChimp {
                 newLeft = window.innerWidth >= 1024 ? gutter + 14 : gutter;
                 changed = true;
             } else if (left + width > innerWidth - gutter) {
-                newLeft = window.innerWidth >= 1024? Math.max(gutter, innerWidth - gutter - width):Math.max(gutter+14, innerWidth - gutter - width);
+                newLeft = window.innerWidth >= 1024 ? Math.max(gutter, innerWidth - gutter - width) : Math.max(gutter + 14, innerWidth - gutter - width);
                 changed = true;
             }
 
@@ -1074,7 +1074,9 @@ export default class GuideChimp {
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
-        tooltipStyle.position = null;
+        // keep tooltip positioned relative to viewport to avoid stacking-context / ancestor issues
+        tooltipStyle.position = 'fixed';
+        tooltipStyle.zIndex = '10001';
         tooltipStyle.visibility = "hidden";
         setTimeout(() => {
             tooltipStyle.visibility = "visible";
@@ -1516,54 +1518,53 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
-            if (this.options.type === "snackbar") {
-                switch (this.currentStep.position) {
-                    case 'top': {
-                        tooltipStyle.top = `${0 + padding}px`;
-                        break;
-                    }
+            // compute tooltip top/left in viewport coordinates and clamp to viewport
+            const elCenterY = elTop + (elHeight / 2);
+            const elCenterX = elLeft + (elWidth / 2);
+
+            let computedTop = null;
+            let computedLeft = null;
+
+            switch (position) {
+                case 'top':
+                    computedTop = Math.round(elTop - tooltipHeight - padding);
+                    computedLeft = Math.round(elCenterX - (tooltipWith / 2));
+                    break;
+                case 'right':
+                    computedLeft = Math.round(elRight + padding);
+                    computedTop = Math.round(elCenterY - (tooltipHeight / 2));
+                    break;
+                case 'left':
+                    computedLeft = Math.round(elLeft - tooltipWith - padding);
+                    computedTop = Math.round(elCenterY - (tooltipHeight / 2));
+                    break;
+                case 'bottom':
+                    computedTop = Math.round(elBottom + padding);
+                    computedLeft = Math.round(elCenterX - (tooltipWith / 2));
+                    break;
+                default:
+                    computedLeft = Math.round((window.innerWidth / 2) - (tooltipWith / 2));
+                    computedTop = Math.round((window.innerHeight / 2) - (tooltipHeight / 2));
+            }
+
+            // alignment adjustments for top/bottom positions
+            if (position === 'top' || position === 'bottom') {
+                if (alignment === 'left') {
+                    computedLeft = Math.round(elLeft - (padding / 2));
+                } else if (alignment === 'right') {
+                    computedLeft = Math.round(elRight - tooltipWith + (padding / 2));
                 }
-            } else {
-                const spaceTop = elTop - boundaryTop;
-                const spaceBottom = boundaryBottom - elBottom;
-                const requiredSpace = tooltipHeight + tooltipMarginTop + tooltipMarginBottom + padding;
-                const canCenterVertically = spaceTop >= requiredSpace && spaceBottom >= requiredSpace;
+            }
 
-                switch (position) {
-                    case 'top':
-                        if (canCenterVertically) {
-                            tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
-                            tooltipStyle.bottom = 'auto';
-                        } else {
-                            tooltipStyle.bottom = `${elHeight + padding}px`;
-                        }
-                        break;
-                    case 'right':
-                        tooltipStyle.left = `${(elRight + (padding / 2)) - root.clientLeft}px`;
-                        tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                        break;
-                    case 'left':
-                        tooltipStyle.right = `${root.clientWidth - (elLeft - (padding / 2))}px`;
-                        tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
-                        tooltipStyle.bottom = 'auto';
-                        break;
-                    case 'bottom':
-                        if (canCenterVertically) {
-                            tooltipStyle.top = `${elTop + (elHeight / 2) - (tooltipHeight / 2)}px`;
-                            tooltipStyle.bottom = 'auto';
-                        } else {
-                            tooltipStyle.top = `${elHeight + padding}px`;
-                        }
-                        break;
-                    default: {
-
-                        tooltipStyle.left = '50%';
-                        tooltipStyle.top = '50%';
-                        tooltipStyle.transform = 'translate(-50%,-50%)';
-
-                    }
-                }
+            // clamp to viewport
+            const clamp = (v, a, b) => Math.max(a, Math.min(v, b));
+            if (computedTop !== null) {
+                const topClamped = clamp(computedTop, 0, Math.max(0, window.innerHeight - tooltipHeight));
+                tooltipStyle.top = `${topClamped}px`;
+            }
+            if (computedLeft !== null) {
+                const leftClamped = clamp(computedLeft, 0, Math.max(0, window.innerWidth - tooltipWith));
+                tooltipStyle.left = `${leftClamped}px`;
             }
             tooltipEl.removeAttribute('data-guidechimp-alignment');
 
@@ -1690,6 +1691,17 @@ export default class GuideChimp {
 
         this.setInteractionPosition(interactionEl);
         this.setControlPosition(controlEl);
+
+        // Reparent tooltip to document.body to avoid parent stacking-context
+        const tooltipEl = this.getEl('tooltip');
+        if (tooltipEl && tooltipEl.parentElement && tooltipEl.parentElement !== document.body) {
+            try {
+                document.body.appendChild(tooltipEl);
+            } catch (err) {
+                // ignore
+            }
+        }
+
         this.setTooltipPosition(this.getEl('tooltip'));
 
         this.observeStep();
