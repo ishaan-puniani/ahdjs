@@ -69,9 +69,6 @@ export default class GuideChimp {
 
         this.init();
 
-       
-        this.rootEl = this.resolveRoot(this.options.root);
-
         this.actions = {
             onNextStep: this.onNextStep.bind(this),
             onPrevStep: this.onPrevStep.bind(this),
@@ -85,117 +82,6 @@ export default class GuideChimp {
         }
 
 
-    }
-
-    resolveRoot(root) {
-        if (!root) return null;
-        try {
-            if (typeof root === 'string') {
-                const el = document.querySelector(root) || null;
-                if (!el) return null;
-                const tag = (el.tagName || '').toUpperCase();
-                const voidTags = new Set(['IMG', 'INPUT', 'BR', 'HR', 'META', 'LINK', 'SOURCE', 'TRACK', 'WBR']);
-                if (voidTags.has(tag)) {
-                    this.referenceEl = el;
-                    this.rootEl = el.parentElement || document.body;
-                    return this.rootEl;
-                }
-                this.referenceEl = el;
-                this.rootEl = el;
-                return el;
-            }
-            if (isHtmlElement(root)) {
-                const tag = (root.tagName || '').toUpperCase();
-                const voidTags = new Set(['IMG', 'INPUT', 'BR', 'HR', 'META', 'LINK', 'SOURCE', 'TRACK', 'WBR']);
-                if (voidTags.has(tag)) {
-                    this.referenceEl = root;
-                    this.rootEl = root.parentElement || document.body;
-                    return this.rootEl;
-                }
-                this.referenceEl = root;
-                this.rootEl = root;
-                return root;
-            }
-        } catch (err) {
-            return null;
-        }
-        return null;
-    }
-
-    getRootEl() {
-        return this.rootEl || document.body;
-    }
-
-    getViewportDims() {
-        const root = this.getRootEl();
-        console.log("root", root)
-        if (this.referenceEl) {
-            const r = this.getElementVisibleRect(this.referenceEl);
-            return {
-                innerWidth: r.width,
-                innerHeight: r.height,
-                left: r.left,
-                top: r.top,
-                right: r.right,
-                bottom: r.bottom,
-            };
-        }
-        if (root && root !== document.body) {
-            const rect = root.getBoundingClientRect();
-            return {
-                innerWidth: rect.width,
-                innerHeight: rect.height,
-                left: rect.left,
-                top: rect.top,
-                right: rect.right,
-                bottom: rect.bottom,
-            };
-        }
-        return {
-            innerWidth: window.innerWidth,
-            innerHeight: window.innerHeight,
-            left: 0,
-            top: 0,
-            right: window.innerWidth,
-            bottom: window.innerHeight,
-        };
-    }
-
-
-    getElementVisibleRect(el) {
-        if (!el) return new DOMRect(0, 0, 0, 0);
-        try {
-            const tag = (el.tagName || '').toUpperCase();
-            if (tag === 'IMG' && el.naturalWidth && el.naturalHeight) {
-                const cs = getComputedStyle(el);
-                const objectFit = cs.getPropertyValue('object-fit') || cs.objectFit;
-                if (objectFit === 'contain') {
-                    const rect = el.getBoundingClientRect();
-                    const clientW = Math.max(0, el.clientWidth || rect.width || 0);
-                    const clientH = Math.max(0, el.clientHeight || rect.height || 0);
-                    const scale = Math.min(clientW / el.naturalWidth, clientH / el.naturalHeight);
-                    const dispW = Math.round(el.naturalWidth * scale);
-                    const dispH = Math.round(el.naturalHeight * scale);
-                    const offsetX = Math.round((clientW - dispW) / 2);
-                    const offsetY = Math.round((clientH - dispH) / 2);
-                    const left = rect.left + offsetX;
-                    const top = rect.top + offsetY;
-                    return {
-                        left,
-                        top,
-                        right: left + dispW,
-                        bottom: top + dispH,
-                        width: dispW,
-                        height: dispH,
-                        x: left,
-                        y: top,
-                    };
-                }
-            }
-        } catch (err) {
-            // fall back to default bounding rect on any error
-        }
-        return el.getBoundingClientRect();
     }
 
     /**
@@ -441,8 +327,6 @@ export default class GuideChimp {
 
             // on window scroll
             this.addOnWindowScrollListener();
-            // also listen to root scroll (if different from document.body)
-            this.addOnRootScrollListener();
         }
 
         return isStarted;
@@ -822,7 +706,7 @@ export default class GuideChimp {
 
     scrollTo(el, behavior = 'auto', scrollPadding = 0) {
         const { top, bottom, left, right } = el.getBoundingClientRect();
-        const { innerWidth, innerHeight } = this.getViewportDims();
+        const { innerWidth, innerHeight } = window;
 
         if (!(left >= 0 && right <= innerWidth)) {
             window.scrollBy({ behavior, left: left - scrollPadding });
@@ -1115,18 +999,18 @@ export default class GuideChimp {
                 console.log(err)
             }
             const gutter = Math.max(pad, 0);
-            const { innerWidth, innerHeight } = this.getViewportDims();
+            const { innerWidth, innerHeight } = window;
             const { width, height, left, top } = el.getBoundingClientRect();
 
-            let newLeft = innerWidth >= 1024 ? (left + 14) : left;
+            let newLeft = window.innerWidth >= 1024 ? (left + 14) : left;
             let newTop = top;
             let changed = false;
 
             if (left < gutter) {
-                newLeft = innerWidth >= 1024 ? gutter + 14 : gutter;
+                newLeft = window.innerWidth >= 1024 ? gutter + 14 : gutter;
                 changed = true;
             } else if (left + width > innerWidth - gutter) {
-                newLeft = innerWidth >= 1024 ? Math.max(gutter, innerWidth - gutter - width) : Math.max(gutter + 14, innerWidth - gutter - width);
+                newLeft = window.innerWidth >= 1024 ? Math.max(gutter, innerWidth - gutter - width) : Math.max(gutter + 14, innerWidth - gutter - width);
                 changed = true;
             }
 
@@ -1241,10 +1125,9 @@ export default class GuideChimp {
             tooltipStyle.visibility = 'visible';
             tooltipStyle.pointerEvents = 'auto';
             const parsePct = (v, axis) => {
-                const { innerWidth, innerHeight } = this.getViewportDims();
                 if (typeof v === 'string' && v.trim().endsWith('%')) {
                     const pct = parseFloat(v) || 0;
-                    const px = (axis === 'x') ? (pct / 100) * innerWidth : (pct / 100) * innerHeight;
+                    const px = (axis === 'x') ? (pct / 100) * window.innerWidth : (pct / 100) * window.innerHeight;
                     return { isPct: true, pct, px, raw: v.trim() };
                 }
                 const px = (typeof v === 'number') ? v : parseFloat(v) || 0;
@@ -1261,7 +1144,8 @@ export default class GuideChimp {
             const { padding } = this.options;
             const { height: tooltipHeight, width: tooltipWidth } = tooltipEl.getBoundingClientRect();
 
-            const { innerWidth: viewportWidth, innerHeight: viewportHeight } = this.getViewportDims();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
 
             const spaceRight = viewportWidth - (leftInfo.px + widthPx);
             const spaceLeft = leftInfo.px;
@@ -1396,8 +1280,7 @@ export default class GuideChimp {
 
             // For large screens avoid extra clamping so tooltip left/top
             // align precisely with calculated coordinates (prevents ~14px shift).
-            const { innerWidth: _innerWidth } = this.getViewportDims();
-            const pad = (_innerWidth >= 1024) ? 0 : Math.max(0, padding || 0);
+            const pad = (window.innerWidth >= 1024) ? 0 : Math.max(0, padding || 0);
             if (computedTop !== null) {
                 const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
                 tooltipStyle.top = `${clampedTop}px`;
@@ -1531,7 +1414,6 @@ export default class GuideChimp {
                 return this;
             }
 
-            const elRect = this.getElementVisibleRect(el);
             const {
                 top: elTop,
                 bottom: elBottom,
@@ -1539,7 +1421,7 @@ export default class GuideChimp {
                 right: elRight,
                 width: elWidth,
                 height: elHeight,
-            } = elRect;
+            } = el.getBoundingClientRect();
 
             const { height: tooltipHeight, width: tooltipWith } = tooltipEl.getBoundingClientRect();
 
@@ -1660,12 +1542,9 @@ export default class GuideChimp {
                     computedTop = Math.round(elBottom + padding);
                     computedLeft = Math.round(elCenterX - (tooltipWith / 2));
                     break;
-                    default:
-                        {
-                            const { innerWidth, innerHeight } = this.getViewportDims();
-                            computedLeft = Math.round((innerWidth / 2) - (tooltipWith / 2));
-                            computedTop = Math.round((innerHeight / 2) - (tooltipHeight / 2));
-                        }
+                default:
+                    computedLeft = Math.round((window.innerWidth / 2) - (tooltipWith / 2));
+                    computedTop = Math.round((window.innerHeight / 2) - (tooltipHeight / 2));
             }
 
             // alignment adjustments for top/bottom positions
@@ -1680,13 +1559,11 @@ export default class GuideChimp {
             // clamp to viewport
             const clamp = (v, a, b) => Math.max(a, Math.min(v, b));
             if (computedTop !== null) {
-                const { innerHeight } = this.getViewportDims();
-                const topClamped = clamp(computedTop, 0, Math.max(0, innerHeight - tooltipHeight));
+                const topClamped = clamp(computedTop, 0, Math.max(0, window.innerHeight - tooltipHeight));
                 tooltipStyle.top = `${topClamped}px`;
             }
             if (computedLeft !== null) {
-                const { innerWidth } = this.getViewportDims();
-                const leftClamped = clamp(computedLeft, 0, Math.max(0, innerWidth - tooltipWith));
+                const leftClamped = clamp(computedLeft, 0, Math.max(0, window.innerWidth - tooltipWith));
                 tooltipStyle.left = `${leftClamped}px`;
             }
             tooltipEl.removeAttribute('data-guidechimp-alignment');
@@ -1711,46 +1588,6 @@ export default class GuideChimp {
                         }
                     }
                 }
-            }
-        }
-
-        // If a reference element (e.g. IMG) is used, convert tooltip coords
-        // from viewport coordinates into coordinates relative to the mount root
-        // and switch to `absolute` positioning so the tooltip renders inside
-        // the image area.
-        if (this.referenceEl) {
-            try {
-                const rootEl = this.getRootEl();
-                const rootRect = rootEl.getBoundingClientRect();
-
-                // Use the tooltip's actual bounding rect (rendered in the
-                // viewport) to compute a robust root-relative coordinate. This
-                // avoids heuristic offsets (like the earlier +14px desktop
-                // adjustment) and prevents drifting on large screens.
-                const tooltipRect = tooltipEl.getBoundingClientRect();
-
-                const rootScrollTop = rootEl.scrollTop || 0;
-                const rootScrollLeft = rootEl.scrollLeft || 0;
-
-                const topRel = tooltipRect.top - rootRect.top + rootScrollTop;
-                const leftRel = tooltipRect.left - rootRect.left + rootScrollLeft;
-
-                tooltipStyle.top = `${Math.round(topRel)}px`;
-                tooltipStyle.left = `${Math.round(leftRel)}px`;
-
-                // mount root must be positioned to host absolutely-positioned tooltip
-                try {
-                    const rs = getComputedStyle(rootEl);
-                    if (rs.position === 'static') {
-                        rootEl.style.position = 'relative';
-                    }
-                } catch (e) {
-                    // ignore
-                }
-
-                tooltipStyle.position = 'absolute';
-            } catch (err) {
-                // ignore
             }
         }
 
@@ -1855,25 +1692,17 @@ export default class GuideChimp {
         this.setInteractionPosition(interactionEl);
         this.setControlPosition(controlEl);
 
-        // Reparent tooltip to the configured root to avoid parent stacking-context
+        // Reparent tooltip to document.body to avoid parent stacking-context
         const tooltipEl = this.getEl('tooltip');
-        const rootEl = this.getRootEl();
-        if (tooltipEl && tooltipEl.parentElement && tooltipEl.parentElement !== rootEl) {
+        if (tooltipEl && tooltipEl.parentElement && tooltipEl.parentElement !== document.body) {
             try {
-                rootEl.appendChild(tooltipEl);
+                document.body.appendChild(tooltipEl);
             } catch (err) {
                 // ignore
             }
         }
 
         this.setTooltipPosition(this.getEl('tooltip'));
-
-        // Start a position watcher when we are anchored to a reference element
-        // (e.g. an <img> with object-fit: contain) to avoid drift caused by
-        // layout changes, transforms or parent scrolling.
-        if (this.referenceEl) {
-            this.startPositionPoll();
-        }
 
         this.observeStep();
 
@@ -1884,8 +1713,6 @@ export default class GuideChimp {
 
     unmountStep() {
         this.resetHighlightStepEl();
-        // stop the RAF poll if running
-        this.stopPositionPoll();
         try {
             this.removeEl('tooltip');
         } catch (err) {
@@ -1923,6 +1750,7 @@ export default class GuideChimp {
     mountEl(el, parent) {
         if (el) {
             const els = el.querySelectorAll(`[data-quidechimp-${this.uid}]`);
+
             [el, ...els].forEach((v) => {
                 const key = v.getAttribute(`data-quidechimp-${this.uid}`);
                 if (key) {
@@ -1931,8 +1759,7 @@ export default class GuideChimp {
                 }
             });
 
-            const targetParent = (parent === document.body) ? this.getRootEl() : (parent || this.getRootEl());
-            targetParent.appendChild(el);
+            parent.appendChild(el);
         }
 
         return el;
@@ -1984,9 +1811,8 @@ export default class GuideChimp {
         const fakeEl = this.createFakeStepEl(data);
 
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
-            const { innerWidth: refWidthDefault, innerHeight: refHeightDefault } = this.getViewportDims();
-            const refWidth = canvasWidth || refWidthDefault;
-            const refHeight = canvasHeight || refHeightDefault;
+            const refWidth = canvasWidth || window.innerWidth;
+            const refHeight = canvasHeight || window.innerHeight;
 
             let topPx;
             let leftPx;
@@ -2057,10 +1883,9 @@ export default class GuideChimp {
     }
 
     getOverlayDocumentPath() {
-        const { innerWidth, innerHeight, left, top } = this.getViewportDims();
+        const { innerWidth, innerHeight } = window;
         const { body: { scrollWidth, scrollHeight } } = document;
 
-        // When a root element is used, offset the overlay size to that root's bounding box
         const width = (innerWidth > scrollWidth) ? innerWidth : scrollWidth;
         const height = (innerHeight > scrollHeight) ? innerHeight : scrollHeight;
 
@@ -2086,10 +1911,9 @@ export default class GuideChimp {
         const convertToPx = (value, axis) => {
             if (typeof value === 'string' && value.trim().endsWith('%')) {
                 const percentage = parseFloat(value) || 0;
-                const { innerWidth, innerHeight } = this.getViewportDims();
                 return (axis === 'x')
-                    ? (percentage / 100) * innerWidth
-                    : (percentage / 100) * innerHeight;
+                    ? (percentage / 100) * window.innerWidth
+                    : (percentage / 100) * window.innerHeight;
             }
             return typeof value === 'number' ? value : parseFloat(value) || 0;
         };
@@ -2119,15 +1943,13 @@ export default class GuideChimp {
         let { padding } = this.options;
         padding = (padding) ? padding / 2 : 0;
 
-        const _elRect = this.getElementVisibleRect(el);
-        const { left, top, width, height } = _elRect;
+        const { left, top, width, height } = el.getBoundingClientRect();
         const r = 4;
 
         let path = this.getOverlayDocumentPath();
 
         const x1 = Math.max(0, left - padding + r);
-        const { innerWidth } = this.getViewportDims();
-        const x2 = Math.min(innerWidth, width + left + padding - r);
+        const x2 = Math.min(window.innerWidth, width + left + padding - r);
 
         path += `M ${x1} ${top}
          a ${r},${r} 0 0 0 -${r},${r}
@@ -2608,14 +2430,6 @@ export default class GuideChimp {
         return this;
     }
 
-    addOnRootScrollListener() {
-        const rootEl = this.getRootEl();
-        if (!rootEl || rootEl === document.body) return this;
-        this.cache.set('onRootScrollListener', () => this.refresh());
-        rootEl.addEventListener('scroll', this.cache.get('onRootScrollListener'), true);
-        return this;
-    }
-
     /**
      * Return on window scroll event listener function
      * @returns {function}
@@ -2637,61 +2451,10 @@ export default class GuideChimp {
         return this;
     }
 
-    removeOnRootScrollListener() {
-        const rootEl = this.getRootEl();
-        if (!rootEl || rootEl === document.body) return this;
-        if (this.cache.has('onRootScrollListener')) {
-            rootEl.removeEventListener('scroll', this.cache.get('onRootScrollListener'), true);
-            this.cache.delete('onRootScrollListener');
-        }
-        return this;
-    }
-
     removeListeners() {
         this.removeOnKeydownListener();
         this.removeOnWindowResizeListener();
         this.removeOnWindowScrollListener();
-        this.removeOnRootScrollListener();
-        this.stopPositionPoll();
-    }
-
-    startPositionPoll() {
-        if (!this.referenceEl) return this;
-        if (this.cache.has('positionPoll')) return this;
-
-        const poll = { rafId: null, lastKey: null };
-
-        const tick = () => {
-            try {
-                const r = this.getElementVisibleRect(this.referenceEl);
-                const key = `${Math.round(r.left)}|${Math.round(r.top)}|${Math.round(r.width)}|${Math.round(r.height)}`;
-                if (poll.lastKey !== key) {
-                    poll.lastKey = key;
-                    this.refresh();
-                }
-            } catch (e) {
-                // ignore
-            }
-            poll.rafId = requestAnimationFrame(tick);
-        };
-
-        poll.rafId = requestAnimationFrame(tick);
-        this.cache.set('positionPoll', poll);
-        return this;
-    }
-
-    stopPositionPoll() {
-        const poll = this.cache.get('positionPoll');
-        if (poll) {
-            try {
-                if (poll.rafId) cancelAnimationFrame(poll.rafId);
-            } catch (e) {
-                // ignore
-            }
-            this.cache.delete('positionPoll');
-        }
-
-        return this;
     }
 
     observeStep() {
