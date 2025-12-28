@@ -69,8 +69,8 @@ export default class GuideChimp {
 
         this.init();
 
-       
-        this.rootEl = this.resolveRoot(this.options.root);
+        this._rootSpec = this.options.root || null;
+        this.rootEl = this.resolveRoot(this._rootSpec);
 
         this.actions = {
             onNextStep: this.onNextStep.bind(this),
@@ -92,7 +92,10 @@ export default class GuideChimp {
         try {
             if (typeof root === 'string') {
                 const el = document.querySelector(root) || null;
-                if (!el) return null;
+                if (!el) {
+                    // keep the spec for lazy resolution later
+                    return null;
+                }
                 const tag = (el.tagName || '').toUpperCase();
                 const voidTags = new Set(['IMG', 'INPUT', 'BR', 'HR', 'META', 'LINK', 'SOURCE', 'TRACK', 'WBR']);
                 if (voidTags.has(tag)) {
@@ -123,6 +126,14 @@ export default class GuideChimp {
     }
 
     getRootEl() {
+        // attempt lazy resolution if a root spec was provided but not yet found
+        if (!this.rootEl && this._rootSpec) {
+            const resolved = this.resolveRoot(this._rootSpec);
+            if (resolved) {
+                this.rootEl = resolved;
+                return this.rootEl;
+            }
+        }
         return this.rootEl || document.body;
     }
 
@@ -378,6 +389,11 @@ export default class GuideChimp {
             this.options = { ...this.constructor.getDefaultOptions(), ...options };
         } else {
             this.options = { ...this.options, ...options };
+        }
+        if (options && Object.prototype.hasOwnProperty.call(options, 'root')) {
+            this._rootSpec = options.root;
+            const resolved = this.resolveRoot(this._rootSpec);
+            if (resolved) this.rootEl = resolved;
         }
         return this;
     }
