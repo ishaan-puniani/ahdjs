@@ -1969,7 +1969,7 @@ export default class GuideChimp {
     }
 
     mountFakeStepEl(data = {}) {
-        return this.mountEl(this.createFakeStepEl(data), document.body);
+        return this.mountEl(this.createFakeStepEl(data), this.getRootEl());
     }
 
     removeFakeStepEl() {
@@ -2037,7 +2037,7 @@ export default class GuideChimp {
             `;
         }
 
-        return this.mountEl(fakeEl, document.body);
+        return this.mountEl(fakeEl, this.getRootEl());
     }
 
     getPreloaderTmpl() {
@@ -2049,7 +2049,7 @@ export default class GuideChimp {
     }
 
     mountPreloaderEl(data = {}) {
-        return this.mountEl(this.createPreloaderEl(data), document.body);
+        return this.mountEl(this.createPreloaderEl(data), this.getRootEl());
     }
 
     removePreloaderEl() {
@@ -2159,7 +2159,7 @@ export default class GuideChimp {
     }
 
     mountOverlayEl(data = {}) {
-        return this.mountEl(this.createOverlayEl(data), document.body);
+        return this.mountEl(this.createOverlayEl(data), this.getRootEl());
     }
 
     removeOverlayEl() {
@@ -2186,7 +2186,7 @@ export default class GuideChimp {
     }
 
     mountInteractionEl(data = {}) {
-        return this.mountEl(this.createInteractionEl(data), document.body);
+        return this.mountEl(this.createInteractionEl(data), this.getRootEl());
     }
 
     removeInteractionEl() {
@@ -2206,7 +2206,7 @@ export default class GuideChimp {
     }
 
     mountControlEl(data = {}) {
-        return this.mountEl(this.createControlEl(data), document.body);
+        return this.mountEl(this.createControlEl(data), this.getRootEl());
     }
 
     removeControlEl() {
