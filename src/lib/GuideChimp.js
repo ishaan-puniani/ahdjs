@@ -139,7 +139,6 @@ export default class GuideChimp {
 
     getViewportDims() {
         const root = this.getRootEl();
-        console.log("root", root)
         if (this.referenceEl) {
             const r = this.getElementVisibleRect(this.referenceEl);
             return {
@@ -413,6 +412,14 @@ export default class GuideChimp {
      */
     async start(number = 0, useIndex = true, ...args) {
         this.isDisplayed = true;
+
+        const root = this.getRootEl();
+        if (root && root !== document.body) {
+            const rootStyle = getComputedStyle(root);
+            if (rootStyle.position === 'static') {
+                root.style.position = 'relative';
+            }
+        }
 
         this.mountOverlayEl();
 
@@ -976,16 +983,21 @@ export default class GuideChimp {
 
             let { padding } = this.options;
 
+            const { innerWidth, innerHeight } = this.getViewportDims();
             const convertToPx = (value, axis) => {
                 if (typeof value === 'string' && value.trim().endsWith('%')) {
                     const percentage = parseFloat(value) || 0;
                     return (axis === 'x')
-                        ? (percentage / 100) * window.innerWidth
-                        : (percentage / 100) * window.innerHeight;
+                        ? (percentage / 100) * innerWidth
+                        : (percentage / 100) * innerHeight;
                 }
                 return typeof value === 'number' ? value : parseFloat(value) || 0;
             };
 
+            const root = this.getRootEl();
+            const hasCustomRoot = root && root !== document.body;
+
+            // Coordinates are root-relative
             const top = convertToPx(this.currentStep.top, 'y');
             const left = convertToPx(this.currentStep.left, 'x');
             const width = convertToPx(this.currentStep.width, 'x');
@@ -993,12 +1005,21 @@ export default class GuideChimp {
 
             const { style } = interactionEl;
 
-            style.cssText = `position: fixed;
-            width: ${width + padding}px;
-            height: ${height + padding}px;
-            top: ${top - (padding / 2)}px;
-            left: ${left - (padding / 2)}px;
-            z-index: 6403;`;
+            if (hasCustomRoot) {
+                style.cssText = `position: absolute;
+                width: ${width + padding}px;
+                height: ${height + padding}px;
+                top: ${top - (padding / 2)}px;
+                left: ${left - (padding / 2)}px;
+                z-index: 6403;`;
+            } else {
+                style.cssText = `position: fixed;
+                width: ${width + padding}px;
+                height: ${height + padding}px;
+                top: ${top - (padding / 2)}px;
+                left: ${left - (padding / 2)}px;
+                z-index: 6403;`;
+            }
 
             return this;
         }
@@ -1251,11 +1272,15 @@ export default class GuideChimp {
         const hasHeight = this.currentStep?.height;
 
         if (!hasElement && hasTop && hasLeft && hasWidth && hasHeight) {
+            const root = this.getRootEl();
+            const hasCustomRoot = root && root !== document.body;
+
             tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
-            tooltipStyle.position = 'fixed';
+            tooltipStyle.position = hasCustomRoot ? 'absolute' : 'fixed';
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
             tooltipStyle.pointerEvents = 'auto';
+
             const parsePct = (v, axis) => {
                 const { innerWidth, innerHeight } = this.getViewportDims();
                 if (typeof v === 'string' && v.trim().endsWith('%')) {
@@ -1273,6 +1298,9 @@ export default class GuideChimp {
             const heightInfo = parsePct(this.currentStep.height, 'y');
             const widthPx = widthInfo.px;
             const heightPx = heightInfo.px;
+
+            const topPx = topInfo.px;
+            const leftPx = leftInfo.px;
 
             const { padding } = this.options;
             const { height: tooltipHeight, width: tooltipWidth } = tooltipEl.getBoundingClientRect();
@@ -1344,51 +1372,51 @@ export default class GuideChimp {
             switch (configuredPosition) {
                 case 'top':
                     position = 'top';
-                    tooltipStyle.bottom = `${viewportHeight - topInfo.px + padding}px`;
-                    tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    tooltipStyle.bottom = `${viewportHeight - topPx + padding}px`;
+                    tooltipStyle.left = `${leftPx + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'top-left':
                     position = 'top-left';
-                    tooltipStyle.top = `${topInfo.px - tooltipHeight - padding}px`;
-                    tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+                    tooltipStyle.top = `${topPx - tooltipHeight - padding}px`;
+                    tooltipStyle.right = `${viewportWidth - leftPx + padding}px`;
 
                     break;
                 case 'top-right':
                     position = 'top-right';
-                    tooltipStyle.top = `${topInfo.px - tooltipHeight - padding}px`;
-                    tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
+                    tooltipStyle.top = `${topPx - tooltipHeight - padding}px`;
+                    tooltipStyle.left = `${leftPx + widthPx + padding}px`;
                     break;
                 case 'bottom':
                     position = 'bottom';
-                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                    tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    tooltipStyle.top = `${topPx + heightPx + padding}px`;
+                    tooltipStyle.left = `${leftPx + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'bottom-left':
                     position = 'bottom-left';
 
-                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                    tooltipStyle.right = `${viewportWidth - leftInfo.px + padding}px`;
+                    tooltipStyle.top = `${topPx + heightPx + padding}px`;
+                    tooltipStyle.right = `${viewportWidth - leftPx + padding}px`;
                     break;
                 case 'bottom-right':
                     position = 'bottom-right';
-                    tooltipStyle.top = `${topInfo.px + heightPx + padding}px`;
-                    tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
+                    tooltipStyle.top = `${topPx + heightPx + padding}px`;
+                    tooltipStyle.left = `${leftPx + widthPx + padding}px`;
                     break;
                 case 'left':
                     position = 'left';
-                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                    tooltipStyle.left = `${leftInfo.px - tooltipWidth}px`;
+                    tooltipStyle.top = `${topPx + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.left = `${leftPx - tooltipWidth}px`;
                     break;
                 case 'center':
                     position = 'center';
-                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                    tooltipStyle.left = `${leftInfo.px + (widthPx / 2) - (tooltipWidth / 2)}px`;
+                    tooltipStyle.top = `${topPx + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.left = `${leftPx + (widthPx / 2) - (tooltipWidth / 2)}px`;
                     break;
                 case 'right':
                 default:
                     position = 'right';
-                    tooltipStyle.top = `${topInfo.px + (heightPx / 2) - (tooltipHeight / 2)}px`;
-                    tooltipStyle.left = `${leftInfo.px + widthPx + padding}px`;
+                    tooltipStyle.top = `${topPx + (heightPx / 2) - (tooltipHeight / 2)}px`;
+                    tooltipStyle.left = `${leftPx + widthPx + padding}px`;
                     break;
             }
 
@@ -1410,10 +1438,7 @@ export default class GuideChimp {
                 computedLeft = viewportWidth - rightPx - tooltipWidth;
             }
 
-            // For large screens avoid extra clamping so tooltip left/top
-            // align precisely with calculated coordinates (prevents ~14px shift).
-            const { innerWidth: _innerWidth } = this.getViewportDims();
-            const pad = (_innerWidth >= 1024) ? 0 : Math.max(0, padding || 0);
+            const pad = (viewportWidth >= 1024) ? 0 : Math.max(0, padding || 0);
             if (computedTop !== null) {
                 const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
                 tooltipStyle.top = `${clampedTop}px`;
@@ -1448,11 +1473,17 @@ export default class GuideChimp {
             tooltipStyle.zIndex = '10000';
             tooltipStyle.visibility = 'visible';
 
+            const root = this.getRootEl();
+            const hasCustomRoot = root && root !== document.body;
+            const { innerWidth, innerHeight } = this.getViewportDims();
+
+            tooltipStyle.position = hasCustomRoot ? 'absolute' : 'fixed';
+
             if (hasTop) {
                 const topVal = this.currentStep.top;
                 let topPx;
                 if (typeof topVal === 'string' && topVal.trim().endsWith('%')) {
-                    topPx = (parseFloat(topVal) || 0) / 100 * window.innerHeight;
+                    topPx = (parseFloat(topVal) || 0) / 100 * innerHeight;
                 } else {
                     topPx = (typeof topVal === 'number') ? topVal : parseFloat(topVal) || 0;
                 }
@@ -1462,7 +1493,7 @@ export default class GuideChimp {
                 const leftVal = this.currentStep.left;
                 let leftPx;
                 if (typeof leftVal === 'string' && leftVal.trim().endsWith('%')) {
-                    leftPx = (parseFloat(leftVal) || 0) / 100 * window.innerWidth;
+                    leftPx = (parseFloat(leftVal) || 0) / 100 * innerWidth;
                 } else {
                     leftPx = (typeof leftVal === 'number') ? leftVal : parseFloat(leftVal) || 0;
                 }
@@ -1485,8 +1516,11 @@ export default class GuideChimp {
             clampToViewport(tooltipEl, 0);
             return this;
         } else if (!hasElement && !hasTop && !hasLeft) {
+            const root = this.getRootEl();
+            const hasCustomRoot = root && root !== document.body;
+
             tooltipEl.setAttribute('data-guidechimp-position', 'floating');
-            tooltipStyle.position = 'fixed';
+            tooltipStyle.position = hasCustomRoot ? 'absolute' : 'fixed';
             tooltipStyle.left = '50%';
             tooltipStyle.top = '50%';
             tooltipStyle.transform = 'translate(-50%, -50%)';
@@ -1676,12 +1710,12 @@ export default class GuideChimp {
                     computedTop = Math.round(elBottom + padding);
                     computedLeft = Math.round(elCenterX - (tooltipWith / 2));
                     break;
-                    default:
-                        {
-                            const { innerWidth, innerHeight } = this.getViewportDims();
-                            computedLeft = Math.round((innerWidth / 2) - (tooltipWith / 2));
-                            computedTop = Math.round((innerHeight / 2) - (tooltipHeight / 2));
-                        }
+                default:
+                    {
+                        const { innerWidth, innerHeight } = this.getViewportDims();
+                        computedLeft = Math.round((innerWidth / 2) - (tooltipWith / 2));
+                        computedTop = Math.round((innerHeight / 2) - (tooltipHeight / 2));
+                    }
             }
 
             // alignment adjustments for top/bottom positions
@@ -1730,20 +1764,13 @@ export default class GuideChimp {
             }
         }
 
-        // If a reference element (e.g. IMG) is used, convert tooltip coords
-        // from viewport coordinates into coordinates relative to the mount root
-        // and switch to `absolute` positioning so the tooltip renders inside
-        // the image area.
+
         if (this.referenceEl) {
             try {
                 const rootEl = this.getRootEl();
                 const rootRect = rootEl.getBoundingClientRect();
 
-                // Use the tooltip's actual bounding rect (rendered in the
-                // viewport) to compute a robust root-relative coordinate. This
-                // avoids heuristic offsets (like the earlier +14px desktop
-                // adjustment) and prevents drifting on large screens.
-                const tooltipRect = tooltipEl.getBoundingClientRect();
+              const tooltipRect = tooltipEl.getBoundingClientRect();
 
                 const rootScrollTop = rootEl.scrollTop || 0;
                 const rootScrollLeft = rootEl.scrollLeft || 0;
@@ -1871,7 +1898,6 @@ export default class GuideChimp {
         this.setInteractionPosition(interactionEl);
         this.setControlPosition(controlEl);
 
-        // Reparent tooltip to the configured root to avoid parent stacking-context
         const tooltipEl = this.getEl('tooltip');
         const rootEl = this.getRootEl();
         if (tooltipEl && tooltipEl.parentElement && tooltipEl.parentElement !== rootEl) {
@@ -1884,10 +1910,7 @@ export default class GuideChimp {
 
         this.setTooltipPosition(this.getEl('tooltip'));
 
-        // Start a position watcher when we are anchored to a reference element
-        // (e.g. an <img> with object-fit: contain) to avoid drift caused by
-        // layout changes, transforms or parent scrolling.
-        if (this.referenceEl) {
+     if (this.referenceEl) {
             this.startPositionPoll();
         }
 
@@ -1900,7 +1923,6 @@ export default class GuideChimp {
 
     unmountStep() {
         this.resetHighlightStepEl();
-        // stop the RAF poll if running
         this.stopPositionPoll();
         try {
             this.removeEl('tooltip');
@@ -2004,6 +2026,10 @@ export default class GuideChimp {
             const refWidth = canvasWidth || refWidthDefault;
             const refHeight = canvasHeight || refHeightDefault;
 
+            const root = this.getRootEl();
+            const hasCustomRoot = root && root !== document.body;
+            const rootRect = hasCustomRoot ? root.getBoundingClientRect() : { left: 0, top: 0 };
+
             let topPx;
             let leftPx;
             let widthPx;
@@ -2041,16 +2067,29 @@ export default class GuideChimp {
                 heightPx = parseFloat(height) || 0;
             }
 
-            fakeEl.style.cssText = `
-                position: fixed !important;
-                top: ${topPx}px !important;
-                left: ${leftPx}px !important;
-                width: ${widthPx}px !important;
-                height: ${heightPx}px !important;
-                visibility: hidden !important;
-                pointer-events: none !important;
-                z-index: -1 !important;
-            `;
+            if (hasCustomRoot) {
+                fakeEl.style.cssText = `
+                    position: absolute !important;
+                    top: ${topPx}px !important;
+                    left: ${leftPx}px !important;
+                    width: ${widthPx}px !important;
+                    height: ${heightPx}px !important;
+                    visibility: hidden !important;
+                    pointer-events: none !important;
+                    z-index: -1 !important;
+                `;
+            } else {
+                fakeEl.style.cssText = `
+                    position: fixed !important;
+                    top: ${topPx}px !important;
+                    left: ${leftPx}px !important;
+                    width: ${widthPx}px !important;
+                    height: ${heightPx}px !important;
+                    visibility: hidden !important;
+                    pointer-events: none !important;
+                    z-index: -1 !important;
+                `;
+            }
         }
 
         return this.mountEl(fakeEl, this.getRootEl());
@@ -2073,10 +2112,15 @@ export default class GuideChimp {
     }
 
     getOverlayDocumentPath() {
-        const { innerWidth, innerHeight, left, top } = this.getViewportDims();
-        const { body: { scrollWidth, scrollHeight } } = document;
+        const root = this.getRootEl();
+        const hasCustomRoot = root && root !== document.body;
+        const { innerWidth, innerHeight } = this.getViewportDims();
 
-        // When a root element is used, offset the overlay size to that root's bounding box
+        if (hasCustomRoot) {
+            return `M 0 0 H ${innerWidth} V ${innerHeight} H 0 V 0 Z`;
+        }
+
+        const { body: { scrollWidth, scrollHeight } } = document;
         const width = (innerWidth > scrollWidth) ? innerWidth : scrollWidth;
         const height = (innerHeight > scrollHeight) ? innerHeight : scrollHeight;
 
@@ -2098,6 +2142,10 @@ export default class GuideChimp {
         padding = (padding) ? padding / 2 : 0;
 
         const { top, left, width, height } = step;
+
+        const root = this.getRootEl();
+        const hasCustomRoot = root && root !== document.body;
+        const rootRect = hasCustomRoot ? root.getBoundingClientRect() : { left: 0, top: 0 };
 
         const convertToPx = (value, axis) => {
             if (typeof value === 'string' && value.trim().endsWith('%')) {
@@ -2135,8 +2183,18 @@ export default class GuideChimp {
         let { padding } = this.options;
         padding = (padding) ? padding / 2 : 0;
 
+        const root = this.getRootEl();
+        const hasCustomRoot = root && root !== document.body;
+
         const _elRect = this.getElementVisibleRect(el);
-        const { left, top, width, height } = _elRect;
+        let { left, top, width, height } = _elRect;
+
+        if (hasCustomRoot) {
+            const rootRect = root.getBoundingClientRect();
+            left = left - rootRect.left;
+            top = top - rootRect.top;
+        }
+
         const r = 4;
 
         let path = this.getOverlayDocumentPath();
@@ -2175,7 +2233,19 @@ export default class GuideChimp {
     }
 
     mountOverlayEl(data = {}) {
-        return this.mountEl(this.createOverlayEl(data), this.getRootEl());
+        const el = this.createOverlayEl(data);
+        const root = this.getRootEl();
+        const hasCustomRoot = root && root !== document.body;
+
+        if (hasCustomRoot && el) {
+            el.style.setProperty('position', 'absolute', 'important');
+            el.style.setProperty('top', '0', 'important');
+            el.style.setProperty('left', '0', 'important');
+            el.style.setProperty('right', '0', 'important');
+            el.style.setProperty('bottom', '0', 'important');
+        }
+
+        return this.mountEl(el, root);
     }
 
     removeOverlayEl() {
