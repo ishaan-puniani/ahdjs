@@ -1152,18 +1152,31 @@ export default class GuideChimp {
                 console.log(err)
             }
             const gutter = Math.max(pad, 0);
+            const root = this.getRootEl();
+            const hasCustomRoot = root && root !== document.body;
             const { innerWidth, innerHeight } = this.getViewportDims();
-            const { width, height, left, top } = el.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
+            const { width, height } = elRect;
 
-            let newLeft = innerWidth >= 1024 ? (left + 14) : left;
+            let left, top;
+            if (hasCustomRoot) {
+                const rootRect = root.getBoundingClientRect();
+                left = elRect.left - rootRect.left;
+                top = elRect.top - rootRect.top;
+            } else {
+                left = elRect.left;
+                top = elRect.top;
+            }
+
+            let newLeft = left;
             let newTop = top;
             let changed = false;
 
             if (left < gutter) {
-                newLeft = innerWidth >= 1024 ? gutter + 14 : gutter;
+                newLeft = gutter;
                 changed = true;
             } else if (left + width > innerWidth - gutter) {
-                newLeft = innerWidth >= 1024 ? Math.max(gutter, innerWidth - gutter - width) : Math.max(gutter + 14, innerWidth - gutter - width);
+                newLeft = Math.max(gutter, innerWidth - gutter - width);
                 changed = true;
             }
 
@@ -1195,7 +1208,18 @@ export default class GuideChimp {
 
             if (depth < 2) {
                 requestAnimationFrame(() => {
-                    const { width: w2, height: h2, left: l2, top: t2 } = el.getBoundingClientRect();
+                    const elRect2 = el.getBoundingClientRect();
+                    let l2, t2;
+                    if (hasCustomRoot) {
+                        const rootRect2 = root.getBoundingClientRect();
+                        l2 = elRect2.left - rootRect2.left;
+                        t2 = elRect2.top - rootRect2.top;
+                    } else {
+                        l2 = elRect2.left;
+                        t2 = elRect2.top;
+                    }
+                    const w2 = elRect2.width;
+                    const h2 = elRect2.height;
                     if (
                         l2 < gutter ||
                         l2 + w2 > innerWidth - gutter ||
@@ -1227,7 +1251,6 @@ export default class GuideChimp {
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
-        // keep tooltip positioned relative to viewport to avoid stacking-context / ancestor issues
         tooltipStyle.position = 'fixed';
         tooltipStyle.zIndex = '10001';
         tooltipStyle.visibility = "hidden";
@@ -1743,22 +1766,22 @@ export default class GuideChimp {
 
             if (alignment) {
                 tooltipEl.setAttribute('data-guidechimp-alignment', alignment);
+                const { innerWidth: vpWidth } = this.getViewportDims();
+                const clampLeft = (val) => Math.max(0, Math.min(val, vpWidth - tooltipWith));
                 switch (alignment) {
                     case 'left': {
-                        tooltipStyle.left = `${elLeft - (padding / 2)}px`;
+                        tooltipStyle.left = `${clampLeft(elLeft - (padding / 2))}px`;
                         break;
                     }
                     case 'right': {
-                        tooltipStyle.right = `${root.clientWidth - elRight - (padding / 2)}px`;
+                        const rightVal = elRight - tooltipWith + (padding / 2);
+                        tooltipStyle.left = `${clampLeft(rightVal)}px`;
+                        tooltipStyle.right = 'auto';
                         break;
                     }
                     default: {
-                        if ((elLeft + (elWidth / 2)) < (tooltipWith / 2)
-                            || (elLeft + (elWidth / 2) + (tooltipWith / 2)) > root.clientWidth) {
-                            tooltipStyle.left = `${((root.clientWidth) / 2) - (tooltipWith / 2)}px`;
-                        } else {
-                            tooltipStyle.left = `${elLeft + (elWidth / 2) - (tooltipWith / 2)}px`;
-                        }
+                        const centerLeft = elLeft + (elWidth / 2) - (tooltipWith / 2);
+                        tooltipStyle.left = `${clampLeft(centerLeft)}px`;
                     }
                 }
             }
@@ -1781,7 +1804,6 @@ export default class GuideChimp {
                 tooltipStyle.top = `${Math.round(topRel)}px`;
                 tooltipStyle.left = `${Math.round(leftRel)}px`;
 
-                // mount root must be positioned to host absolutely-positioned tooltip
                 try {
                     const rs = getComputedStyle(rootEl);
                     if (rs.position === 'static') {
