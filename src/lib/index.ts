@@ -276,6 +276,7 @@ class AHD extends GuideChimp {
               id: row.id,
               type: row.type || "tour",
               iconCloseColor: step.style?.iconCloseColor ?? step.behaviour?.iconCloseColor,
+              animationDirection: step.animationDirection || step.behaviour?.animationDirection,
             }))
           : []
       );
@@ -385,7 +386,7 @@ class AHD extends GuideChimp {
               beacon.triggerIcon = {
                 type: iconType,
                 color: triggerIconData.color || "#000000",
-                opacity: triggerIconData.opacity ? triggerIconData.opacity / 100 : 1,
+                // opacity: triggerIconData.opacity ?? 1,
                 isAnimated: triggerIconData.isAnimated || false,
               };
             } else if (beacon.triggerMode === "label" && triggerLabelData) {
@@ -399,15 +400,13 @@ class AHD extends GuideChimp {
             return beacon;
           });
       });
-      console.log('beacons', beacons);
 
       AHDjs.beacons(beacons, {
         boundary: "outer",
-      }).showAll();
+      }).showAll(true);
     }
   }
   async setBeacons(beacons) {
-
     AHDjs.beacons(beacons, {
       boundary: "outer",
     }).showAll();

@@ -1485,7 +1485,7 @@ export default class GuideChimp {
             }
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
             }
 
             clampToViewport(tooltipEl, 0);
@@ -1533,7 +1533,7 @@ export default class GuideChimp {
             }
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
             }
 
             clampToViewport(tooltipEl, 0);
@@ -1558,7 +1558,7 @@ export default class GuideChimp {
             }
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
             }
 
             clampToViewport(tooltipEl, 0);
@@ -1597,7 +1597,7 @@ export default class GuideChimp {
                 }
 
                 if (this.currentStep.animationType) {
-                    tooltipStyle.animation = animationMode(this.currentStep.animationType);
+                    tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
                 }
 
                 clampToViewport(tooltipEl, 0);
@@ -1706,7 +1706,7 @@ export default class GuideChimp {
             const root = document.documentElement;
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
             }
 
             // compute tooltip top/left in viewport coordinates and clamp to viewport

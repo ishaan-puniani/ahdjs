@@ -35,14 +35,22 @@ export const ICON_TYPE = {
 };
 
 
-export const animationMode = (type) => {
+export const animationMode = (type, direction) => {
+  const dir = (direction || "").toString().toLowerCase();
+  const pickSlide = () => {
+    if (dir.includes("down")) return "slideDown 1s forwards";
+    if (dir.includes("left")) return "slideLeft 1s forwards";
+    if (dir.includes("right")) return "slideRight 1s forwards";
+    return "slideUp 1s forwards";
+  };
+
   switch (type) {
     case ANIMATION_TYPES.instant:
       return "none";
     case ANIMATION_TYPES.fadeIn:
       return "fadeIn 1s ease-in";
     case ANIMATION_TYPES.slide:
-      return "slideUp 1s forwards";
+      return pickSlide();
     default:
       return "none";
   }

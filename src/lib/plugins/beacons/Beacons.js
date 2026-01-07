@@ -134,14 +134,15 @@ export default class Beacons {
           beaconEl.classList.remove("gc-beacon");
         }
 
-        const parentEl =
-          !el.parentElement || el.parentElement === document.body
-            ? document.body
-            : el.parentElement;
+        const parentEl = document.body;
 
         parentEl.append(beaconEl);
         this.elements.set(beacon, beaconEl);
         this.setBeaconPosition(el, beaconEl, beacon);
+        
+        if (this.isCanShowBeacon(beacon)) {
+          beaconEl.hidden = false;
+        }
 
         // fire observers
         this.observeResizing(el);
@@ -321,9 +322,11 @@ export default class Beacons {
       elLeft = elRect.left;
       elTop = elRect.top;
     } else {
-      const parentRect = beaconEl.parentElement.getBoundingClientRect();
-      elLeft = elRect.left - parentRect.left;
-      elTop = elRect.top - parentRect.top;
+      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      elLeft = elRect.left + scrollLeft;
+      elTop = elRect.top + scrollTop;
     }
     
     const elWidth = elRect.width;
