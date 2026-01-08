@@ -35,12 +35,12 @@ export const ICON_TYPE = {
 };
 
 
-export const animationMode = (type, direction) => {
-  const dir = (direction || "").toString().toLowerCase();
+export const animationMode = (type) => {
+
   const pickSlide = () => {
-    if (dir.includes("down")) return "slideDown 1s forwards";
-    if (dir.includes("left")) return "slideLeft 1s forwards";
-    if (dir.includes("right")) return "slideRight 1s forwards";
+    if (type === "slideDown") return "slideDown 1s forwards";
+    if (type === "slideLeft") return "slideLeft 1s forwards";
+    if (type === "slideRight") return "slideRight 1s forwards";
     return "slideUp 1s forwards";
   };
 

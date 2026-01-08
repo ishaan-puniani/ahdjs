@@ -1485,7 +1485,7 @@ export default class GuideChimp {
             }
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
             clampToViewport(tooltipEl, 0);
@@ -1533,7 +1533,7 @@ export default class GuideChimp {
             }
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
             clampToViewport(tooltipEl, 0);
@@ -1558,7 +1558,7 @@ export default class GuideChimp {
             }
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
             clampToViewport(tooltipEl, 0);
@@ -1597,7 +1597,7 @@ export default class GuideChimp {
                 }
 
                 if (this.currentStep.animationType) {
-                    tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
+                    tooltipStyle.animation = animationMode(this.currentStep.animationType);
                 }
 
                 clampToViewport(tooltipEl, 0);
@@ -1706,7 +1706,7 @@ export default class GuideChimp {
             const root = document.documentElement;
 
             if (this.currentStep.animationType) {
-                tooltipStyle.animation = animationMode(this.currentStep.animationType, this.currentStep.animationDirection);
+                tooltipStyle.animation = animationMode(this.currentStep.animationType   );
             }
 
             // compute tooltip top/left in viewport coordinates and clamp to viewport
@@ -1940,12 +1940,16 @@ export default class GuideChimp {
 
         this.highlightStepEl(true);
 
+    
+        this.startAutoNavigation();
+
         return this;
     }
 
     unmountStep() {
         this.resetHighlightStepEl();
         this.stopPositionPoll();
+        this.stopAutoNavigation();
         try {
             this.removeEl('tooltip');
         } catch (err) {
@@ -2761,6 +2765,47 @@ export default class GuideChimp {
         this.removeOnWindowScrollListener();
         this.removeOnRootScrollListener();
         this.stopPositionPoll();
+        this.stopAutoNavigation();
+    }
+
+  
+    startAutoNavigation() {
+        this.stopAutoNavigation();
+
+        const navigationMode = this.currentStep?.navigationMode;
+
+        if (navigationMode !== 'auto' && navigationMode !== 'both') {
+            return this;
+        }
+
+        let navigationDelay = this.options.navigationDelay;
+        if (this.currentStep && typeof this.currentStep.navigationDelay === 'number') {
+            navigationDelay = this.currentStep.navigationDelay;
+        }
+
+        if (typeof navigationDelay !== 'number' || navigationDelay <= 0) {
+            navigationDelay = 3000; 
+        }
+
+        const timerId = setTimeout(() => {
+            if (this.isDisplayed && this.nextStep) {
+                this.next({ event: 'auto' });
+            }
+        }, navigationDelay);
+
+        this.cache.set('autoNavigationTimer', timerId);
+
+        return this;
+    }
+
+ 
+    stopAutoNavigation() {
+        if (this.cache.has('autoNavigationTimer')) {
+            clearTimeout(this.cache.get('autoNavigationTimer'));
+            this.cache.delete('autoNavigationTimer');
+        }
+
+        return this;
     }
 
     startPositionPoll() {
