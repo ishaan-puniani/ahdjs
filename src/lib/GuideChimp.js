@@ -1251,7 +1251,12 @@ export default class GuideChimp {
         tooltipStyle.left = null;
         tooltipStyle.transform = null;
         tooltipStyle.animation = null;
-        tooltipStyle.position = 'fixed';
+        
+        // Determine if target element has fixed positioning
+        const targetEl = this.getStepEl(this.currentStep);
+        const isTargetFixed = targetEl && this.constructor.isFixed(targetEl);
+        
+        tooltipStyle.position = isTargetFixed ? 'fixed' : 'absolute';
         tooltipStyle.zIndex = '10001';
         tooltipStyle.visibility = "hidden";
         setTimeout(() => {
@@ -1750,17 +1755,23 @@ export default class GuideChimp {
                 }
             }
 
-            // clamp to viewport
+            // clamp to viewport and adjust for absolute positioning
             const clamp = (v, a, b) => Math.max(a, Math.min(v, b));
+            
+            // If using absolute positioning, add scroll offsets
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            const positionOffset = !isTargetFixed ? { top: scrollTop, left: scrollLeft } : { top: 0, left: 0 };
+            
             if (computedTop !== null) {
                 const { innerHeight } = this.getViewportDims();
                 const topClamped = clamp(computedTop, 0, Math.max(0, innerHeight - tooltipHeight));
-                tooltipStyle.top = `${topClamped}px`;
+                tooltipStyle.top = `${topClamped + positionOffset.top}px`;
             }
             if (computedLeft !== null) {
                 const { innerWidth } = this.getViewportDims();
                 const leftClamped = clamp(computedLeft, 0, Math.max(0, innerWidth - tooltipWith));
-                tooltipStyle.left = `${leftClamped}px`;
+                tooltipStyle.left = `${leftClamped + positionOffset.left}px`;
             }
             tooltipEl.removeAttribute('data-guidechimp-alignment');
 
@@ -1770,18 +1781,18 @@ export default class GuideChimp {
                 const clampLeft = (val) => Math.max(0, Math.min(val, vpWidth - tooltipWith));
                 switch (alignment) {
                     case 'left': {
-                        tooltipStyle.left = `${clampLeft(elLeft - (padding / 2))}px`;
+                        tooltipStyle.left = `${clampLeft(elLeft - (padding / 2)) + positionOffset.left}px`;
                         break;
                     }
                     case 'right': {
                         const rightVal = elRight - tooltipWith + (padding / 2);
-                        tooltipStyle.left = `${clampLeft(rightVal)}px`;
+                        tooltipStyle.left = `${clampLeft(rightVal) + positionOffset.left}px`;
                         tooltipStyle.right = 'auto';
                         break;
                     }
                     default: {
                         const centerLeft = elLeft + (elWidth / 2) - (tooltipWith / 2);
-                        tooltipStyle.left = `${clampLeft(centerLeft)}px`;
+                        tooltipStyle.left = `${clampLeft(centerLeft) + positionOffset.left}px`;
                     }
                 }
             }

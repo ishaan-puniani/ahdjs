@@ -229,6 +229,10 @@ class AHD extends GuideChimp {
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
+    if (!toursData || !toursData.tours || !Array.isArray(toursData.tours)) {
+      return;
+    }
+
     const applicableTours = this.getApplicabeDataForUrl(
       toursData.tours,
       url,
@@ -307,7 +311,23 @@ class AHD extends GuideChimp {
 
   async showPageBeacons(url: string) {
     await this.stop();
+    
+    if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
+      try {
+        const beaconInstance = AHDjs.beacons([]);
+        if (beaconInstance && typeof beaconInstance.removeAll === 'function') {
+          beaconInstance.removeAll();
+        }
+      } catch (e) {
+      }
+    }
+    
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+    
+    if (!toursData || !toursData.tooltips || !Array.isArray(toursData.tooltips)) {
+      return;
+    }
+    
     const applicableTours = this.getApplicabeDataForUrl(
       toursData.tooltips,
       url,
@@ -419,14 +439,29 @@ class AHD extends GuideChimp {
 
   async showHighlights(url: string, refetch: boolean) {
     await this.stop();
+    
+    // Clear all existing beacons first
+    if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
+      try {
+        const beaconInstance = AHDjs.beacons([]);
+        if (beaconInstance && typeof beaconInstance.removeAll === 'function') {
+          beaconInstance.removeAll();
+        }
+      } catch (e) {
+        // Beacon instance might not exist yet, continue
+      }
+    }
+    
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
       toursData = await this.fetchAndCacheTourData(toursData, url);
     }
-    if (toursData.tours?.length > 0) {
+    
+    // Only show if data exists
+    if (toursData && toursData.tours?.length > 0) {
       this.showPageTour(url);
     }
-    if (toursData.tooltips?.length > 0) {
+    if (toursData && toursData.tooltips?.length > 0) {
       this.showPageBeacons(url);
     }
   }

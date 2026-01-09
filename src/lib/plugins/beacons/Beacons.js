@@ -155,6 +155,7 @@ export default class Beacons {
       });
 
       this.addOnWindowResizeListener();
+      this.addOnScrollListener();
       this.observeDomMutations();
     }
 
@@ -531,6 +532,7 @@ export default class Beacons {
     this.beacons = [];
     this.unobserveResizeAllElements();
     this.removeOnWindowResizeListener();
+    this.removeOnScrollListener();
     this.unobserveDomMutations();
 
     return this;
@@ -560,6 +562,7 @@ export default class Beacons {
 
     if (!this.beacons.length) {
       this.removeOnWindowResizeListener();
+      this.removeOnScrollListener();
     }
 
     return this;
@@ -628,6 +631,46 @@ export default class Beacons {
         true
       );
       this.cache.delete("onWindowResizeListener");
+    }
+
+    return this;
+  }
+
+  /**
+   * Add scroll event listener
+   * @return {this}
+   */
+  addOnScrollListener() {
+    this.cache.set("onScrollListener", this.getOnScrollListener());
+    window.addEventListener(
+      "scroll",
+      this.cache.get("onScrollListener"),
+      true
+    );
+
+    return this;
+  }
+
+  /**
+   * Return on scroll event listener function
+   * @returns {function}
+   */
+  getOnScrollListener() {
+    return () => this.refresh();
+  }
+
+  /**
+   * Remove scroll event listener
+   * @return {this}
+   */
+  removeOnScrollListener() {
+    if (this.cache.has("onScrollListener")) {
+      window.removeEventListener(
+        "scroll",
+        this.cache.get("onScrollListener"),
+        true
+      );
+      this.cache.delete("onScrollListener");
     }
 
     return this;
