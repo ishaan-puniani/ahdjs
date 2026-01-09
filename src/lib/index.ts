@@ -361,6 +361,7 @@ class AHD extends GuideChimp {
                 stepId: step.id,
                 id: tour.id,
                 type: "tooltip",
+                showProgressbar: this.options.showProgressbar,
               },
             ];
 
@@ -371,7 +372,10 @@ class AHD extends GuideChimp {
               class: "beacon-labs64",
               triggerMode: step.triggerMode || behavior.triggerMode,
               trigger: step.triggerBehaviour || behavior.triggerBehaviour || "onClick",
-              tour: tourSteps,
+              tour: {
+                steps: tourSteps,
+                options: this.options
+              },
             };
 
             const triggerIconData = step.triggerIcon || behavior.triggerIcon;
@@ -658,6 +662,10 @@ class AHD extends GuideChimp {
 
   private async acknowledgeStep(type: string, id: string, stepId: string) {
     // console.log('acknowledgeStep', type, id);
+        if (!this.options.visitorId) {
+      console.warn('acknowledgeStep: visitorId is not defined, skipping acknowledgment');
+      return;
+    }
     const requestOptions = {
       method: "GET",
       redirect: "follow",

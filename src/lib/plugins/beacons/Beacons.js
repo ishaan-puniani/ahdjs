@@ -32,6 +32,12 @@ export default class Beacons {
       );
     }
 
+    if (typeof MutationObserver !== "undefined") {
+      this.observers.domMutationObserver = new MutationObserver(() =>
+        this.handleDomMutations()
+      );
+    }
+
     this.cache = new Map();
     this.elements = new Map();
 
@@ -149,6 +155,7 @@ export default class Beacons {
       });
 
       this.addOnWindowResizeListener();
+      this.observeDomMutations();
     }
 
     return this;
@@ -524,6 +531,7 @@ export default class Beacons {
     this.beacons = [];
     this.unobserveResizeAllElements();
     this.removeOnWindowResizeListener();
+    this.unobserveDomMutations();
 
     return this;
   }
@@ -569,7 +577,16 @@ export default class Beacons {
       const beaconEl = this.elements.get(beacon);
 
       if (el && beaconEl) {
-        this.setBeaconPosition(el, beaconEl, beacon);
+        // Check if element is still in the DOM
+        if (document.body.contains(el)) {
+          this.setBeaconPosition(el, beaconEl, beacon);
+          if (this.isCanShowBeacon(beacon)) {
+            beaconEl.hidden = false;
+          }
+        } else {
+          // Element is no longer in the DOM, hide the beacon
+          beaconEl.hidden = true;
+        }
       }
     });
 
@@ -651,6 +668,65 @@ export default class Beacons {
    */
   unobserveResizeAllElements() {
     const { elementResizeObserver: observer } = this.observers;
+
+    if (observer) {
+      observer.disconnect();
+    }
+
+    return this;
+  }
+
+  /**
+   * Handle DOM mutations to detect when target elements are removed
+   * @return {this}
+   */
+  handleDomMutations() {
+    this.beacons.forEach((beacon) => {
+      const { element } = beacon;
+
+      if (!element) {
+        return;
+      }
+
+      const el = this.getEl(element);
+      const beaconEl = this.elements.get(beacon);
+
+      if (beaconEl) {
+        if (!el || !document.body.contains(el)) {
+         beaconEl.hidden = true;
+        } else if (this.isCanShowBeacon(beacon)) {
+          beaconEl.hidden = false;
+          this.setBeaconPosition(el, beaconEl, beacon);
+        }
+      }
+    });
+
+    return this;
+  }
+
+  /**
+   * Observe DOM mutations to detect when target elements are removed
+   * @return {this}
+   */
+  observeDomMutations() {
+    const { domMutationObserver: observer } = this.observers;
+
+    if (observer) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    return this;
+  }
+
+  /**
+   * Stop observing DOM mutations
+   * @return {this}
+   */
+  unobserveDomMutations() {
+    const { domMutationObserver: observer } = this.observers;
 
     if (observer) {
       observer.disconnect();
