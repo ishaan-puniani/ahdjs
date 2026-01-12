@@ -26,6 +26,15 @@ export default class Beacons {
     // observers
     this.observers = {};
 
+    // Store pending beacons for elements not yet in DOM
+    this.pendingBeacons = [];
+    
+    // Interval ID for periodic element search
+    this.elementSearchIntervalId = null;
+    
+    // Default search interval in milliseconds (5 seconds)
+    this.elementSearchInterval = 5000;
+
     if (typeof ResizeObserver !== "undefined") {
       this.observers.elementResizeObserver = new ResizeObserver(() =>
         this.refresh()
@@ -61,6 +70,7 @@ export default class Beacons {
     return {
       position: "center",
       boundary: "inner",
+      elementSearchInterval: 5000, // Search for missing elements every 5 seconds
     };
   }
 
@@ -100,6 +110,7 @@ export default class Beacons {
    */
   setOptions(options) {
     this.options = { ...this.constructor.getDefaultOptions(), ...options };
+    this.elementSearchInterval = this.options.elementSearchInterval;
     return this;
   }
 
@@ -114,6 +125,9 @@ export default class Beacons {
         ? this.getDataBeacons(beacons)
         : this.getJsBeacons(beacons);
 
+    // Reset pending beacons
+    this.pendingBeacons = [];
+
     if (this.beacons.length) {
       this.beacons.forEach((beacon) => {
         const { element } = beacon;
@@ -125,38 +139,121 @@ export default class Beacons {
         const el = this.getEl(element);
 
         if (!el) {
+          // Element not found, add to pending beacons for later search
+          this.pendingBeacons.push(beacon);
           return;
         }
 
-        const beaconEl = this.createBeaconEl(beacon);
-        beaconEl.hidden = true;
-        if (this.constructor.isFixed(el)) {
-          beaconEl.classList.add(this.constructor.getFixedClass());
-        }
-        if (beacon.class === "info-tooltip") {
-          beaconEl.classList.remove("gc-beacon");
-        }
-        if (beacon.class === "help-tooltip") {
-          beaconEl.classList.remove("gc-beacon");
-        }
-
-        const parentEl = document.body;
-
-        parentEl.append(beaconEl);
-        this.elements.set(beacon, beaconEl);
-        this.setBeaconPosition(el, beaconEl, beacon);
-        
-        if (this.isCanShowBeacon(beacon)) {
-          beaconEl.hidden = false;
-        }
-
-        // fire observers
-        this.observeResizing(el);
+        this.createAndAttachBeacon(beacon, el);
       });
 
       this.addOnWindowResizeListener();
       this.addOnScrollListener();
       this.observeDomMutations();
+      
+      // Start periodic search for pending beacons
+      this.startElementSearch();
+    }
+
+    return this;
+  }
+
+  /**
+   * Create and attach a beacon element to the DOM
+   * @param {Object} beacon - The beacon configuration
+   * @param {HTMLElement} el - The target element
+   * @return {this}
+   */
+  createAndAttachBeacon(beacon, el) {
+    const beaconEl = this.createBeaconEl(beacon);
+    beaconEl.hidden = true;
+    if (this.constructor.isFixed(el)) {
+      beaconEl.classList.add(this.constructor.getFixedClass());
+    }
+    if (beacon.class === "info-tooltip") {
+      beaconEl.classList.remove("gc-beacon");
+    }
+    if (beacon.class === "help-tooltip") {
+      beaconEl.classList.remove("gc-beacon");
+    }
+
+    const parentEl = document.body;
+
+    parentEl.append(beaconEl);
+    this.elements.set(beacon, beaconEl);
+    this.setBeaconPosition(el, beaconEl, beacon);
+    
+    if (this.isCanShowBeacon(beacon)) {
+      beaconEl.hidden = false;
+    }
+
+    // fire observers
+    this.observeResizing(el);
+
+    return this;
+  }
+
+  /**
+   * Start periodic search for pending beacon elements
+   * @return {this}
+   */
+  startElementSearch() {
+    // Clear any existing interval
+    this.stopElementSearch();
+
+    // Only start if there are pending beacons
+    if (this.pendingBeacons.length > 0) {
+      this.elementSearchIntervalId = setInterval(() => {
+        this.searchForPendingElements();
+      }, this.elementSearchInterval);
+    }
+
+    return this;
+  }
+
+  /**
+   * Stop periodic search for pending beacon elements
+   * @return {this}
+   */
+  stopElementSearch() {
+    if (this.elementSearchIntervalId) {
+      clearInterval(this.elementSearchIntervalId);
+      this.elementSearchIntervalId = null;
+    }
+
+    return this;
+  }
+
+  /**
+   * Search for pending elements and create beacons when found
+   * @return {this}
+   */
+  searchForPendingElements() {
+    if (this.pendingBeacons.length === 0) {
+      this.stopElementSearch();
+      return this;
+    }
+
+    const stillPending = [];
+
+    this.pendingBeacons.forEach((beacon) => {
+      const { element } = beacon;
+      const el = this.getEl(element);
+
+      if (el && document.body.contains(el)) {
+        // Element found, create the beacon
+        this.createAndAttachBeacon(beacon, el);
+      } else {
+        // Element still not found, keep in pending
+        stillPending.push(beacon);
+      }
+    });
+
+    this.pendingBeacons = stillPending;
+
+    // Stop interval if no more pending beacons
+    if (this.pendingBeacons.length === 0) {
+      this.stopElementSearch();
     }
 
     return this;
@@ -530,10 +627,12 @@ export default class Beacons {
     });
 
     this.beacons = [];
+    this.pendingBeacons = [];
     this.unobserveResizeAllElements();
     this.removeOnWindowResizeListener();
     this.removeOnScrollListener();
     this.unobserveDomMutations();
+    this.stopElementSearch();
 
     return this;
   }
@@ -720,10 +819,11 @@ export default class Beacons {
   }
 
   /**
-   * Handle DOM mutations to detect when target elements are removed
+   * Handle DOM mutations to detect when target elements are removed or added
    * @return {this}
    */
   handleDomMutations() {
+    // Check existing beacons
     this.beacons.forEach((beacon) => {
       const { element } = beacon;
 
@@ -743,6 +843,9 @@ export default class Beacons {
         }
       }
     });
+
+    // Also check for pending elements that might now be in the DOM
+    this.searchForPendingElements();
 
     return this;
   }
