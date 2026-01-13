@@ -418,14 +418,14 @@ class AHD extends GuideChimp {
               beacon.triggerLabel = {
                 text: triggerLabelData.text,
                 color: triggerLabelData.color || "#000000",
-                background: triggerLabelData.backgroundColor || "#ffffff",
+                background: triggerLabelData.background || "#d01e1e",
               };
             }
 
             return beacon;
           });
       });
-
+console.log('Beacons', beacons);
       AHDjs.beacons(beacons, {
         boundary: "outer",
       }).showAll(true);
