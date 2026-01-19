@@ -280,7 +280,7 @@ class AHD extends GuideChimp {
               id: row.id,
               type: row.type || "tour",
               iconCloseColor: step.style?.iconCloseColor ?? step.behaviour?.iconCloseColor,
-              navigationMode: step?.behaviour?.navigationMode || step.navigationMode ,
+              navigationMode: step?.behaviour?.navigationMode || step.navigationMode,
               navigationDelay: step?.behaviour?.navigationDelay || step.navigationDelay
             }))
           : []
@@ -291,13 +291,32 @@ class AHD extends GuideChimp {
     }
   }
 
-  async showAppBanner(url: string, refetch: boolean) {
+  async showAppBanner(url: string, refetch: boolean, identifier: string) {
     let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
 
     if (!appBannerData || refetch) {
       appBannerData = await this.fetchAndCacheBannerData(appBannerData);
     }
 
+    return appBannerData;
+  }
+  async renderAppBanner(identifier: string, refetch: boolean) {
+    let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
+    if (refetch) {
+      appBannerData = await this.fetchAndCacheBannerData(identifier);
+    }
+    if (identifier) {
+      const container = document.querySelector(identifier);
+      if (container) {
+        const bannerContent = Array.isArray(appBannerData)
+          ? appBannerData[0]?.content?.content
+          : appBannerData?.content?.content;
+
+        if (bannerContent) {
+          container.innerHTML = bannerContent;
+        }
+      }
+    }
     return appBannerData;
   }
 
@@ -311,7 +330,7 @@ class AHD extends GuideChimp {
 
   async showPageBeacons(url: string) {
     await this.stop();
-    
+
     if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
       try {
         const beaconInstance = AHDjs.beacons([]);
@@ -321,13 +340,13 @@ class AHD extends GuideChimp {
       } catch (e) {
       }
     }
-    
+
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-    
+
     if (!toursData || !toursData.tooltips || !Array.isArray(toursData.tooltips)) {
       return;
     }
-    
+
     const applicableTours = this.getApplicabeDataForUrl(
       toursData.tooltips,
       url,
@@ -425,7 +444,7 @@ class AHD extends GuideChimp {
             return beacon;
           });
       });
-console.log('Beacons', beacons);
+      console.log('Beacons', beacons);
       AHDjs.beacons(beacons, {
         boundary: "outer",
       }).showAll(true);
@@ -439,7 +458,7 @@ console.log('Beacons', beacons);
 
   async showHighlights(url: string, refetch: boolean) {
     await this.stop();
-    
+
     // Clear all existing beacons first
     if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
       try {
@@ -451,12 +470,12 @@ console.log('Beacons', beacons);
         // Beacon instance might not exist yet, continue
       }
     }
-    
+
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
       toursData = await this.fetchAndCacheTourData(toursData, url);
     }
-    
+
     // Only show if data exists
     if (toursData && toursData.tours?.length > 0) {
       this.showPageTour(url);
@@ -616,9 +635,10 @@ console.log('Beacons', beacons);
   }
 
 
-  private async fetchAndCacheBannerData(appBannerData: any) {
+  private async fetchAndCacheBannerData(identifier: string) {
+    let appBannerData;
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banners?filter[isActive]=true`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banner-v2?filter[isActive]=true&filter[identifier]=${encodeURIComponent(identifier)}`
     ).then((res) => res.json());
     if (respons.rows) {
       appBannerData = respons.rows.filter((row: any) => !!row.content);
@@ -697,7 +717,7 @@ console.log('Beacons', beacons);
 
   private async acknowledgeStep(type: string, id: string, stepId: string) {
     // console.log('acknowledgeStep', type, id);
-        if (!this.options.visitorId) {
+    if (!this.options.visitorId) {
       console.warn('acknowledgeStep: visitorId is not defined, skipping acknowledgment');
       return;
     }
