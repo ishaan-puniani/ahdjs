@@ -410,7 +410,7 @@ class AHD extends GuideChimp {
               boundary: "outer",
               class: "beacon-labs64",
               triggerMode: step.triggerMode || behavior.triggerMode,
-              trigger: step.triggerBehaviour || behavior.triggerBehaviour || "onClick",
+              trigger: step.triggerBehaviour || behavior.triggerBehaviour ,
               tour: {
                 steps: tourSteps,
                 options: this.options
