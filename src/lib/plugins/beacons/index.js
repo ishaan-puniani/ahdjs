@@ -61,7 +61,6 @@ export default (Class, factory) => {
         return null;
       }
 
-      // Start guide if instance can be created
       runGuide(beacon, GuideClass) {
         const guide = this.createGuideInstance(beacon, GuideClass);
         const hasTooltip = document.querySelector(".gc-tooltip") !== null;
@@ -71,12 +70,10 @@ export default (Class, factory) => {
         }
       }
 
-      // Attach event listener dynamically based on beacon.trigger
       attachGuideEvent(beaconEl, beacon, Class) {
         const trigger = beacon?.trigger;
         const handler = () => this.runGuide(beacon, Class);
 
-        // Resolve target element (the element the beacon points to)
         let targetEl = null;
         try {
           targetEl = beacon?.element
@@ -88,17 +85,21 @@ export default (Class, factory) => {
           targetEl = null;
         }
 
-        // Use target element when available, otherwise fall back to the beacon element
         const attachTo = targetEl || beaconEl;
 
         switch (trigger) {
           case TRIGGER_EVENTS.onClick:
-            attachTo.addEventListener("click", handler);
+              attachTo.addEventListener("click", handler);
+              if (attachTo !== beaconEl) {
+                beaconEl.addEventListener("click", handler, true);
+              }
             break;
 
           case TRIGGER_EVENTS.onHover:
-            // listen for mouseenter on the target element
             attachTo.addEventListener("mouseenter", handler);
+            if (attachTo !== beaconEl) {
+              beaconEl.addEventListener("mouseenter", handler);
+            }
             break;
 
           case TRIGGER_EVENTS.onLongPress: {
@@ -111,6 +112,13 @@ export default (Class, factory) => {
             attachTo.addEventListener("mouseleave", clearPress);
             attachTo.addEventListener("touchstart", startPress);
             attachTo.addEventListener("touchend", clearPress);
+            if (attachTo !== beaconEl) {
+              beaconEl.addEventListener("mousedown", startPress);
+              beaconEl.addEventListener("mouseup", clearPress);
+              beaconEl.addEventListener("mouseleave", clearPress);
+              beaconEl.addEventListener("touchstart", startPress);
+              beaconEl.addEventListener("touchend", clearPress);
+            }
             break;
           }
 
@@ -127,7 +135,6 @@ export default (Class, factory) => {
         }
       }
 
-      // Creates beacon element and attaches events
       createBeaconEl(beacon) {
         const beaconEl = super.createBeaconEl(beacon);
         this.attachGuideEvent(beaconEl, beacon, Class);
