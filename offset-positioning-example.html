@@ -1,0 +1,213 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="./build/css/index.css" />
+    <script type="text/javascript" src="./build/index.js"></script>
+
+    <title>GuideChimp - Offset Positioning Examples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .demo-element {
+            padding: 20px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .code-example {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        pre {
+            margin: 0;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>GuideChimp - Offset Positioning Examples</h1>
+        <p class="description" id="">
+            This example demonstrates the three positioning modes:
+            <br>1. <strong>Offset-based</strong> - Position tooltip using offset coordinates (no element)
+            <br>2. <strong>Element-based</strong> - Position tooltip relative to an element
+            <br>3. <strong>Centered</strong> - Center tooltip when neither element nor offset is provided
+        </p>
+
+        <div class="button-group">
+            <button onclick="startOffsetTour()">Start Offset Tour</button>
+            <button onclick="startElementTour()">Start Element-Based Tour</button>
+            <button onclick="startCenteredTour()">Start Centered Tour</button>
+            <button onclick="startMixedTour()">Start Mixed Tour</button>
+        </div>
+
+        <div id="tooltip" class="demo-element">
+            This is a demo element for element-based positioning
+        </div>
+
+        <h2>Code Examples</h2>
+
+        <h3>1. Offset-Based Positioning (No Element)</h3>
+        <div class="code-example">
+            <pre><code>// Position tooltip at specific coordinates
+const tour = [
+    {
+        offset: { top: 100, left: 50 },
+        title: 'Top-Left Position',
+        description: 'Tooltip positioned at top: 100px, left: 50px'
+    },
+    {
+        offset: { bottom: 20, right: 20 },
+        title: 'Bottom-Right Position',
+        description: 'Tooltip positioned at bottom: 20px, right: 20px'
+    },
+    {
+        offset: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+        title: 'Custom Center',
+        description: 'Using offset with transform for centering'
+    }
+];
+
+const guide = new GuideChimp(tour);
+guide.start();</code></pre>
+        </div>
+
+        <h3>2. Element-Based Positioning</h3>
+        <div class="code-example">
+            <pre><code>// Position tooltip relative to an element
+const tour = [
+    {
+        element: '#demo-element',
+        position: 'bottom',
+        title: 'Element Tooltip',
+        description: 'This tooltip is positioned relative to the element'
+    },
+    {
+        element: '#demo-element',
+        position: 'right',
+        title: 'Right Position',
+        description: 'Positioned to the right of the element'
+    }
+];
+
+const guide = new GuideChimp(tour);
+guide.start();</code></pre>
+        </div>
+
+        <h3>3. Centered Positioning (No Element, No Offset)</h3>
+        <div class="code-example">
+            <pre><code>// Center tooltip when neither element nor offset is provided
+const tour = [
+    {
+        title: 'Welcome!',
+        description: 'This tooltip is centered on the screen'
+    },
+    {
+        title: 'Another Message',
+        description: 'Still centered as no element or offset is specified'
+    }
+];
+
+const guide = new GuideChimp(tour);
+guide.start();</code></pre>
+        </div>
+
+        <h3>4. Mixed Tour (Combining All Modes)</h3>
+        <div class="code-example">
+            <pre><code>// Mix different positioning modes in one tour
+const tour = [
+    {
+        title: 'Step 1: Centered',
+        description: 'No element or offset - centered by default'
+    },
+    {
+        element: '#demo-element',
+        position: 'bottom',
+        title: 'Step 2: Element-based',
+        description: 'Positioned relative to an element'
+    },
+    {
+        offset: { top: 50, right: 50 },
+        title: 'Step 3: Offset-based',
+        description: 'Positioned at specific coordinates'
+    }
+];
+
+const guide = new GuideChimp(tour);
+guide.start();</code></pre>
+        </div>
+    </div>
+
+
+
+    <script>
+        // Example 1: Offset-based positioning
+        const AHDjs = window.AHDjs.default;
+        const userId = "675c5d10b73dc091ba239699";
+        let _ahdJs = new AHDjs(undefined, {
+            // applicationId: "651456610067eba9d6188aac",
+            applicationId: "633bd6d693b46a69ab83ddff",
+            apiHost: "https://pagepilot.fabbuilder.com",
+            userId: userId,
+            showProgressbar: false,
+        });
+        _ahdJs.initializeSiteMap();
+        // _ahdJs.setTour(tour);
+        // _ahdJs.start();
+        _ahdJs.showHighlights("/tooltip", true);
+        // const guide = new GuideChimp(tour);
+        // guide.start();
+    </script>
+</body>
+
+</html>

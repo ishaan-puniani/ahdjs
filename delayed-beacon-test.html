@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delayed Element Beacon Test</title>
+    <link rel="stylesheet" href="build/css/index.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .target-element {
+            padding: 20px;
+            background: #e3f2fd;
+            border: 2px dashed #2196f3;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            position: relative;
+        }
+        
+        .delayed-element {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .conditional-element {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .log-container {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #37474f;
+        }
+        
+        .log-entry .timestamp {
+            color: #78909c;
+        }
+        
+        .log-entry.info {
+            color: #4fc3f7;
+        }
+        
+        .log-entry.success {
+            color: #81c784;
+        }
+        
+        .log-entry.warning {
+            color: #ffb74d;
+        }
+        
+        #delayed-container {
+            min-height: 100px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-found {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Delayed Element Beacon Test</h1>
+    <p>This page tests the beacon functionality with conditionally rendered elements that appear after a delay.</p>
+    
+    <div class="section">
+        <h2>📍 Immediate Elements (Beacons appear instantly)</h2>
+        <div class="target-element">
+            User input: <input id="user-input" />
+        </div>
+        <div id="try-and-buy" class="target-element">
+            Try & Buy
+        </div>
+        <div id="subscription" class="target-element">
+            Subscription
+        </div>
+        <div id="pricing-table" class="target-element">
+            Pricing Table
+        </div>
+        <div id="multi-feature" class="target-element">
+            Multi-Feature
+        </div>
+        <div id="pay-per-use" class="target-element">
+            Pay-per-Use
+        </div>
+        <div id="node-locked" class="target-element">
+            Node-Locked
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>⏱️ Delayed Elements (Beacons appear when elements are found)</h2>
+        <p>These elements will be added to the DOM after clicking the buttons. The beacons are configured upfront, but the elements don't exist yet.</p>
+        
+        <div class="controls">
+            <button class="btn-primary" onclick="addDelayedElement1()">
+                Add Element After 2s Delay
+            </button>
+            <button class="btn-success" onclick="addDelayedElement2()">
+                Add Element After 5s Delay
+            </button>
+            <button class="btn-warning" onclick="addDelayedElement3()">
+                Add Element After 8s Delay
+            </button>
+            <button class="btn-danger" onclick="removeAllDelayedElements()">
+                Remove All Delayed Elements
+            </button>
+        </div>
+        
+        <div id="delayed-container">
+            <span>Delayed elements will appear here...</span>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>🔄 Toggle Elements (Show/Hide)</h2>
+        <p>Toggle elements visibility. Beacons should hide when elements are hidden and reappear when shown.</p>
+        
+        <div class="controls">
+            <button class="btn-primary" onclick="toggleElement()">
+                Toggle Conditional Element
+            </button>
+        </div>
+        
+        <div id="toggle-container">
+            <!-- Element starts visible -->
+            <div id="toggle-element" class="target-element conditional-element">
+                Toggleable Element - Click button to hide/show
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>📋 Beacon Status</h2>
+        <div id="beacon-status">
+            <p><strong>Configured Beacons:</strong></p>
+            <ul id="beacon-list"></ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>📝 Event Log</h2>
+        <div class="log-container" id="log-container">
+            <div class="log-entry info">
+                <span class="timestamp">[--:--:--]</span> Waiting for initialization...
+            </div>
+        </div>
+    </div>
+    
+    <script src="build/index.js"></script>
+    <script>
+        let beaconsInstance = null;
+        let toggleState = true;
+        let AHDjs = null;
+        
+        // Logging utility
+        function log(message, type = 'info') {
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `<span class="timestamp">[${time}]</span> ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Update beacon status display
+        function updateBeaconStatus() {
+            const list = document.getElementById('beacon-list');
+            list.innerHTML = '';
+            
+            if (!beaconsInstance) return;
+            
+            const beacons = beaconsInstance.getBeacons();
+            const pendingBeacons = beaconsInstance.pendingBeacons || [];
+            
+            beacons.forEach(beacon => {
+                const li = document.createElement('li');
+                const isPending = pendingBeacons.some(p => p.id === beacon.id);
+                const beaconEl = beaconsInstance.elements.get(beacon);
+                const isVisible = beaconEl && !beaconEl.hidden;
+                
+                let status = 'Pending';
+                let statusClass = 'status-pending';
+                
+                if (!isPending && isVisible) {
+                    status = 'Visible';
+                    statusClass = 'status-found';
+                } else if (!isPending && !isVisible) {
+                    status = 'Hidden';
+                    statusClass = 'status-pending';
+                }
+                
+                li.innerHTML = `
+                    <strong>${beacon.id}</strong> → ${typeof beacon.element === 'string' ? beacon.element : '[HTMLElement]'} 
+                    <span class="status-badge ${statusClass}">${status}</span>
+                `;
+                list.appendChild(li);
+            });
+            
+            if (pendingBeacons.length > 0) {
+                log(`Pending beacons: ${pendingBeacons.map(b => b.id).join(', ')}`, 'warning');
+            }
+        }
+        
+        // Initialize beacons
+        function initBeacons() {
+            log('Initializing beacons...', 'info');
+            
+            // Get AHDjs from window - it's exported as UMD
+            AHDjs = window.AHDjs.default;
+            
+            // Create an instance to trigger plugin loading
+            const instance = new AHDjs(undefined, {});
+            
+            log('AHDjs instance created, plugins loaded', 'info');
+            
+            // Check if beacons method is available
+            if (typeof AHDjs.beacons !== 'function') {
+                log('ERROR: AHDjs.beacons is not a function!', 'warning');
+                console.error('AHDjs.beacons is not available', AHDjs);
+                return;
+            }
+            
+            // Tour configuration for user-input beacon
+            const tour = [
+                {
+                    element: "#user-input",
+                    title: "Try & Buy",
+                    description:
+                        "Move to the next step is only possible if user input provided.<iframe src='https://www.youtube.com/embed/k9xnxvujdBw?controls=0' />",
+                    triggers: {
+                        next: {
+                            element: "#user-input",
+                            event: "change",
+                            listener(e) {
+                                if (e.target.value) {
+                                    alert('User input: "' + e.target.value + '"');
+                                    this.next();
+                                }
+                            },
+                        },
+                    },
+                },
+                {
+                    element: "#subscription",
+                    title: "Subscription",
+                    description:
+                        "Subscription licensing model allows user to enable product for a specific period of time, with the possibility of the subscription renewal.",
+                    buttons: [
+                        {
+                            title: "See more",
+                            class: "tour-button",
+                            onClick: function () {
+                                alert("Step button click");
+                            },
+                        },
+                    ],
+                },
+                {
+                    element: "#pricing-table",
+                    title: "Pricing Table",
+                    description:
+                        "Price and package in minutes without having to re-code or re-engineer back-office systems.",
+                    buttons: [
+                        {
+                            title: "See more",
+                            class: "tour-button",
+                            onClick: function () {
+                                alert("Step button click");
+                            },
+                        },
+                    ],
+                },
+                {
+                    element: "#multi-feature",
+                    title: "Multi Feature",
+                    description:
+                        "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a 'lite' version to 'standard', 'pro', 'enterprise' etc. versions without modifying the software or uninstalling the existing version.",
+                    buttons: [
+                        {
+                            title: "See more",
+                            class: "tour-button",
+                            onClick: function () {
+                                alert("Step button click");
+                            },
+                        },
+                    ],
+                },
+                {
+                    element: "#node-locked",
+                    title: "Node-Locked",
+                    description:
+                        "Software is licensed for use only on one or more named computer systems. Usually, CPU serial number verification is used to enforce this type of license.",
+                    buttons: [
+                        {
+                            title: "See more",
+                            class: "tour-button",
+                            onClick: function () {
+                                alert("Step button click");
+                            },
+                        },
+                    ],
+                },
+                {
+                    element: "#pay-per-use",
+                    title: "Pay-per-Use",
+                    description:
+                        "Limits the quantity of the license uses, in addition to the license validity. License fees are based on the actual usage.",
+                    buttons: [
+                        {
+                            title: "See more",
+                            class: "tour-button",
+                            onClick: function () {
+                                alert("Step button click");
+                            },
+                        },
+                    ],
+                },
+            ];
+
+            // Configure beacons for both existing and non-existing elements
+            const beaconConfig = [
+                {
+                    element: "#user-input",
+                    position: "top",
+                    boundary: "outer",
+                    class: "beacon-labs64",
+                    trigger: "onClick",
+                    tour: tour,
+                },
+                {
+                    element: "#try-and-buy",
+                    position: "top-left",
+                    class: "beacon-green",
+                    onClick() {
+                        alert("Beacon clicked");
+                    },
+                },
+                {
+                    element: "#pricing-table",
+                    position: "top-right",
+                    trigger: "onClick",
+                    canShow: function () {
+                        // Load the video
+                        // const videoPlayer = document.createElement("iframe");
+                        // videoPlayer.src =
+                        //   "https://www.youtube.com/embed/k9xnxvujdBw?controls=0";
+                        // videoPlayer.allowFullscreen = true;
+                        // videoPlayer.classList.add("video-player");
+                        // const tourContainer = document.querySelector("#pricing-table");
+                        // tourContainer.appendChild(videoPlayer);
+                    },
+                    tour: [
+                        {
+                            title: "Pricing Table",
+                            description: "Pricing Table beacon clicked.",
+                            class: "not-price",
+                            buttons: [],
+                        },
+                    ],
+                },
+                {
+                    element: "#multi-feature",
+                    position: "bottom-left",
+                    boundary: "inner",
+                    class: "beacon-white",
+                    trigger: "onClick",
+                    tour: [
+                        {
+                            title: "Multi Feature",
+                            description: "Multi Feature beacon clicked.",
+                        },
+                    ],
+                },
+                {
+                    element: "#pay-per-use",
+                    position: "left",
+                    class: "beacon-black",
+                    trigger: "onClick",
+                    tour: {
+                        steps: [
+                            {
+                                element: "#pay-per-use",
+                                title: "Pay-per-Use",
+                                description: "Pay-per-Use beacon clicked.",
+                            },
+                        ],
+                        options: {
+                            position: "top",
+                        },
+                    },
+                    canShow() {
+                        return true;
+                    },
+                },
+                // Delayed elements (DON'T exist yet in DOM)
+                {
+                    id: 'delayed-1',
+                    element: '#delayed-element-1',
+                    position: 'top-right',
+                    triggerMode: 'icon',
+                    triggerIcon: { type: 'warning', isAnimated: true },
+                    trigger: 'onClick',
+                    tour: [
+                        {
+                            element: '#delayed-element-1',
+                            title: 'Delayed Element 1',
+                            description: 'This beacon appeared after the element was added to the DOM with a 2 second delay.',
+                        }
+                    ]
+                },
+                {
+                    id: 'delayed-2',
+                    element: '#delayed-element-2',
+                    position: 'top-right',
+                    triggerMode: 'icon',
+                    triggerIcon: { type: 'info', isAnimated: true },
+                    trigger: 'onClick',
+                    tour: [
+                        {
+                            element: '#delayed-element-2',
+                            title: 'Delayed Element 2',
+                            description: 'This beacon appeared after the element was added to the DOM with a 5 second delay.',
+                        }
+                    ]
+                },
+                {
+                    id: 'delayed-3',
+                    element: '#delayed-element-3',
+                    position: 'top-right',
+                    triggerMode: 'icon',
+                    triggerIcon: { type: 'help', isAnimated: true },
+                    trigger: 'onClick',
+                    tour: [
+                        {
+                            element: '#delayed-element-3',
+                            title: 'Delayed Element 3',
+                            description: 'This beacon appeared after the element was added to the DOM with an 8 second delay.',
+                        }
+                    ]
+                },
+                // Toggle element
+                {
+                    id: 'toggle-1',
+                    element: '#toggle-element',
+                    position: 'top-right',
+                    triggerMode: 'icon',
+                    triggerIcon: { type: 'beacon', isAnimated: true },
+                    trigger: 'onClick',
+                    tour: [
+                        {
+                            element: '#toggle-element',
+                            title: 'Toggle Element',
+                            description: 'This beacon is attached to a toggleable element that can be removed and re-added to the DOM.',
+                        }
+                    ]
+                }
+            ];
+            
+            // Create beacons with 5 second search interval
+            beaconsInstance = AHDjs.beacons(beaconConfig, {
+                elementSearchInterval: 5000 // Search every 5 seconds
+            });
+            
+            log('Beacons configured with 5 second search interval', 'success');
+            log(`Total beacons: ${beaconConfig.length}`, 'info');
+            log(`Pending (elements not found): ${beaconsInstance.pendingBeacons.length}`, 'warning');
+            
+            // Show all beacons that can be shown
+            beaconsInstance.showAll();
+            
+            updateBeaconStatus();
+            
+            // Periodically update status
+            setInterval(updateBeaconStatus, 2000);
+        }
+        
+        // Add delayed element 1 (2 second delay)
+        function addDelayedElement1() {
+            log('Adding delayed element 1 in 2 seconds...', 'info');
+            
+            setTimeout(() => {
+                const container = document.getElementById('delayed-container');
+                if (document.getElementById('delayed-element-1')) {
+                    log('Delayed element 1 already exists', 'warning');
+                    return;
+                }
+                
+                const el = document.createElement('div');
+                el.id = 'delayed-element-1';
+                el.className = 'target-element delayed-element';
+                el.textContent = 'Delayed Element 1 - Added after 2s delay';
+                container.appendChild(el);
+                
+                // Clear placeholder text
+                const placeholder = container.querySelector('span');
+                if (placeholder) placeholder.remove();
+                
+                log('Delayed element 1 added to DOM!', 'success');
+                log('Beacon should appear via MutationObserver or next search interval', 'info');
+            }, 2000);
+        }
+        
+        // Add delayed element 2 (5 second delay)
+        function addDelayedElement2() {
+            log('Adding delayed element 2 in 5 seconds...', 'info');
+            
+            setTimeout(() => {
+                const container = document.getElementById('delayed-container');
+                if (document.getElementById('delayed-element-2')) {
+                    log('Delayed element 2 already exists', 'warning');
+                    return;
+                }
+                
+                const el = document.createElement('div');
+                el.id = 'delayed-element-2';
+                el.className = 'target-element delayed-element';
+                el.textContent = 'Delayed Element 2 - Added after 5s delay';
+                container.appendChild(el);
+                
+                // Clear placeholder text
+                const placeholder = container.querySelector('span');
+                if (placeholder) placeholder.remove();
+                
+                log('Delayed element 2 added to DOM!', 'success');
+            }, 5000);
+        }
+        
+        // Add delayed element 3 (8 second delay)
+        function addDelayedElement3() {
+            log('Adding delayed element 3 in 8 seconds...', 'info');
+            
+            setTimeout(() => {
+                const container = document.getElementById('delayed-container');
+                if (document.getElementById('delayed-element-3')) {
+                    log('Delayed element 3 already exists', 'warning');
+                    return;
+                }
+                
+                const el = document.createElement('div');
+                el.id = 'delayed-element-3';
+                el.className = 'target-element delayed-element';
+                el.textContent = 'Delayed Element 3 - Added after 8s delay';
+                container.appendChild(el);
+                
+                // Clear placeholder text
+                const placeholder = container.querySelector('span');
+                if (placeholder) placeholder.remove();
+                
+                log('Delayed element 3 added to DOM!', 'success');
+            }, 8000);
+        }
+        
+        // Remove all delayed elements
+        function removeAllDelayedElements() {
+            log('Removing all delayed elements...', 'info');
+            
+            ['delayed-element-1', 'delayed-element-2', 'delayed-element-3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.remove();
+                    log(`Removed ${id}`, 'warning');
+                }
+            });
+            
+            // Add placeholder back
+            const container = document.getElementById('delayed-container');
+            if (container.children.length === 0) {
+                const span = document.createElement('span');
+                span.textContent = 'Delayed elements will appear here...';
+                container.appendChild(span);
+            }
+            
+            log('Beacons should be hidden now', 'info');
+        }
+        
+        // Toggle conditional element
+        function toggleElement() {
+            const el = document.getElementById('toggle-element');
+            
+            if (toggleState) {
+                el.remove();
+                log('Toggle element removed from DOM', 'warning');
+            } else {
+                const container = document.getElementById('toggle-container');
+                const newEl = document.createElement('div');
+                newEl.id = 'toggle-element';
+                newEl.className = 'target-element conditional-element';
+                newEl.textContent = 'Toggleable Element - Click button to hide/show';
+                container.appendChild(newEl);
+                log('Toggle element added back to DOM', 'success');
+            }
+            
+            toggleState = !toggleState;
+        }
+        
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('Page loaded, initializing...', 'info');
+            initBeacons();
+        });
+    </script>
+</body>
+</html>

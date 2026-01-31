@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="./build/css/index.css" />
+    <script type="text/javascript" src="./build/index.js"></script>
+
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>React App Instance</h1>
+        <div id="react-root"></div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Tour configuration from testing.html
+        const tour = [
+            {
+                element: "#user-input",
+                title: "Try & Buy",
+                description: "Move to the next step is only possible if user input provided.",
+                triggers: {
+                    next: {
+                        element: "#user-input",
+                        event: "change",
+                        listener(e) {
+                            if (e.target.value) {
+                                alert('User input: "' + e.target.value + '"');
+                                this.next();
+                            }
+                        },
+                    },
+                },
+            },
+            {
+                element: "#subscription",
+                title: "Subscription",
+                description: "Subscription licensing model allows user to enable product for a specific period of time, with the possibility of the subscription renewal.",
+                buttons: [
+                    {
+                        title: "See more",
+                        class: "tour-button",
+                        onClick: function () {
+                            alert("Step button click");
+                        },
+                    },
+                ],
+            },
+            {
+                element: "#pricing-table",
+                title: "Pricing Table",
+                description: "Price and package in minutes without having to re-code or re-engineer back-office systems.",
+                buttons: [
+                    {
+                        title: "See more",
+                        class: "tour-button",
+                        onClick: function () {
+                            alert("Step button click");
+                        },
+                    },
+                ],
+            },
+            {
+                element: "#multi-feature",
+                title: "Multi Feature",
+                description: "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a \"lite\" version to \"standard,\" \"pro,\" \"enterprise\" etc. versions without modifying the software or uninstalling the existing version.",
+                buttons: [
+                    {
+                        title: "See more",
+                        class: "tour-button",
+                        onClick: function () {
+                            alert("Step button click");
+                        },
+                    },
+                ],
+            },
+            {
+                element: "#node-locked",
+                title: "Node-Locked",
+                description: "Software is licensed for use only on one or more named computer systems. Usually, CPU serial number verification is used to enforce this type of license.",
+                buttons: [
+                    {
+                        title: "See more",
+                        class: "tour-button",
+                        onClick: function () {
+                            alert("Step button click");
+                        },
+                    },
+                ],
+            },
+            {
+                element: "#pay-per-use",
+                title: "Pay-per-Use",
+                description: "Limits the quantity of the license uses, in addition to the license validity. License fees are based on the actual usage.",
+                buttons: [
+                    {
+                        title: "See more",
+                        class: "tour-button",
+                        onClick: function () {
+                            alert("Step button click");
+                        },
+                    },
+                ],
+            },
+        ];
+
+        function App() {
+            const [count, setCount] = useState(0);
+            const [message, setMessage] = useState('');
+            const [inputValue, setInputValue] = useState('');
+            const [tourStarted, setTourStarted] = useState(false);
+            const ahdJsRef = useRef(null);
+
+            useEffect(() => {
+                setMessage('Welcome to React App with AHD.js integration!');
+
+                // Initialize AHD.js
+                if (window.AHDjs && window.AHDjs.default) {
+                    const AHDjs = window.AHDjs.default;
+                    const userId = Math.random().toString(36).substring(2, 15);
+                    const ahdJsInstance = new AHDjs(undefined, {
+                        applicationId: "633bd6d693b46a69ab83ddff",
+                        apiHost: "https://pagepilot.fabbuilder.com",
+                        userId: userId,
+                        root: '#bg'
+                    });
+
+                    ahdJsInstance.initializeSiteMap();
+                    ahdJsRef.current = ahdJsInstance;
+
+                    // Set up tour
+                    ahdJsInstance.setTour(tour);
+
+                    // Show highlights
+                    // ahdJsInstance.showHighlights("/:type/visual-editor/:id*", true);
+                    ahdJsInstance.showHighlights("/", true);
+
+                    // Re-run the bundle's scaling handler after elements mount.
+                    // The built script registers a resize listener that applies
+                    // transforms to `.gc-tooltip` elements; dispatch a resize
+                    // so newly-mounted tooltips receive the same scaling.
+                    setTimeout(() => {
+                        window.dispatchEvent(new Event('resize'));
+                    }, 50);
+                }
+            }, []);
+
+            const startTour = () => {
+                if (ahdJsRef.current) {
+                    ahdJsRef.current.start();
+                    setTourStarted(true);
+                    setMessage('Tour started! Follow the guided steps.');
+                }
+            };
+
+            const stopTour = () => {
+                if (ahdJsRef.current) {
+                    ahdJsRef.current.stop();
+                    setTourStarted(false);
+                    setMessage('Tour stopped.');
+                }
+            };
+
+            const handleClick = () => {
+                setCount(count + 1);
+                setMessage(`Button clicked ${count + 1} times!`);
+            };
+
+            const handleInputChange = (e) => {
+                setInputValue(e.target.value);
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (inputValue.trim()) {
+                    setMessage(`You entered: ${inputValue}`);
+                    setInputValue('');
+                }
+            };
+
+            return (
+                <div >
+
+                    <div style={{ width: '200px', height: '100px', backgroundColor: 'lightgray', margin: '0 auto' }} id="liveTooltip" class="tour-section">Pay-per-Use</div>
+                </div>
+            );
+        }
+
+        // Initialize React App
+        const root = ReactDOM.createRoot(document.getElementById('react-root'));
+        root.render(<App />);
+    </script>
+
+</body>
+
+</html>

@@ -644,7 +644,9 @@ class AHD extends GuideChimp {
   private async fetchAndCacheBannerData(identifier: string) {
     let appBannerData;
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banner-v2?filter[status]=live&filter[identifier]=${identifier}`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banner-v2?filter[status]=live&filter[identifier]=${encodeURIComponent(
+        identifier
+      )}`
     ).then((res) => res.json());
     if (respons.rows) {
       appBannerData = respons.rows.filter((row: any) => {
