@@ -291,11 +291,11 @@ class AHD extends GuideChimp {
     }
   }
 
-  async showAppBanner(url: string, refetch: boolean, identifier: string) {
+  async showAppBanner(identifier: string, refetch: boolean) {
     let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
 
     if (!appBannerData || refetch) {
-      appBannerData = await this.fetchAndCacheBannerData(appBannerData);
+      appBannerData = await this.fetchAndCacheBannerData(identifier);
     }
 
     return appBannerData;
@@ -308,9 +308,15 @@ class AHD extends GuideChimp {
     if (identifier) {
       const container = document.querySelector(identifier);
       if (container) {
-        const bannerContent = Array.isArray(appBannerData)
-          ? appBannerData[0]?.content?.content
-          : appBannerData?.content?.content;
+        const firstRow = Array.isArray(appBannerData)
+          ? appBannerData[0]
+          : appBannerData;
+
+        const bannerContent =
+          firstRow?.content?.content ||
+          (Array.isArray(firstRow?.slides)
+            ? firstRow.slides.find((s: any) => s && s.content)?.content?.content
+            : undefined);
 
         if (bannerContent) {
           container.innerHTML = bannerContent;
@@ -641,7 +647,13 @@ class AHD extends GuideChimp {
       `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banner-v2?filter[isActive]=true&filter[identifier]=${encodeURIComponent(identifier)}`
     ).then((res) => res.json());
     if (respons.rows) {
-      appBannerData = respons.rows.filter((row: any) => !!row.content);
+      appBannerData = respons.rows.filter((row: any) => {
+        if (row && row.content) return true;
+        if (row && Array.isArray(row.slides)) {
+          return row.slides.some((slide: any) => !!slide && !!slide.content);
+        }
+        return false;
+      });
       LocalStorage.put(
         APP_BANNER_DATA_STORAGE_KEY,
         appBannerData,
