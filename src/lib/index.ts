@@ -333,12 +333,10 @@ class AHD extends GuideChimp {
   }
 
   private renderCarouselBanner(bannerRow: any, identifier?: string) {
-    // cleanup any existing carousel or modal
     this.destroyCarousel();
     const slides = Array.isArray(bannerRow.slides) ? bannerRow.slides : [];
     if (!slides.length) return;
 
-    // create carousel root
     const carousel = document.createElement('div');
     carousel.className = 'gc-carousel';
     carousel.setAttribute('data-ahd-carousel', 'true');
@@ -386,11 +384,9 @@ class AHD extends GuideChimp {
     carousel.appendChild(nextBtn);
     carousel.appendChild(indicators);
 
-    // Mount: modal or inline
     let mountParent: Element | null = null;
     const renderAsModal = bannerRow?.behaviour?.renderAs === 'modal' || (!identifier && bannerRow?.type === 'carousel');
     if (renderAsModal) {
-      // create modal similar to renderModalBanner but mount carousel element
       this.removeModalBanner();
       const modalOverlay = document.createElement('div');
       modalOverlay.className = 'gc-modal-overlay';
@@ -423,7 +419,6 @@ class AHD extends GuideChimp {
       }
     }
 
-    // Handlers and state
     const state: any = {
       index: 0,
       slidesCount: slides.length,
@@ -437,7 +432,6 @@ class AHD extends GuideChimp {
       state.index = idx;
       const x = -idx * 100;
       state.slidesWrap.style.transform = `translateX(${x}%)`;
-      // update indicators
       const dots = indicators.querySelectorAll('.gc-carousel-indicator');
       dots.forEach((d: Element, di: number) => {
         if (di === idx) (d as HTMLElement).setAttribute('aria-current', 'true'); else (d as HTMLElement).removeAttribute('aria-current');
@@ -454,17 +448,14 @@ class AHD extends GuideChimp {
       });
     });
 
-    // autoplay
     const autoplay = !!bannerRow?.behaviour?.autoplay;
     const delay = bannerRow?.behaviour?.autoplayDelay || 5000;
     if (autoplay) {
       state.timer = window.setInterval(() => goTo(state.index + 1), delay);
-      // pause on hover/focus
       carousel.addEventListener('mouseenter', () => { if (state.timer) clearInterval(state.timer); });
       carousel.addEventListener('mouseleave', () => { state.timer = window.setInterval(() => goTo(state.index + 1), delay); });
     }
 
-    // swipe handlers
     let startX = 0;
     let deltaX = 0;
     const onTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; };
@@ -479,7 +470,6 @@ class AHD extends GuideChimp {
     carousel.addEventListener('touchmove', onTouchMove, { passive: true });
     carousel.addEventListener('touchend', onTouchEnd);
 
-    // store references for cleanup
     (this as any)._ahd_carousel = { carousel, state, handlers: { onTouchStart, onTouchMove, onTouchEnd } };
   }
 
@@ -707,7 +697,6 @@ class AHD extends GuideChimp {
   async showHighlights(url: string, refetch: boolean) {
     await this.stop();
 
-    // Clear all existing beacons first
     if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
       try {
         const beaconInstance = AHDjs.beacons([]);
@@ -715,7 +704,7 @@ class AHD extends GuideChimp {
           beaconInstance.removeAll();
         }
       } catch (e) {
-        // Beacon instance might not exist yet, continue
+      
       }
     }
 
@@ -724,7 +713,6 @@ class AHD extends GuideChimp {
       toursData = await this.fetchAndCacheTourData(toursData, url);
     }
 
-    // Only show if data exists
     if (toursData && toursData.tours?.length > 0) {
       this.showPageTour(url);
     }
