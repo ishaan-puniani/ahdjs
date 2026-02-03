@@ -534,3 +534,43 @@
     transform: rotate(360deg);
   }
 }
+
+.gc-modal-overlay {
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.gc-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  padding: 0;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: slideUp 0.3s ease-out;
+
+  .gc-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+  }
+}
+
+.gc-modal-content {
+  display: inline-block;
+}
+

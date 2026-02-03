@@ -1,0 +1,14 @@
+<div class="gc-carousel" role="region" aria-roledescription="carousel" aria-label="{{title}}">
+  <div class="gc-carousel-slides" data-current-index="0">
+    {{#slides}}
+      <div class="gc-carousel-slide" data-slide-index="{{@index}}">{{{content}}}</div>
+    {{/slides}}
+  </div>
+  <button class="gc-carousel-prev" aria-label="Previous slide">‹</button>
+  <button class="gc-carousel-next" aria-label="Next slide">›</button>
+  <div class="gc-carousel-indicators">
+    {{#slides}}
+      <button class="gc-carousel-indicator" data-slide="{{@index}}" aria-label="Go to slide {{inc @index}}"></button>
+    {{/slides}}
+  </div>
+</div>

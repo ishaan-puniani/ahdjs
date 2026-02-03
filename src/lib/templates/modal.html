@@ -1,0 +1,7 @@
+<div class="gc-modal-overlay"
+     @click="closeModal({ event: $event })">
+    <div class="gc-modal" @click.stop>
+        {{ close }}
+        <div class="gc-modal-content">{{ content }}</div>
+    </div>
+</div>
