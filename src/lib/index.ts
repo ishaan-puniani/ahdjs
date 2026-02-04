@@ -345,7 +345,7 @@ class AHD extends GuideChimp {
     return appBannerData;
   }
 
-  private renderCarouselBanner(bannerRow: any, identifier?: string) {
+  async renderCarouselBanner(bannerRow: any, identifier?: string) {
     this.destroyCarousel();
     const slides = Array.isArray(bannerRow.slides) ? bannerRow.slides : [];
     if (!slides.length) return;
@@ -502,7 +502,7 @@ class AHD extends GuideChimp {
     delete (this as any)._ahd_carousel;
   }
 
-  private renderModalBanner(content: string, bannerData: any) {
+  async renderModalBanner(content: string, bannerData: any) {
     this.removeModalBanner();
 
     if (!content) return;
