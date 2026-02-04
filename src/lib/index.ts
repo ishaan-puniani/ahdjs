@@ -324,7 +324,20 @@ class AHD extends GuideChimp {
     } else if (firstRow?.type === 'modal') {
       this.renderModalBanner(bannerContent, firstRow);
     } else if (identifier) {
-      const container = document.querySelector(identifier);
+      console.log('Rendering banner in ', identifier);
+      let container = null;
+      try {
+        container = document.querySelector(identifier);
+      } catch (e) {
+        container = null;
+      }
+      if (!container && identifier && !identifier.startsWith('#')) {
+        try {
+          container = document.querySelector('#' + identifier);
+        } catch (e) {
+          container = null;
+        }
+      }
       if (container && bannerContent) {
         container.innerHTML = bannerContent;
       }
