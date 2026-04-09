@@ -160,7 +160,6 @@ const { match } = require("path-to-regexp");
 
 const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
-const APP_BANNER_DATA_STORAGE_KEY = "APP_BANNER_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
@@ -292,19 +291,27 @@ class AHD extends GuideChimp {
   }
 
   async showAppBanner(identifier: string, refetch: boolean) {
-    let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
-    if (!appBannerData || refetch) {
-      appBannerData = await this.fetchAndCacheBannerData(identifier);
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheTourData(toursData, identifier);
     }
+
+    const appBannerData = Array.isArray(toursData?.appBanners)
+      ? toursData.appBanners.filter((b: any) => b.identifier === identifier)
+      : [];
 
     return appBannerData;
   }
   async renderAppBanner(identifier: string, refetch: boolean) {
-    let appBannerData = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY);
-    if (!appBannerData || refetch) {
-      appBannerData = await this.fetchAndCacheBannerData(identifier);
+    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+    if (!toursData || refetch) {
+      toursData = await this.fetchAndCacheTourData(toursData, identifier);
     }
+
+    const appBannerData = Array.isArray(toursData?.appBanners)
+      ? toursData.appBanners.filter((b: any) => b.identifier === identifier)
+      : [];
 
     const firstRow = Array.isArray(appBannerData)
       ? appBannerData[0]
@@ -342,6 +349,16 @@ class AHD extends GuideChimp {
         container.innerHTML = bannerContent;
       }
     }
+
+    if (firstRow) {
+      const bannerId = firstRow.id || firstRow._id;
+      const slideIds = Array.isArray(firstRow.slides)
+        ? firstRow.slides.map((s: any) => s.id || s._id).filter(Boolean)
+        : [];
+      (this as any)._ahd_active_banner = { bannerId, slideIds };
+      this.acknowledgeAppBanner(bannerId, slideIds);
+    }
+
     return appBannerData;
   }
 
@@ -552,6 +569,12 @@ class AHD extends GuideChimp {
   }
 
   removeModalBanner() {
+    const activeBanner = (this as any)._ahd_active_banner;
+    if (activeBanner) {
+      const { bannerId, stepIds } = activeBanner;
+      this.acknowledgeAppBanner(bannerId, stepIds);
+      delete (this as any)._ahd_active_banner;
+    }
     const existingModal = document.querySelector('[data-ahd-modal="true"]');
     if (existingModal) {
       existingModal.remove();
@@ -884,29 +907,7 @@ class AHD extends GuideChimp {
   }
 
 
-  private async fetchAndCacheBannerData(identifier: string) {
-    let appBannerData;
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/app-banner-v2?filter[status]=live&filter[identifier]=${encodeURIComponent(
-        identifier
-      )}`
-    ).then((res) => res.json());
-    if (respons.rows) {
-      appBannerData = respons.rows.filter((row: any) => {
-        if (row && row.content) return true;
-        if (row && Array.isArray(row.slides)) {
-          return row.slides.some((slide: any) => !!slide && !!slide.content);
-        }
-        return false;
-      });
-      LocalStorage.put(
-        APP_BANNER_DATA_STORAGE_KEY,
-        appBannerData,
-        this.options.appBannerRefetchIntervalInSec
-      );
-    }
-    return appBannerData;
-  }
+
 
   // private async fetchAndCacheHelpData(helpData: any) {
   //   const respons: any = await fetch(
@@ -970,6 +971,13 @@ class AHD extends GuideChimp {
       );
     }
     return visits;
+  }
+
+  private acknowledgeAppBanner(bannerId: string, slideIds: string[]) {
+    if (!bannerId) return;
+    slideIds.forEach((slideId) => {
+      this.acknowledgeStep('app-banner', bannerId, slideId);
+    });
   }
 
   private async acknowledgeStep(type: string, id: string, stepId: string) {
