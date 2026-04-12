@@ -303,6 +303,7 @@ class AHD extends GuideChimp {
 
     return appBannerData;
   }
+  
   async renderAppBanner(identifier: string, refetch: boolean) {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
