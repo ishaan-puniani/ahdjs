@@ -303,10 +303,10 @@ class AHD extends GuideChimp {
 
     return appBannerData;
   }
-  
+
   async renderAppBanner(identifier: string, refetch: boolean) {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-    if (!toursData || refetch) {
+    if (refetch) {
       toursData = await this.fetchAndCacheTourData(toursData, identifier);
     }
 
@@ -437,7 +437,7 @@ class AHD extends GuideChimp {
       modal.appendChild(contentContainer);
       modalOverlay.appendChild(modal);
       modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) this.removeModalBanner(); });
-      document.addEventListener('keydown', function escHandler(e: KeyboardEvent) { if (e.key === 'Escape') { document.removeEventListener('keydown', escHandler); }});
+      document.addEventListener('keydown', function escHandler(e: KeyboardEvent) { if (e.key === 'Escape') { document.removeEventListener('keydown', escHandler); } });
       document.body.style.overflow = 'hidden';
       document.body.appendChild(modalOverlay);
       mountParent = carousel;
@@ -516,7 +516,7 @@ class AHD extends GuideChimp {
         carousel.removeEventListener('touchend', handlers.onTouchEnd);
         if (carousel.parentElement) carousel.parentElement.removeChild(carousel);
       }
-    } catch (e) {}
+    } catch (e) { }
     delete (this as any)._ahd_carousel;
   }
 
@@ -685,7 +685,7 @@ class AHD extends GuideChimp {
               boundary: "outer",
               class: "beacon-labs64",
               triggerMode: step.triggerMode || behavior.triggerMode,
-              trigger: step.triggerBehaviour || behavior.triggerBehaviour ,
+              trigger: step.triggerBehaviour || behavior.triggerBehaviour,
               tour: {
                 steps: tourSteps,
                 options: this.options
@@ -741,7 +741,7 @@ class AHD extends GuideChimp {
           beaconInstance.removeAll();
         }
       } catch (e) {
-      
+
       }
     }
 
