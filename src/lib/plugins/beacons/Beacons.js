@@ -151,6 +151,9 @@ export default class Beacons {
       this.addOnScrollListener();
       this.observeDomMutations();
       
+      // Try to resolve pending beacons immediately (DOM might already contain targets)
+      this.searchForPendingElements();
+
       // Start periodic search for pending beacons
       this.startElementSearch();
     }
@@ -182,8 +185,10 @@ export default class Beacons {
     parentEl.append(beaconEl);
     this.elements.set(beacon, beaconEl);
     this.setBeaconPosition(el, beaconEl, beacon);
-    
-    if (this.isCanShowBeacon(beacon)) {
+   if (beacon._forceShow) {
+      beaconEl.hidden = false;
+      delete beacon._forceShow;
+    } else if (this.isCanShowBeacon(beacon)) {
       beaconEl.hidden = false;
     }
 
@@ -593,6 +598,8 @@ export default class Beacons {
         if (force || this.isCanShowBeacon(beacon)) {
           beaconEl.hidden = false;
         }
+      } else if (force) {
+        beacon._forceShow = true;
       }
     }
 
