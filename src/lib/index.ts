@@ -347,7 +347,45 @@ class AHD extends GuideChimp {
         }
       }
       if (container && bannerContent) {
-        container.innerHTML = bannerContent;
+        const isSimpleBanner = !firstRow?.type || firstRow?.type === 'simpleBanner';
+        if (isSimpleBanner) {
+          const bannerId = firstRow?.id || firstRow?._id;
+          const slideIds = Array.isArray(firstRow?.slides)
+            ? firstRow.slides.map((s: any) => s.id || s._id).filter(Boolean)
+            : [];
+
+          const wrapper = document.createElement('div');
+          wrapper.className = 'gc-simple-banner';
+          wrapper.setAttribute('data-ahd-simple-banner', 'true');
+          wrapper.style.position = 'relative';
+          wrapper.innerHTML = bannerContent;
+
+          const slideBehaviour = firstRow?.slides?.[0]?.behaviour || firstRow?.behaviour || {};
+          if (slideBehaviour?.showCloseIcon) {
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'gc-close';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '0';
+            closeBtn.style.right = '0';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.zIndex = '10';
+            if (slideBehaviour?.iconCloseColor) {
+              closeBtn.style.setProperty('--gc-close-foreground', slideBehaviour.iconCloseColor);
+            }
+            closeBtn.addEventListener('click', () => {
+              if (bannerId) {
+                this.acknowledgeAppBanner(bannerId, slideIds);
+              }
+              wrapper.remove();
+              delete (this as any)._ahd_active_banner;
+            });
+            wrapper.appendChild(closeBtn);
+          }
+          container.innerHTML = '';
+          container.appendChild(wrapper);
+        } else {
+          container.innerHTML = bannerContent;
+        }
       }
     }
 
@@ -357,7 +395,11 @@ class AHD extends GuideChimp {
         ? firstRow.slides.map((s: any) => s.id || s._id).filter(Boolean)
         : [];
       (this as any)._ahd_active_banner = { bannerId, slideIds };
-      this.acknowledgeAppBanner(bannerId, slideIds);
+      const isSimpleBanner = !firstRow?.type || firstRow?.type === 'simpleBanner';
+      const isModal = firstRow?.type === 'modal';
+      if (!isSimpleBanner && !isModal) {
+        this.acknowledgeAppBanner(bannerId, slideIds);
+      }
     }
 
     return appBannerData;
@@ -572,8 +614,8 @@ class AHD extends GuideChimp {
   removeModalBanner() {
     const activeBanner = (this as any)._ahd_active_banner;
     if (activeBanner) {
-      const { bannerId, stepIds } = activeBanner;
-      this.acknowledgeAppBanner(bannerId, stepIds);
+      const { bannerId, slideIds } = activeBanner;
+      this.acknowledgeAppBanner(bannerId, slideIds);
       delete (this as any)._ahd_active_banner;
     }
     const existingModal = document.querySelector('[data-ahd-modal="true"]');
