@@ -361,7 +361,10 @@ class AHD extends GuideChimp {
           wrapper.innerHTML = bannerContent;
 
           const slideBehaviour = firstRow?.slides?.[0]?.behaviour || firstRow?.behaviour || {};
-          if (slideBehaviour?.showCloseIcon) {
+          const showClose = slideBehaviour?.showCloseIcon
+            || firstRow?.slides?.[0]?.showCloseIcon
+            || firstRow?.showCloseIcon;
+          if (showClose) {
             const closeBtn = document.createElement('div');
             closeBtn.className = 'gc-close';
             closeBtn.style.position = 'absolute';
@@ -369,9 +372,10 @@ class AHD extends GuideChimp {
             closeBtn.style.right = '0';
             closeBtn.style.cursor = 'pointer';
             closeBtn.style.zIndex = '10';
-            if (slideBehaviour?.iconCloseColor) {
-              closeBtn.style.setProperty('--gc-close-foreground', slideBehaviour.iconCloseColor);
-            }
+            closeBtn.style.setProperty(
+              '--gc-close-foreground',
+              slideBehaviour?.iconCloseColor || firstRow?.styles?.iconCloseColor || '#000'
+            );
             closeBtn.addEventListener('click', () => {
               if (bannerId) {
                 this.acknowledgeAppBanner(bannerId, slideIds);
@@ -468,9 +472,7 @@ class AHD extends GuideChimp {
       modal.className = 'gc-modal';
       const closeBtn = document.createElement('div');
       closeBtn.className = 'gc-close';
-      if (bannerRow?.styles?.iconCloseColor) {
-        closeBtn.style.setProperty('--gc-close-foreground', bannerRow.styles.iconCloseColor);
-      }
+      closeBtn.style.setProperty('--gc-close-foreground', bannerRow?.styles?.iconCloseColor || '#000');
       closeBtn.addEventListener('click', () => this.removeModalBanner());
       const contentContainer = document.createElement('div');
       contentContainer.className = 'gc-modal-content';
@@ -580,9 +582,7 @@ class AHD extends GuideChimp {
 
     const closeBtn = document.createElement('div');
     closeBtn.className = 'gc-close';
-    if (bannerData?.styles?.iconCloseColor) {
-      closeBtn.style.setProperty('--gc-close-foreground', bannerData.styles.iconCloseColor);
-    }
+    closeBtn.style.setProperty('--gc-close-foreground', bannerData?.styles?.iconCloseColor || '#000');
     closeBtn.addEventListener('click', () => this.removeModalBanner());
 
     const contentContainer = document.createElement('div');
