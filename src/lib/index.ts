@@ -280,7 +280,8 @@ class AHD extends GuideChimp {
               type: row.type || "tour",
               iconCloseColor: step.style?.iconCloseColor ?? step.behaviour?.iconCloseColor,
               navigationMode: step?.behaviour?.navigationMode || step.navigationMode,
-              navigationDelay: step?.behaviour?.navigationDelay || step.navigationDelay
+              navigationDelay: step?.behaviour?.navigationDelay || step.navigationDelay,
+              showStep: step?.behaviour?.showStep
             }))
           : []
       );

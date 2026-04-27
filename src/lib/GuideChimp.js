@@ -557,9 +557,19 @@ export default class GuideChimp {
         const { scrollBehavior } = this.options;
         const { scrollPadding = this.options.scrollPadding } = this.currentStep;
 
+        const resolvedEl = this.getStepEl(this.currentStep);
+        if (!resolvedEl && this.currentStep && this.currentStep.showStep === false) {
+            this.stopPreloader();
+            if (this.nextStep) {
+                return this.go(this.nextStepIndex, true, ...args);
+            }
+            await this.stop(...args);
+            return false;
+        }
+
         // scroll to element
         this.scrollParentsToStepEl();
-        this.scrollTo(this.getStepEl(this.currentStep, true), scrollBehavior, scrollPadding);
+        this.scrollTo(resolvedEl || this.getStepEl(this.currentStep), scrollBehavior, scrollPadding);
 
         this.mountStep();
 
