@@ -365,6 +365,8 @@ class AHD extends GuideChimp {
           const showClose = slideBehaviour?.showCloseIcon
             || firstRow?.slides?.[0]?.showCloseIcon
             || firstRow?.showCloseIcon;
+          console.log('Closing banner ', bannerId, slideIds);
+
           if (showClose) {
             const closeBtn = document.createElement('div');
             closeBtn.className = 'gc-close';
