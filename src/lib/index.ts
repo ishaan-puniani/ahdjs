@@ -863,6 +863,49 @@ class AHD extends GuideChimp {
     this.updateVisitorStats({ ack: [id] }, "highlight");
   }
 
+  async markUnacknowledge(slugOrIdentifier: string) {
+    const toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
+
+    let match: any = null;
+    let type: string = null;
+
+    if (toursData) {
+      const banner = (toursData.appBanners || []).find((b: any) => b.identifier === slugOrIdentifier);
+      const tour = !banner && (toursData.tours || []).find((t: any) => t.slug === slugOrIdentifier);
+      const tooltip = !banner && !tour && (toursData.tooltips || []).find((t: any) => t.slug === slugOrIdentifier);
+
+      if (banner) { match = banner; type = 'app-banner'; }
+      else if (tour) { match = tour; type = 'tour'; }
+      else if (tooltip) { match = tooltip; type = 'tooltip'; }
+    }
+
+    if (!match) {
+      console.warn(`markUnacknowledge: no item found for "${slugOrIdentifier}" in TOUR_DATA_STORAGE_KEY`);
+      return;
+    }
+
+    const ackId = match._id || match.id;
+
+    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/stats/mark-unacknowledged/${this.options.visitorId}/${ackId}`;
+    await fetch(url, { method: 'GET', redirect: 'follow' }).then((res) => res.json());
+
+    const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
+    const acknowledged: string[] = stats?.ack || [];
+    LocalStorage.put(
+      AHD_VISITOR_STATS_STORAGE_KEY,
+      { ...stats, ack: acknowledged.filter((id: string) => id !== ackId) },
+      86400
+    );
+
+    await this.fetchAndCachePageVisitsData(null);
+
+    if (type === 'app-banner') {
+      await this.renderAppBanner(slugOrIdentifier, true);
+    } else {
+      await this.showHighlights(window.location.href, true);
+    }
+  }
+
   private generateDescription(content: any) {
     let description = content.content || "";
     // debugger;
