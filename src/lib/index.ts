@@ -295,7 +295,7 @@ class AHD extends GuideChimp {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData);
+      toursData = await this.fetchAndCacheTourData(toursData, identifier);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -325,7 +325,7 @@ class AHD extends GuideChimp {
   async renderAppBanner(identifier: string, refetch: boolean) {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData);
+      toursData = await this.fetchAndCacheTourData(toursData, identifier);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
