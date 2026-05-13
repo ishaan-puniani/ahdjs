@@ -295,7 +295,7 @@ class AHD extends GuideChimp {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier);
+      toursData = await this.fetchAndCacheTourData(toursData);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -305,10 +305,27 @@ class AHD extends GuideChimp {
     return appBannerData;
   }
 
+  private handleBannerClick(e: MouseEvent) {
+    const target = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
+    if (!target) return;
+    const action = target.getAttribute('data-action');
+    if (action === 'postMessageEvent') {
+      const eventName = target.getAttribute('data-post-message-event') || (() => {
+        try { return JSON.parse(target.getAttribute('data-action-payload') || '{}').postMessageEvent; } catch (_) { return null; }
+      })();
+      console.log('[AHDjs] postMessageEvent eventName:', eventName);
+      if (eventName) {
+        e.stopPropagation();
+        window.postMessage({ type: eventName }, '*');
+        console.log('[AHDjs] postMessage sent:', { type: eventName });
+      }
+    }
+  }
+
   async renderAppBanner(identifier: string, refetch: boolean) {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier);
+      toursData = await this.fetchAndCacheTourData(toursData);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -390,8 +407,10 @@ class AHD extends GuideChimp {
           }
           container.innerHTML = '';
           container.appendChild(wrapper);
+          wrapper.addEventListener('click', (e) => this.handleBannerClick(e));
         } else {
           container.innerHTML = bannerContent;
+          container.addEventListener('click', (e) => this.handleBannerClick(e));
         }
       }
     }
@@ -434,6 +453,7 @@ class AHD extends GuideChimp {
       slide.setAttribute('data-slide-index', String(idx));
       const slideContent = s?.content?.content || s?.content || '';
       slide.innerHTML = slideContent;
+      slide.addEventListener('click', (e) => this.handleBannerClick(e));
       slidesWrap.appendChild(slide);
     });
 
@@ -591,6 +611,7 @@ class AHD extends GuideChimp {
     const contentContainer = document.createElement('div');
     contentContainer.className = 'gc-modal-content';
     contentContainer.innerHTML = content;
+    contentContainer.addEventListener('click', (e) => this.handleBannerClick(e));
 
     modal.appendChild(closeBtn);
     modal.appendChild(contentContainer);
