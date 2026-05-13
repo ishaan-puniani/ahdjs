@@ -218,9 +218,37 @@ export default class GuideChimp {
 
 
     handleClick(e) {
-
         const action = e.target.getAttribute("data-action");
-        if (action && this.actions[action]) {
+        if (!action) return;
+
+        if (action === 'goToStep') {
+            const btn = e.target.closest('[data-goto-step], [data-action-payload]')
+                || e.target.closest('[data-action="goToStep"]');
+            const stepNumber = btn ? (btn.getAttribute('data-goto-step') || (() => {
+                try { return JSON.parse(btn.getAttribute('data-action-payload') || '{}').goToStep; } catch (_) { return null; }
+            })()) : null;
+            if (stepNumber !== null && stepNumber !== undefined && stepNumber !== '') {
+                const stepIndex = parseInt(stepNumber, 10) - 1;
+                if (!isNaN(stepIndex) && stepIndex >= 0) {
+                    this.onGotoStep(stepIndex);
+                }
+            }
+            return;
+        }
+
+        if (action === 'postMessageEvent') {
+            const btn = e.target.closest('[data-post-message-event], [data-action-payload]')
+                || e.target.closest('[data-action="postMessageEvent"]');
+            const eventName = btn ? (btn.getAttribute('data-post-message-event') || (() => {
+                try { return JSON.parse(btn.getAttribute('data-action-payload') || '{}').postMessageEvent; } catch (_) { return null; }
+            })()) : null;
+            if (eventName) {
+                window.postMessage({ type: eventName }, '*');
+            }
+            return;
+        }
+
+        if (this.actions[action]) {
             this.actions[action]();
         }
     }
