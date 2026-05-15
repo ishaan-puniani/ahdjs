@@ -164,10 +164,16 @@ const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
 class AHD extends GuideChimp {
+  private _lastPageUrl: string = '';
+  private _lastRenderedIdentifier: string = '';
+
   constructor(tour, options = {}) {
 
     if (options.userId && !options.visitorId) {
       options.visitorId = options.userId;
+    }
+    if (!options.language) {
+      options.language = '';
     }
     super(tour, options);
     this.attachPlugins();
@@ -224,7 +230,8 @@ class AHD extends GuideChimp {
     return typeof val === 'number' ? val : parseInt(val);
   }
 
-  async showPageTour(url: string,) {
+  async showPageTour(url: string) {
+    this._lastPageUrl = url;
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
@@ -323,6 +330,7 @@ class AHD extends GuideChimp {
   }
 
   async renderAppBanner(identifier: string, refetch: boolean) {
+    this._lastRenderedIdentifier = identifier;
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (refetch) {
       toursData = await this.fetchAndCacheTourData(toursData, identifier);
@@ -670,6 +678,7 @@ class AHD extends GuideChimp {
   }
 
   async showPageBeacons(url: string) {
+    this._lastPageUrl = url;
     await this.stop();
 
     if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
@@ -798,6 +807,7 @@ class AHD extends GuideChimp {
   }
 
   async showHighlights(url: string, refetch: boolean) {
+    this._lastPageUrl = url;
     await this.stop();
 
     if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
@@ -867,6 +877,17 @@ class AHD extends GuideChimp {
     LocalStorage.removeKey(HELP_DATA_STORAGE_KEY);
     LocalStorage.removeKey(TOUR_DATA_STORAGE_KEY);
     LocalStorage.removeKey(AHD_VISITOR_STATS_STORAGE_KEY);
+  }
+
+  async setLanguage(lang: string) {
+    this.options.language = lang;
+    await this.clearCachedData();
+    if (this._lastPageUrl) {
+      await this.showHighlights(this._lastPageUrl, true);
+    }
+    if (this._lastRenderedIdentifier) {
+      await this.renderAppBanner(this._lastRenderedIdentifier, true);
+    }
   }
 
   async acknowledgeHighlight(id: string) {
@@ -988,7 +1009,7 @@ class AHD extends GuideChimp {
   }
   private async fetchAndCacheHighlightsData(highlightsData: any) {
     const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/highlights?filter[isActive]=true`
+      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/highlights?filter[isActive]=true&filter[language]=${this.options.language || ''}`
     ).then((res) => res.json());
     if (respons.rows) {
       highlightsData = respons.rows.filter((row: any) => !!row.content);
@@ -1002,7 +1023,7 @@ class AHD extends GuideChimp {
   }
 
   private async fetchAndCacheTourData(toursData: any, slug: string) {
-    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop`;
+    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop&filter[language]=${this.options.language || ''}`;
     const response: any = await fetch(url).then((res) => res.json());
     if (response) {
       toursData = response;
