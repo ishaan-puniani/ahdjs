@@ -806,6 +806,24 @@ class AHD extends GuideChimp {
     }).showAll();
   }
 
+  private resolveSlugPatternForUrl(url: string, cachedData: any): string {
+    if (cachedData) {
+      const allItems = [
+        ...(cachedData.tours || []),
+        ...(cachedData.tooltips || []),
+      ];
+      for (const item of allItems) {
+        if (!item.slug) continue;
+        try {
+          const matcher = match(item.slug, { decode: decodeURIComponent });
+          if (matcher(url)) return item.slug;
+        } catch (e) {}
+      }
+    }
+    // Replace MongoDB ObjectIds (24-char hex) or numeric IDs with :id
+    return url.replace(/\/([a-f0-9]{24}|[0-9]+)(?=\/|$)/gi, '/:id');
+  }
+
   async showHighlights(url: string, refetch: boolean) {
     this._lastPageUrl = url;
     await this.stop();
@@ -823,7 +841,8 @@ class AHD extends GuideChimp {
 
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, url);
+      const slugToFetch = this.resolveSlugPatternForUrl(url, toursData);
+      toursData = await this.fetchAndCacheTourData(toursData, slugToFetch);
     }
 
     const matchingTours = toursData?.tours?.filter((td) => {
