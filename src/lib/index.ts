@@ -826,10 +826,20 @@ class AHD extends GuideChimp {
       toursData = await this.fetchAndCacheTourData(toursData, url);
     }
 
-    if (toursData && toursData.tours?.length > 0) {
+    const matchingTours = toursData?.tours?.filter((td) => {
+      const matcher = match(td.slug, { decode: decodeURIComponent });
+      return matcher(url);
+    }) || [];
+
+    const matchingTooltips = toursData?.tooltips?.filter((td) => {
+      const matcher = match(td.slug, { decode: decodeURIComponent });
+      return matcher(url);
+    }) || [];
+
+    if (matchingTours.length > 0) {
       this.showPageTour(url);
     }
-    if (toursData && toursData.tooltips?.length > 0) {
+    if (matchingTooltips.length > 0) {
       this.showPageBeacons(url);
     }
   }
