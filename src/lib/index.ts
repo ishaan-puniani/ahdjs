@@ -302,7 +302,7 @@ class AHD extends GuideChimp {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier);
+      toursData = await this.fetchAndCacheTourData(toursData, identifier, false);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -333,7 +333,7 @@ class AHD extends GuideChimp {
     this._lastRenderedIdentifier = identifier;
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier);
+      toursData = await this.fetchAndCacheTourData(toursData, identifier, false);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -807,18 +807,16 @@ class AHD extends GuideChimp {
   }
 
   private resolveSlugPatternForUrl(url: string, cachedData: any): string {
-    if (cachedData) {
-      const allItems = [
-        ...(cachedData.tours || []),
-        ...(cachedData.tooltips || []),
-      ];
-      for (const item of allItems) {
-        if (!item.slug) continue;
-        try {
-          const matcher = match(item.slug, { decode: decodeURIComponent });
-          if (matcher(url)) return item.slug;
-        } catch (e) {}
-      }
+    const allItems = [
+      ...(cachedData?.tours || []),
+      ...(cachedData?.tooltips || []),
+    ];
+    for (const item of allItems) {
+      if (!item.slug) continue;
+      try {
+        const matcher = match(item.slug, { decode: decodeURIComponent });
+        if (matcher(url)) return item.slug;
+      } catch (e) {}
     }
     // Replace MongoDB ObjectIds (24-char hex) or numeric IDs with :id
     return url.replace(/\/([a-f0-9]{24}|[0-9]+)(?=\/|$)/gi, '/:id');
@@ -841,19 +839,18 @@ class AHD extends GuideChimp {
 
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
-      const slugToFetch = this.resolveSlugPatternForUrl(url, toursData);
-      toursData = await this.fetchAndCacheTourData(toursData, slugToFetch);
+      toursData = await this.fetchAndCacheTourData(toursData, url);
     }
 
-    const matchingTours = toursData?.tours?.filter((td) => {
-      const matcher = match(td.slug, { decode: decodeURIComponent });
-      return matcher(url);
-    }) || [];
+    const matchesUrl = (td: any, u: string) => {
+      const slugs = [td.slug, ...(Array.isArray(td.altSlugs) ? td.altSlugs : [])].filter(Boolean);
+      return slugs.some((slug) => {
+        try { return !!match(slug, { decode: decodeURIComponent })(u); } catch (_) { return false; }
+      });
+    };
 
-    const matchingTooltips = toursData?.tooltips?.filter((td) => {
-      const matcher = match(td.slug, { decode: decodeURIComponent });
-      return matcher(url);
-    }) || [];
+    const matchingTours = toursData?.tours?.filter((td) => matchesUrl(td, url)) || [];
+    const matchingTooltips = toursData?.tooltips?.filter((td) => matchesUrl(td, url)) || [];
 
     if (matchingTours.length > 0) {
       this.showPageTour(url);
@@ -1022,18 +1019,14 @@ class AHD extends GuideChimp {
     const visited = stats?.visited || [];
 
     return toursData.filter((td) => {
-      const matcher = match(td.slug, { decode: decodeURIComponent });
-      const tourFound = matcher(url);
+      const slugs = [td.slug, ...(Array.isArray(td.altSlugs) ? td.altSlugs : [])].filter(Boolean);
+      const tourFound = slugs.some((slug) => {
+        try { return !!match(slug, { decode: decodeURIComponent })(url); } catch (_) { return false; }
+      });
 
-      if (!tourFound) {
-        return false;
-      }
-      if (forceShow) {
-        return true;
-      }
-      else {
-        return true;
-      }
+      if (!tourFound) return false;
+      if (forceShow) return true;
+      return !visited.includes(td.slug);
     });
   }
   private async fetchAndCacheHighlightsData(highlightsData: any) {
@@ -1051,8 +1044,12 @@ class AHD extends GuideChimp {
     return highlightsData;
   }
 
-  private async fetchAndCacheTourData(toursData: any, slug: string) {
-    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop&filter[language]=${this.options.language || ''}`;
+  private async fetchAndCacheTourData(toursData: any, slug: string, resolveSlug = true) {
+    if (slug && resolveSlug) {
+      slug = this.resolveSlugPatternForUrl(slug, toursData);
+    }
+    const langParam = this.options.language ? `&filter[language]=${this.options.language}` : '';
+    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
     const response: any = await fetch(url).then((res) => res.json());
     if (response) {
       toursData = response;
