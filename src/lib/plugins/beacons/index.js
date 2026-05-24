@@ -96,9 +96,17 @@ export default (Class, factory) => {
             break;
 
           case TRIGGER_EVENTS.onHover:
+            case TRIGGER_EVENTS.onMouseEnter:
             attachTo.addEventListener("mouseenter", handler);
             if (attachTo !== beaconEl) {
               beaconEl.addEventListener("mouseenter", handler);
+            }
+            break;
+
+          case TRIGGER_EVENTS.onMouseLeave:
+            attachTo.addEventListener("mouseleave", handler);
+            if (attachTo !== beaconEl) {
+              beaconEl.addEventListener("mouseleave", handler);
             }
             break;
 
