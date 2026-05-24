@@ -1297,7 +1297,22 @@ export default class GuideChimp {
         tooltipStyle.position = isTargetFixed ? 'fixed' : 'absolute';
         tooltipStyle.zIndex = '10001';
         tooltipStyle.visibility = "hidden";
-        setTimeout(() => {
+        // Cancel any pending visibility restore
+        if (this._tooltipShowTimer) {
+            clearTimeout(this._tooltipShowTimer);
+            this._tooltipShowTimer = null;
+        }
+        // If the step has a real selector target that is out of viewport, keep tooltip hidden
+        if (this.currentStep && this.currentStep.element) {
+            const _stepEl = this.getStepEl(this.currentStep);
+            if (_stepEl && !this.isEl(_stepEl, 'fakeStep')) {
+                const _r = _stepEl.getBoundingClientRect();
+                const _inView = _r.bottom > 0 && _r.top < window.innerHeight && _r.right > 0 && _r.left < window.innerWidth;
+                if (!_inView) return;
+            }
+        }
+        this._tooltipShowTimer = setTimeout(() => {
+            this._tooltipShowTimer = null;
             tooltipStyle.visibility = "visible";
         }, this.currentStep.delay || 1000);
 
@@ -1684,6 +1699,8 @@ export default class GuideChimp {
             } = boundaryRect;
             if (this.isEl(el, 'fakeStep')) {
                 position = 'floating';
+            } else if (this.currentStep?.type === 'demo') {
+                // demo type: use configured position as-is, no auto-repositioning
             } else {
                 const positions = ['bottom', 'right', 'left', 'top'];
                 let {
@@ -1706,11 +1723,13 @@ export default class GuideChimp {
                     positions.splice(positions.indexOf('bottom'), 1);
                 }
 
-                if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
+                const hWidth = tooltipWith;
+
+                if (hWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
                     positions.splice(positions.indexOf('left'), 1);
                 }
 
-                if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
+                if (hWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
                     positions.splice(positions.indexOf('right'), 1);
                 }
 
@@ -2870,6 +2889,24 @@ export default class GuideChimp {
                 if (poll.lastKey !== key) {
                     poll.lastKey = key;
                     this.refresh();
+                }
+                // Hide tooltip when step's target element scrolls out of viewport
+                if (this.currentStep && this.currentStep.element) {
+                    const stepEl = this.getStepEl(this.currentStep);
+                    if (stepEl && !this.isEl(stepEl, 'fakeStep')) {
+                        const sr = stepEl.getBoundingClientRect();
+                        const inView = sr.bottom > 0 && sr.top < window.innerHeight && sr.right > 0 && sr.left < window.innerWidth;
+                        const tooltipEl = this.getEl('tooltip');
+                        if (tooltipEl) {
+                            if (!inView) {
+                                if (this._tooltipShowTimer) {
+                                    clearTimeout(this._tooltipShowTimer);
+                                    this._tooltipShowTimer = null;
+                                }
+                                tooltipEl.style.visibility = 'hidden';
+                            }
+                        }
+                    }
                 }
             } catch (e) {
                 // ignore

@@ -1,6 +1,8 @@
 export const TRIGGER_EVENTS = {
   onClick: "onClick",
   onHover: "onHover",
+  onMouseLeave: "onMouseLeave",
+  onMouseEnter: "onMouseEnter",
   onPageLoad: "onPageLoad",
   onLongPress: "onLongPress",
 };

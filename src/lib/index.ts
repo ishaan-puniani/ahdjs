@@ -234,7 +234,6 @@ class AHD extends GuideChimp {
     this._lastPageUrl = url;
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-
     if (!toursData || !toursData.tours || !Array.isArray(toursData.tours)) {
       return;
     }
@@ -242,9 +241,8 @@ class AHD extends GuideChimp {
     const applicableTours = this.getApplicabeDataForUrl(
       toursData.tours,
       url,
-      false
+      true
     );
-
     if (applicableTours?.length > 0) {
       const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
       const visited = stats?.visited || [];
@@ -725,7 +723,7 @@ class AHD extends GuideChimp {
         return stepsArray
           .filter((step: any) => !!step.content)
           .map((step: any) => {
-            const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
+            const behavior = step.behaviour || step.contentMetadata?.document?.root?.data?.behaviour || {};
 
             const tourSteps = [
               {
@@ -816,7 +814,7 @@ class AHD extends GuideChimp {
       try {
         const matcher = match(item.slug, { decode: decodeURIComponent });
         if (matcher(url)) return item.slug;
-      } catch (e) {}
+      } catch (e) { }
     }
     // Replace MongoDB ObjectIds (24-char hex) or numeric IDs with :id
     return url.replace(/\/([a-f0-9]{24}|[0-9]+)(?=\/|$)/gi, '/:id');
@@ -848,11 +846,9 @@ class AHD extends GuideChimp {
         try { return !!match(slug, { decode: decodeURIComponent })(u); } catch (_) { return false; }
       });
     };
-
     const matchingTours = toursData?.tours?.filter((td) => matchesUrl(td, url)) || [];
     const matchingTooltips = toursData?.tooltips?.filter((td) => matchesUrl(td, url)) || [];
-
-    if (matchingTours.length > 0) {
+   if (matchingTours.length > 0) {
       this.showPageTour(url);
     }
     if (matchingTooltips.length > 0) {
