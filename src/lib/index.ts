@@ -723,7 +723,7 @@ class AHD extends GuideChimp {
         return stepsArray
           .filter((step: any) => !!step.content)
           .map((step: any) => {
-            const behavior = step.contentMetadata?.document?.root?.data?.behaviour || {};
+            const behavior = step.behaviour || step.contentMetadata?.document?.root?.data?.behaviour || {};
 
             const tourSteps = [
               {

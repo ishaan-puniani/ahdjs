@@ -1699,6 +1699,8 @@ export default class GuideChimp {
             } = boundaryRect;
             if (this.isEl(el, 'fakeStep')) {
                 position = 'floating';
+            } else if (this.currentStep?.type === 'demo') {
+                // demo type: use configured position as-is, no auto-repositioning
             } else {
                 const positions = ['bottom', 'right', 'left', 'top'];
                 let {
@@ -1721,11 +1723,13 @@ export default class GuideChimp {
                     positions.splice(positions.indexOf('bottom'), 1);
                 }
 
-                if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
+                const hWidth = tooltipWith;
+
+                if (hWidth + tooltipMarginLeft + tooltipMarginRight > elLeft - boundaryLeft) {
                     positions.splice(positions.indexOf('left'), 1);
                 }
 
-                if (minTooltipWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
+                if (hWidth + tooltipMarginLeft + tooltipMarginRight > boundaryRight - elRight) {
                     positions.splice(positions.indexOf('right'), 1);
                 }
 
