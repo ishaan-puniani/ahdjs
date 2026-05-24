@@ -234,7 +234,6 @@ class AHD extends GuideChimp {
     this._lastPageUrl = url;
     await this.stop();
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-    console.log('ToursData', toursData);
     if (!toursData || !toursData.tours || !Array.isArray(toursData.tours)) {
       return;
     }
@@ -244,7 +243,6 @@ class AHD extends GuideChimp {
       url,
       true
     );
-    console.log('Applicable tours for URL', url, applicableTours);
     if (applicableTours?.length > 0) {
       const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
       const visited = stats?.visited || [];
@@ -848,13 +846,9 @@ class AHD extends GuideChimp {
         try { return !!match(slug, { decode: decodeURIComponent })(u); } catch (_) { return false; }
       });
     };
-    console.log('Checking highlights for URL:', url);
-    console.log('Available tours data:', toursData);
     const matchingTours = toursData?.tours?.filter((td) => matchesUrl(td, url)) || [];
     const matchingTooltips = toursData?.tooltips?.filter((td) => matchesUrl(td, url)) || [];
-    console.log('Matching tours:', matchingTours);
-    console.log('Matching tooltips:', matchingTooltips);
-    if (matchingTours.length > 0) {
+   if (matchingTours.length > 0) {
       this.showPageTour(url);
     }
     if (matchingTooltips.length > 0) {
