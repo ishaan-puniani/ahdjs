@@ -164,6 +164,8 @@ const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
 class AHD extends GuideChimp {
+  private static _instances: Set<AHD> = new Set();
+
   private _lastPageUrl: string = '';
   private _lastRenderedIdentifier: string = '';
 
@@ -176,7 +178,24 @@ class AHD extends GuideChimp {
       options.language = '';
     }
     super(tour, options);
+    AHD._instances.add(this);
     this.attachPlugins();
+  }
+
+  stop(...args) {
+    if ((this as any).isDisplayed) {
+      super.stop(...args);
+      this.removeModalBanner();
+    }
+    AHD._instances.forEach(instance => {
+      if (instance !== this) {
+        try {
+          if ((instance as any).isDisplayed) {
+            instance.stop(...args);
+          }
+        } catch (e) {}
+      }
+    });
   }
 
   attachPlugins() {
@@ -654,6 +673,7 @@ class AHD extends GuideChimp {
       document.body.style.overflow = '';
     }
   }
+
 
   private normalizeDimensionToStyle(val: any): string {
     if (val === undefined || val === null) return '';
