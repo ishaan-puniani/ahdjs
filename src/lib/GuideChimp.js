@@ -171,6 +171,36 @@ export default class GuideChimp {
         };
     }
 
+    getScaleForWidth(width) {
+        if (width <= 360) return 0.65;
+        if (width <= 480) return 0.65;
+        if (width <= 768) return 0.75;
+        if (width <= 1023) return 0.85;
+        return 1;
+    }
+
+    applyRootWidthScale() {
+        const root = this.getRootEl();
+        if (!root || root === document.body) return;
+
+        const width = root.offsetWidth || root.getBoundingClientRect().width;
+        const scale = this.getScaleForWidth(width);
+
+        const tooltipEl = this.getEl('tooltip');
+        if (!tooltipEl) return;
+
+        const closeEl = tooltipEl.querySelector('.gc-close');
+        const copyrightEl = tooltipEl.querySelector('.gc-copyright');
+
+        if (closeEl) {
+            closeEl.style.transform = `scale(${scale})`;
+            closeEl.style.transformOrigin = 'top right';
+        }
+        if (copyrightEl) {
+            copyrightEl.style.transform = `scale(${scale})`;
+            copyrightEl.style.transformOrigin = 'bottom left';
+        }
+    }
 
     getElementVisibleRect(el) {
         if (!el) return new DOMRect(0, 0, 0, 0);
@@ -2020,6 +2050,7 @@ export default class GuideChimp {
         }
 
         this.setTooltipPosition(this.getEl('tooltip'));
+        this.applyRootWidthScale();
 
      if (this.referenceEl) {
             this.startPositionPoll();
@@ -3084,6 +3115,7 @@ export default class GuideChimp {
         this.setControlPosition(this.getEl('control'));
         this.setInteractionPosition(this.getEl('interaction'));
         this.setTooltipPosition(this.getEl('tooltip'));
+        this.applyRootWidthScale();
 
         return this;
     }
