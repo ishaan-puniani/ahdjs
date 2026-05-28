@@ -2138,12 +2138,15 @@ export default class GuideChimp {
 
         if (fakeEl && top !== undefined && left !== undefined && width && height) {
             const { innerWidth: refWidthDefault, innerHeight: refHeightDefault } = this.getViewportDims();
-            const refWidth = canvasWidth || refWidthDefault;
-            const refHeight = canvasHeight || refHeightDefault;
 
             const root = this.getRootEl();
             const hasCustomRoot = root && root !== document.body;
             const rootRect = hasCustomRoot ? root.getBoundingClientRect() : { left: 0, top: 0 };
+
+            // When inside a custom root (e.g. a scaled container), resolve percentages against
+            // the root's actual rendered dimensions so positions stay anchored at any viewport size.
+            const refWidth = hasCustomRoot ? (root.offsetWidth || rootRect.width || canvasWidth || refWidthDefault) : (canvasWidth || refWidthDefault);
+            const refHeight = hasCustomRoot ? (root.offsetHeight || rootRect.height || canvasHeight || refHeightDefault) : (canvasHeight || refHeightDefault);
 
             let topPx;
             let leftPx;
