@@ -163,6 +163,17 @@ const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
+const googleFonts = [
+  'Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins',
+  'Merriweather', 'Nunito', 'Noto Sans', 'Titillium Web', 'Lobster',
+  'Permanent Marker', 'Great Vibes', 'Libre Baskerville', 'EB Garamond', 'Lora',
+];
+
+const createGoogleFontsURL = (fonts: string[]) => {
+  const families = fonts.map(f => `family=${f.replace(/ /g, '+')}:wght@300;400;500;600;700`);
+  return `https://fonts.googleapis.com/css2?${families.join('&')}&display=swap`;
+};
+
 class AHD extends GuideChimp {
   private static _instances: Set<AHD> = new Set();
 
@@ -1003,6 +1014,14 @@ class AHD extends GuideChimp {
     //     description += `<br/><img  width="320" height="240" src="${img.downloadUrl}" />`;
     //   });
     // }
+    const fontLinkId = 'ahd-google-fonts';
+    if (!document.getElementById(fontLinkId)) {
+      const link = document.createElement('link');
+      link.id = fontLinkId;
+      link.rel = 'stylesheet';
+      link.href = createGoogleFontsURL(googleFonts);
+      document.head.appendChild(link);
+    }
     return description;
   }
 
