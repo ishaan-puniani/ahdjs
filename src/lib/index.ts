@@ -148,6 +148,7 @@
 import GuideChimp from "./GuideChimp";
 import { LocalStorage } from "ttl-localstorage";
 import Beacons from "./plugins/beacons";
+import { googleFonts, createGoogleFontsURL } from './fonts';
 /* ============
  * Styling
  * ============
@@ -1003,6 +1004,14 @@ class AHD extends GuideChimp {
     //     description += `<br/><img  width="320" height="240" src="${img.downloadUrl}" />`;
     //   });
     // }
+    const fontLinkId = 'ahd-google-fonts';
+    if (!document.getElementById(fontLinkId)) {
+      const link = document.createElement('link');
+      link.id = fontLinkId;
+      link.rel = 'stylesheet';
+      link.href = createGoogleFontsURL(googleFonts);
+      document.head.appendChild(link);
+    }
     return description;
   }
 
