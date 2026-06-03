@@ -1651,7 +1651,9 @@ export default class GuideChimp {
 
             if (overlayEls.length > 0) {
                 const overlayEl = overlayEls[0];
-                if (!overlayEl.classList.contains("gc-overlay-hidden")) {
+                if (this.currentStep && this.currentStep.isBackdrop) {
+                    overlayEl.classList.remove("gc-overlay-hidden");
+                } else {
                     overlayEl.classList.add("gc-overlay-hidden");
                 }
             }
