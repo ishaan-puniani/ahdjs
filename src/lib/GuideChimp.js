@@ -506,6 +506,7 @@ export default class GuideChimp {
         // add a class that increase the specificity of the classes
         document.body.classList.add(this.constructor.getBodyClass());
 
+        this._saveScrollState();
         const isStarted = await this.go(number, useIndex, ...args);
 
         this.isDisplayed = isStarted;
@@ -626,15 +627,19 @@ export default class GuideChimp {
             return false;
         }
 
-        // scroll to element
+        // unlock scroll, navigate to element, then relock
+        this._unlockScroll();
         this.scrollParentsToStepEl();
-        this.scrollTo(resolvedEl || this.getStepEl(this.currentStep), scrollBehavior, scrollPadding);
+        this.scrollToStepEl(resolvedEl || this.getStepEl(this.currentStep), scrollBehavior, scrollPadding);
 
         this.mountStep();
+        this._lockScroll();
 
         setTimeout(() => {
             if (this.getEl('tooltip')) {
-                this.scrollTo(this.getEl('tooltip'), scrollBehavior, scrollPadding);
+                this._unlockScroll();
+                this.scrollTo(this.getEl('tooltip'), 'instant', scrollPadding);
+                this._lockScroll();
             }
         }, 300);
 
@@ -736,6 +741,10 @@ export default class GuideChimp {
         this.cache.clear();
         this.elements.clear();
 
+        this._unlockScroll();
+        this._savedBodyOverflow = undefined;
+        this._savedHtmlOverflow = undefined;
+        this._savedRootOverflow = undefined;
 
         this.setDefaults();
         this.acknowledgeStep(type, id, stepId)
@@ -923,6 +932,90 @@ export default class GuideChimp {
         if (!(top >= 0 && bottom <= innerHeight)) {
             window.scrollBy({ behavior, top: top - scrollPadding });
         }
+
+        return this;
+    }
+
+    _saveScrollState() {
+        const root = this.getRootEl();
+        if (root && root !== document.body) {
+            this._savedRootOverflow = root.style.overflow;
+        } else {
+            this._savedBodyOverflow = document.body.style.overflow;
+            this._savedHtmlOverflow = document.documentElement.style.overflow;
+        }
+        return this;
+    }
+
+    _lockScroll() {
+        const root = this.getRootEl();
+        if (root && root !== document.body) {
+            root.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+        }
+        return this;
+    }
+
+    _unlockScroll() {
+        const root = this.getRootEl();
+        if (root && root !== document.body) {
+            root.style.overflow = this._savedRootOverflow !== undefined ? this._savedRootOverflow : '';
+        } else {
+            document.body.style.overflow = this._savedBodyOverflow !== undefined ? this._savedBodyOverflow : '';
+            document.documentElement.style.overflow = this._savedHtmlOverflow !== undefined ? this._savedHtmlOverflow : '';
+        }
+        return this;
+    }
+
+    _isHeaderOrFooterEl(el) {
+        const HEADER_FOOTER_TAGS = new Set(['HEADER', 'FOOTER', 'NAV']);
+        let node = el;
+        while (node && node !== document.body) {
+            if (HEADER_FOOTER_TAGS.has(node.tagName)) return true;
+            const pos = getComputedStyle(node).position;
+            if (pos === 'fixed' || pos === 'sticky') return true;
+            node = node.parentElement;
+        }
+        return false;
+    }
+
+    // For header/footer elements: position at 30% from top (clamped).
+    // For all other elements: center vertically in the viewport (clamped).
+    // Clamping means elements near the page bottom stay near the bottom
+    // rather than being forced into an impossible center position.
+    scrollToStepEl(el, behavior = 'auto', scrollPadding = 0) {
+        if (!el) return this;
+
+        // Force layout so rect values are fresh after any overflow change
+        const rect = el.getBoundingClientRect();
+        const { innerHeight, innerWidth } = this.getViewportDims();
+
+        // Horizontal: just ensure it's visible
+        if (!(rect.left >= 0 && rect.right <= innerWidth)) {
+            window.scrollBy({ behavior: 'instant', left: rect.left - scrollPadding });
+        }
+
+        const isHeaderFooter = this._isHeaderOrFooterEl(el);
+        const currentScrollY = window.scrollY || window.pageYOffset || 0;
+        const elTopInDocument = rect.top + currentScrollY;
+
+        let targetTopInViewport;
+        if (isHeaderFooter) {
+            // Header/footer: land at 30% from top with a small gap above
+            targetTopInViewport = innerHeight * 0.3 - scrollPadding;
+        } else {
+            // Content element: true vertical center — no padding offset so it
+            // stays exactly in the middle when space allows
+            targetTopInViewport = Math.max(0, (innerHeight - rect.height) / 2);
+        }
+
+        const desiredScrollY = elTopInDocument - targetTopInViewport;
+        const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        const clampedScrollY = Math.max(0, Math.min(desiredScrollY, maxScrollY));
+
+        window.scrollTo({ behavior: 'instant', top: clampedScrollY });
 
         return this;
     }
