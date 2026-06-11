@@ -1647,7 +1647,7 @@ export default class GuideChimp {
 
             const pad = (viewportWidth >= 1024) ? 0 : Math.max(0, padding || 0);
             if (computedTop !== null) {
-                if ((this.currentStep.lockPosition ?? this.options.lockPosition) && !hasCustomRoot) {
+                if ((this.currentStep.lockPosition ?? this.options.lockPosition)) {
                     tooltipStyle.top = `${computedTop}px`;
                 } else {
                     const clampedTop = clamp(computedTop, pad, Math.max(pad, viewportHeight - tooltipHeight - pad));
@@ -1656,7 +1656,7 @@ export default class GuideChimp {
                 tooltipStyle.bottom = 'auto';
             }
             if (computedLeft !== null) {
-                if ((this.currentStep.lockPosition ?? this.options.lockPosition) && !hasCustomRoot) {
+                if ((this.currentStep.lockPosition ?? this.options.lockPosition)) {
                     tooltipStyle.left = `${computedLeft}px`;
                 } else {
                     const clampedLeft = clamp(computedLeft, pad, Math.max(pad, viewportWidth - tooltipWidth - pad));
@@ -1680,7 +1680,9 @@ export default class GuideChimp {
                 tooltipStyle.animation = animationMode(this.currentStep.animationType);
             }
 
-            if (!(this.currentStep.lockPosition ?? this.options.lockPosition) || hasCustomRoot) clampToViewport(tooltipEl, 0);
+            const _lockPosNoEl = this.currentStep.lockPosition ?? this.options.lockPosition;
+            const _isCornerPos = ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(position);
+            if (!_lockPosNoEl || (hasCustomRoot && !_isCornerPos)) clampToViewport(tooltipEl, 0);
             return this;
         } else if (!hasElement && (hasTop || hasLeft)) {
             tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
@@ -1942,9 +1944,9 @@ export default class GuideChimp {
             // alignment adjustments for top/bottom positions
             if (position === 'top' || position === 'bottom') {
                 if (alignment === 'left') {
-                    computedLeft = Math.round(elLeft - (padding / 2));
+                    computedLeft = Math.round(elLeft - tooltipWith - (padding / 2));
                 } else if (alignment === 'right') {
-                    computedLeft = Math.round(elRight - tooltipWith + (padding / 2));
+                    computedLeft = Math.round(elRight + (padding / 2));
                 }
             }
 
@@ -1957,7 +1959,7 @@ export default class GuideChimp {
             const positionOffset = !isTargetFixed ? { top: scrollTop, left: scrollLeft } : { top: 0, left: 0 };
             
             if (computedTop !== null) {
-                if ((this.currentStep.lockPosition ?? this.options.lockPosition) && !hasCustomRoot) {
+                if ((this.currentStep.lockPosition ?? this.options.lockPosition)) {
                     tooltipStyle.top = `${computedTop + positionOffset.top}px`;
                 } else {
                     const { innerHeight } = this.getViewportDims();
@@ -1966,7 +1968,7 @@ export default class GuideChimp {
                 }
             }
             if (computedLeft !== null) {
-                if ((this.currentStep.lockPosition ?? this.options.lockPosition) && !hasCustomRoot) {
+                if ((this.currentStep.lockPosition ?? this.options.lockPosition)) {
                     tooltipStyle.left = `${computedLeft + positionOffset.left}px`;
                 } else {
                     const { innerWidth } = this.getViewportDims();
@@ -1979,16 +1981,19 @@ export default class GuideChimp {
             if (alignment) {
                 tooltipEl.setAttribute('data-guidechimp-alignment', alignment);
                 const { innerWidth: vpWidth } = this.getViewportDims();
-                const clampLeft = ((this.currentStep.lockPosition ?? this.options.lockPosition) && !hasCustomRoot)
+                const clampLeft = (this.currentStep.lockPosition ?? this.options.lockPosition)
                     ? (val) => val
                     : (val) => Math.max(0, Math.min(val, vpWidth - tooltipWith));
                 switch (alignment) {
                     case 'left': {
-                        tooltipStyle.left = `${clampLeft(elLeft - (padding / 2)) + positionOffset.left}px`;
+                        // tooltip ends at element's left edge (outside element, to the left)
+                        const leftVal = elLeft - tooltipWith - (padding / 2);
+                        tooltipStyle.left = `${clampLeft(leftVal) + positionOffset.left}px`;
                         break;
                     }
                     case 'right': {
-                        const rightVal = elRight - tooltipWith + (padding / 2);
+                        // tooltip starts at element's right edge (outside element, to the right)
+                        const rightVal = elRight + (padding / 2);
                         tooltipStyle.left = `${clampLeft(rightVal) + positionOffset.left}px`;
                         tooltipStyle.right = 'auto';
                         break;
@@ -2034,7 +2039,9 @@ export default class GuideChimp {
         }
 
         const _hasCustomRoot = this.getRootEl() && this.getRootEl() !== document.body;
-        if (!(this.currentStep.lockPosition ?? this.options.lockPosition) || _hasCustomRoot) clampToViewport(tooltipEl, 0);
+        const _lockPos = this.currentStep.lockPosition ?? this.options.lockPosition;
+        const _isCornerAlignment = alignment === 'left' || alignment === 'right';
+        if (!_lockPos || (_hasCustomRoot && !_isCornerAlignment)) clampToViewport(tooltipEl, 0);
         return this;
     }
 
