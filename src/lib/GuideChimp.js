@@ -627,21 +627,25 @@ export default class GuideChimp {
             return false;
         }
 
-        // unlock scroll, navigate to element, then relock
-        this._unlockScroll();
-        this.scrollParentsToStepEl();
-        this.scrollToStepEl(resolvedEl || this.getStepEl(this.currentStep), scrollBehavior, scrollPadding);
+        if (this.currentStep.type !== 'tooltip') {
+            // unlock scroll, navigate to element, then relock
+            this._unlockScroll();
+            this.scrollParentsToStepEl();
+            this.scrollToStepEl(resolvedEl || this.getStepEl(this.currentStep), scrollBehavior, scrollPadding);
+        }
 
         this.mountStep();
         this._lockScroll();
 
-        setTimeout(() => {
-            if (this.getEl('tooltip')) {
-                this._unlockScroll();
-                this.scrollTo(this.getEl('tooltip'), 'instant', scrollPadding);
-                this._lockScroll();
-            }
-        }, 300);
+        if (this.currentStep.type !== 'tooltip') {
+            setTimeout(() => {
+                if (this.getEl('tooltip')) {
+                    this._unlockScroll();
+                    this.scrollTo(this.getEl('tooltip'), 'instant', scrollPadding);
+                    this._lockScroll();
+                }
+            }, 300);
+        }
 
         if (onAfterChange) {
             onAfterChange.call(this, this.toStep, this.fromStep, ...args);
