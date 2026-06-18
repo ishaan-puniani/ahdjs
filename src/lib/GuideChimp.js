@@ -1884,11 +1884,11 @@ export default class GuideChimp {
                 if (position === 'top' || position === 'bottom') {
                     const alignments = ['left', 'right', 'middle'];
 
-                    if (boundaryRight - elLeft < minTooltipWidth) {
+                    if (elLeft - boundaryLeft < minTooltipWidth) {
                         alignments.splice(alignments.indexOf('left'), 1);
                     }
 
-                    if (elRight - boundaryLeft < minTooltipWidth) {
+                    if (boundaryRight - elRight < minTooltipWidth) {
                         alignments.splice(alignments.indexOf('right'), 1);
                     }
 
@@ -1897,7 +1897,9 @@ export default class GuideChimp {
                         alignments.splice(alignments.indexOf('middle'), 1);
                     }
 
-                    if (alignments.length) {
+                    if (alignment === undefined) {
+                       //
+                    } else if (alignments.length) {
                         alignment = alignments.includes(alignment) ? alignment : alignments[0];
                     } else {
                         alignment = 'middle';
