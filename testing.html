@@ -1,387 +1,470 @@
 <html>
-  <head>
-    <link rel="stylesheet" href="./build/css/index.css" />
-    <script type="text/javascript" src="/build/index.js"></script>
 
-    <body>
-      <div class="tour-container">
-        User input: <input id="user-input" /> <br /><br />
-        <span
-          id="try-and-buy"
-          class="tour-section"
-          data-ahd="create-new-entity"
-        >
-          Try & Buy </span
-        ><br />
-        <span id="subscription" class="tour-section">Subscription</span><br />
-        <span id="pricing-table" class="tour-section" data-ahd="heading">
-          Pricing Table </span
-        ><br />
-        <span
-          id="multi-feature"
-          class="tour-section"
-          data-ahd="add-fields-application"
-        >
-          Multi-Feature </span
-        ><br />
-        <span id="node-locked" class="tour-section" data-ahd="widget-video">
-          Node-Locked </span
-        ><br />
-        <span id="pay-per-use" class="tour-section">Pay-per-Use</span>
-      </div>
-      <script>
-        const tour1 = [
-          {
-            element: "#user-input2",
-            title: "Try & Buy",
-            description:
-              "Move to the next step is only possible if user input provided.",
-          },
-        ];
-        const tour = [
-          {
+<head>
+  <link rel="stylesheet" href="./build/css/index.css" />
+  <script type="text/javascript" src="/build/index.js"></script>
+
+<body>
+  <div class="tour-container">
+    User input: <input id="user-input" /> <br /><br />
+    <span id="try-and-buy" class="tour-section" data-ahd="create-new-entity">
+      Try & Buy </span><br />
+    <span id="subscription" class="tour-section">Subscription</span><br />
+    <span id="pricing-table" class="tour-section" data-ahd="heading">
+      Pricing Table </span><br />
+    <span id="multi-feature" class="tour-section" data-ahd="add-fields-application">
+      Multi-Feature </span><br />
+    <span id="node-locked" class="tour-section" data-ahd="widget-video">
+      Node-Locked </span><br />
+    <span id="pay-per-use" class="tour-section">Pay-per-Use</span>
+  </div>
+
+  <div
+    style="position: relative; padding-bottom: calc(54.75% + 25px); width: 100%; height: 0; transform: scale(1); margin-top: 40px;">
+    <iframe id="demo-iframe" loading="lazy"
+      src="http://localhost:3001/?tid=633bd6d693b46a69ab83ddff&did=6a31258c392dede462b86853&type=demo&status=live"
+      allow="fullscreen" style="position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 50%;
+            border: 1px solid rgba(63,95,172,0.35);
+            box-shadow: 0px 0px 18px rgba(26, 19, 72, 0.15);
+            border-radius: 10px;
+            box-sizing: border-box;
+            aspect-ratio: 16/9;
+            margin: 0 auto;">
+    </iframe>
+  </div>
+  <h1>ddd</h1>
+  <script>
+    window.addEventListener('message', function (event) {
+      var msg = event.data;
+
+      // log all iframe messages for debugging
+      if (msg && (msg.source === 'pagepilot-demo-viewer' || msg.type && msg.type.startsWith('DEMO_'))) {
+        console.log('[Demo raw]', msg.type, msg);
+      }
+
+      if (!msg || msg.source !== 'pagepilot-demo-viewer') return;
+
+      console.log('[Demo]', msg.type, msg);
+
+      switch (msg.type) {
+        case 'DEMO_STATUS':
+          var wrapper = document.getElementById('demo-wrapper');
+          if (msg.status === 'live') {
+            if (wrapper) wrapper.style.visibility = 'visible';
+          } else {
+            if (wrapper) wrapper.style.display = 'none';
+          }
+          break;
+
+        case 'DEMO_LOADED':
+          console.log('[Demo] DEMO_LOADED fired');
+          break;
+      }
+    });
+  </script>
+
+
+<script>
+  window.addEventListener('message', function (event) {
+    var msg = event.data;
+
+    // ignore anything not from our demo viewer
+    if (!msg || msg.source !== 'pagepilot-demo-viewer') return;
+
+    console.log('[Demo]', msg.type, msg);
+
+    switch (msg.type) {
+
+      case 'DEMO_LOAD_STARTED':
+        // viewer just mounted, show a skeleton or spinner
+        break;
+
+      case 'DEMO_LOADING':
+        // API call in-flight
+        break;
+
+      case 'DEMO_STATUS':
+        // msg.status is 'live' or 'draft'
+        if (msg.status === 'draft') {
+          // demo is in draft — show screenshot / overlay
+          var iframe = document.querySelector('iframe');
+          if (iframe) iframe.style.opacity = '0.4';
+
+          var draftBanner = document.getElementById('draft-banner');
+          if (draftBanner) draftBanner.style.display = 'block';
+        }
+        break;
+
+      case 'DEMO_LOADED':
+        // content is fully visible inside the iframe
+        var iframe = document.querySelector('iframe');
+        if (iframe) iframe.style.opacity = '1';
+        break;
+    }
+  });
+</script>
+
+
+
+
+  <script>
+    const tour1 = [
+      {
+        element: "#user-input2",
+        title: "Try & Buy",
+        description:
+          "Move to the next step is only possible if user input provided.",
+      },
+    ];
+    const tour = [
+      {
+        element: "#user-input",
+        title: "Try & Buy",
+        description:
+          "Move to the next step is only possible if user input provided.<iframe src='https://www.youtube.com/embed/k9xnxvujdBw?controls=0' />",
+
+        triggers: {
+          next: {
             element: "#user-input",
-            title: "Try & Buy",
-            description:
-              "Move to the next step is only possible if user input provided.<iframe src='https://www.youtube.com/embed/k9xnxvujdBw?controls=0' />",
-
-            triggers: {
-              next: {
-                element: "#user-input",
-                event: "change",
-                listener(e) {
-                  if (e.target.value) {
-                    alert('User input: "' + e.target.value + '"');
-                    this.next();
-                  }
-                },
-              },
+            event: "change",
+            listener(e) {
+              if (e.target.value) {
+                alert('User input: "' + e.target.value + '"');
+                this.next();
+              }
             },
           },
+        },
+      },
+      {
+        element: "#subscription",
+        title: "Subscription",
+        description:
+          "Subscription licensing model allows user to enable product for a specific period of time, with the possibility of the subscription renewal.",
+        buttons: [
           {
-            element: "#subscription",
-            title: "Subscription",
-            description:
-              "Subscription licensing model allows user to enable product for a specific period of time, with the possibility of the subscription renewal.",
-            buttons: [
-              {
-                title: "See more",
-                class: "tour-button",
-                onClick: function () {
-                  alert("Step button click");
-                },
-              },
-            ],
+            title: "See more",
+            class: "tour-button",
+            onClick: function () {
+              alert("Step button click");
+            },
           },
+        ],
+      },
+      {
+        element: "#pricing-table",
+        title: "Pricing Table",
+        description:
+          "Price and package in minutes without having to re-code or re-engineer back-office systems.",
+        buttons: [
           {
-            element: "#pricing-table",
+            title: "See more",
+            class: "tour-button",
+            onClick: function () {
+              alert("Step button click");
+            },
+          },
+        ],
+      },
+      {
+        element: "#multi-feature",
+        title: "Multi Feature",
+        description:
+          "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a “lite” version to “standard,” “pro,” “enterprise” etc. versions without modifying the software or uninstalling the existing version.",
+        buttons: [
+          {
+            title: "See more",
+            class: "tour-button",
+            onClick: function () {
+              alert("Step button click");
+            },
+          },
+        ],
+      },
+      {
+        element: "#node-locked",
+        title: "Node-Locked",
+        description:
+          "Software is licensed for use only on one or more named computer systems. Usually, CPU serial number verification is used to enforce this type of license.",
+        buttons: [
+          {
+            title: "See more",
+            class: "tour-button",
+            onClick: function () {
+              alert("Step button click");
+            },
+          },
+        ],
+      },
+      {
+        element: "#pay-per-use",
+        title: "Pay-per-Use",
+        description:
+          "Limits the quantity of the license uses, in addition to the license validity. License fees are based on the actual usage.",
+        buttons: [
+          {
+            title: "See more",
+            class: "tour-button",
+            onClick: function () {
+              alert("Step button click");
+            },
+          },
+        ],
+      },
+    ];
+    let beacons = [
+      {
+        element: "#user-input",
+        position: "top",
+        boundary: "outer",
+        class: "beacon-labs64",
+        tour: tour,
+      },
+      {
+        element: "#try-and-buy",
+        position: "top-left",
+        class: "beacon-green",
+        onClick() {
+          alert("Beacon clicked");
+        },
+      },
+      {
+        element: "#pricing-table",
+        position: "top-right",
+        canShow: function () {
+          // Load the video
+          // const videoPlayer = document.createElement("iframe");
+          // videoPlayer.src =
+          //   "https://www.youtube.com/embed/k9xnxvujdBw?controls=0";
+          // videoPlayer.allowFullscreen = true;
+          // videoPlayer.classList.add("video-player");
+          // const tourContainer = document.querySelector("#pricing-table");
+          // tourContainer.appendChild(videoPlayer);
+        },
+        tour: [
+          {
             title: "Pricing Table",
-            description:
-              "Price and package in minutes without having to re-code or re-engineer back-office systems.",
-            buttons: [
-              {
-                title: "See more",
-                class: "tour-button",
-                onClick: function () {
-                  alert("Step button click");
-                },
-              },
-            ],
-          },
-          {
-            element: "#multi-feature",
-            title: "Multi Feature",
-            description:
-              "This licensing model allows enabling or disabling product features on the users needs and budget. It may be used to create an upgrade path from a “lite” version to “standard,” “pro,” “enterprise” etc. versions without modifying the software or uninstalling the existing version.",
-            buttons: [
-              {
-                title: "See more",
-                class: "tour-button",
-                onClick: function () {
-                  alert("Step button click");
-                },
-              },
-            ],
-          },
-          {
-            element: "#node-locked",
-            title: "Node-Locked",
-            description:
-              "Software is licensed for use only on one or more named computer systems. Usually, CPU serial number verification is used to enforce this type of license.",
-            buttons: [
-              {
-                title: "See more",
-                class: "tour-button",
-                onClick: function () {
-                  alert("Step button click");
-                },
-              },
-            ],
-          },
-          {
-            element: "#pay-per-use",
-            title: "Pay-per-Use",
-            description:
-              "Limits the quantity of the license uses, in addition to the license validity. License fees are based on the actual usage.",
-            buttons: [
-              {
-                title: "See more",
-                class: "tour-button",
-                onClick: function () {
-                  alert("Step button click");
-                },
-              },
-            ],
-          },
-        ];
-        let beacons = [
-          {
-            element: "#user-input",
-            position: "top",
-            boundary: "outer",
-            class: "beacon-labs64",
-            tour: tour,
-          },
-          {
-            element: "#try-and-buy",
-            position: "top-left",
-            class: "beacon-green",
-            onClick() {
-              alert("Beacon clicked");
-            },
-          },
-          {
-            element: "#pricing-table",
-            position: "top-right",
+            description: "Pricing Table beacon clicked.",
+            class: "not-price",
+            buttons: [],
             canShow: function () {
               // Load the video
-              // const videoPlayer = document.createElement("iframe");
-              // videoPlayer.src =
-              //   "https://www.youtube.com/embed/k9xnxvujdBw?controls=0";
-              // videoPlayer.allowFullscreen = true;
-              // videoPlayer.classList.add("video-player");
-              // const tourContainer = document.querySelector("#pricing-table");
-              // tourContainer.appendChild(videoPlayer);
+              const videoPlayer = document.createElement("iframe");
+              videoPlayer.src = `${data?.video[0]?.publicUrl}`;
+              videoPlayer.allowFullscreen = true;
+              videoPlayer.classList.add("video-player");
+              const tourContainer =
+                document.querySelector("#pricing-table");
+              tourContainer.appendChild(videoPlayer);
             },
-            tour: [
-              {
-                title: "Pricing Table",
-                description: "Pricing Table beacon clicked.",
-                class: "not-price",
-                buttons: [],
-                canShow: function () {
-                  // Load the video
-                  const videoPlayer = document.createElement("iframe");
-                  videoPlayer.src = `${data?.video[0]?.publicUrl}`;
-                  videoPlayer.allowFullscreen = true;
-                  videoPlayer.classList.add("video-player");
-                  const tourContainer =
-                    document.querySelector("#pricing-table");
-                  tourContainer.appendChild(videoPlayer);
+          },
+        ],
+      },
+      {
+        element: "#multi-feature",
+        position: "bottom-left",
+        boundary: "inner",
+        class: "beacon-white",
+        tour: [
+          {
+            title: "Multi Feature",
+            description: "Multi Feature beacon clicked.",
+          },
+        ],
+      },
+      {
+        element: "#pay-per-use",
+        position: "center",
+        class: "beacon-black",
+        tour: {
+          steps: [
+            {
+              element: "#pay-per-use",
+              title: "Pay-per-Use",
+              description: "Pay-per-Use beacon clicked.",
+            },
+          ],
+          options: {
+            position: "top",
+          },
+        },
+        canShow() {
+          return true;
+        },
+      },
+    ];
+
+    const AHDjs = window.AHDjs.default;
+    const userId = "675c5d10b73dc091ba239699";
+    let _ahdJs = new AHDjs(undefined, {
+      applicationId: "6655bc2b30a6760d8f897581",
+      apiHost: "https://pagepilot.fabbuilder.com",
+      userId: userId,
+    });
+    _ahdJs.initializeSiteMap();
+
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+
+    fetch(
+      `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/get/unacknowledged?userId=${userId}`,
+      requestOptions
+    )
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.type === "dialog") {
+          const dialogContent = [
+            {
+              title: result.content.title,
+              description: result.content.body,
+
+              buttons: [
+                {
+                  title: "Ok",
+                  class: "tour-button",
+                  onClick: function () {
+                    fetch(
+                      `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/acknowledge?id=${result._id}`,
+                      requestOptions
+                    )
+                      .then(() => {
+                        ahdJS.stop();
+                      })
+                      .catch((error) => {
+                        console.error("Error acknowledging:", error);
+                      });
+                  },
                 },
-              },
-            ],
-          },
-          {
-            element: "#multi-feature",
-            position: "bottom-left",
-            boundary: "inner",
-            class: "beacon-white",
-            tour: [
-              {
-                title: "Multi Feature",
-                description: "Multi Feature beacon clicked.",
-              },
-            ],
-          },
-          {
-            element: "#pay-per-use",
-            position: "center",
-            class: "beacon-black",
+              ],
+            },
+          ];
+          _ahdJs.setTour(dialogContent);
+          _ahdJs.start();
+        }
+
+        if (result.type === "snackbar") {
+          const snackbarContent = [
+            {
+              title: result.content.title,
+              description: result.content.body,
+              position: result.content.position,
+            },
+          ];
+          _ahdJs.setTour(snackbarContent, {
+            type: "snackbar",
+            showNavigation: false,
+          });
+          _ahdJs.start();
+          _ahdJs.removeOverlayEl();
+          _ahdJs.removePreloaderEl();
+          // setTimeout(() => {
+          //   _ahdJs.stop();
+          // }, result.timeout);
+        }
+        if (result.type === "beacon") {
+          const beacon = {
+            element: result.content.selector,
+            // title: result.content.title,
+            // description: result.content.body,
+            // position: result.content.position || "top",
+            // shape: result.content.shape || "circle",
+            // color: result.content.color || "blue",
+            // background: result.content.background,
+            // textColor: result.content.textColor,
+
             tour: {
               steps: [
                 {
-                  element: "#pay-per-use",
-                  title: "Pay-per-Use",
-                  description: "Pay-per-Use beacon clicked.",
+                  element: result.content.selector,
+                  title: result.content.title,
+                  description: result.content.body,
+                  position: result.content.position || "top",
                 },
               ],
               options: {
-                position: "top",
+                position: result.content.position,
+                shape: result.content.shape || "circle",
+                color: result.content.color || "blue",
+                background: result.content.background,
+                textColor: result.content.textColor,
               },
             },
-            canShow() {
-              return true;
+          };
+
+
+          // const targetElement = document.querySelector(beacon.element);
+          // if (!targetElement) {
+          //   console.error(
+          //     "Target element not found for beacon selector:",
+          //     beacon.element
+          //   );
+          //   return;
+          // }
+
+          debugger;
+          _ahdJs.setBeacons(beacon);
+          // _ahdJs.showAll();
+        }
+
+        if (result.type === "tour") {
+          _ahdJs.setTour(result.tourContent);
+
+          _ahdJs.start();
+          // _ahdJs.showAll();
+        }
+        if (result.type === "tooltip") {
+          const tooltip = [
+            {
+              element: result.content.selector,
+              position: result.content.position,
+              title: result.content.title,
+              tour: [
+                ...result.content.map((record) => ({
+                  ...record,
+                })),
+              ],
             },
-          },
-        ];
+          ];
 
-        const AHDjs = window.AHDjs.default;
-        const userId = "675c5d10b73dc091ba239699";
-        let _ahdJs = new AHDjs(undefined, {
-          applicationId: "6655bc2b30a6760d8f897581",
-          apiHost: "https://pagepilot.fabbuilder.com",
-          userId: userId,
-        });
-        _ahdJs.initializeSiteMap();
+          _ahdJs.setBeacons(tooltip);
+          // _ahdJs.showAll();
+        }
+      })
 
-        const requestOptions = {
-          method: "GET",
-          redirect: "follow",
-        };
+      .catch((error) => console.error(error));
+    // setTimeout(() => {
+    //   _ahdJs.clearCachedData();
+    // }, 50000);
 
-        fetch(
-          `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/get/unacknowledged?userId=${userId}`,
-          requestOptions
-        )
-          .then((response) => response.json())
-          .then((result) => {
-            if (result.type === "dialog") {
-              const dialogContent = [
-                {
-                  title: result.content.title,
-                  description: result.content.body,
+    // _ahdJs.start();
+    // _ahdJs.showPageTour("/slug");
+    // _ahdJs.showAppBanner();
 
-                  buttons: [
-                    {
-                      title: "Ok",
-                      class: "tour-button",
-                      onClick: function () {
-                        fetch(
-                          `https://asia-south1.gcp.data.mongodb-api.com/app/mock-wallet-vrughwh/endpoint/ahd/acknowledge?id=${result._id}`,
-                          requestOptions
-                        )
-                          .then(() => {
-                            ahdJS.stop();
-                          })
-                          .catch((error) => {
-                            console.error("Error acknowledging:", error);
-                          });
-                      },
-                    },
-                  ],
-                },
-              ];
-              _ahdJs.setTour(dialogContent);
-              _ahdJs.start();
-            }
+    // _ahdJs.fetchFaqs("/help-support");
+    // _ahdJs.showPageBeacons("/auth/signin");
+    //_ahdJs.showPageFAQs("/auth/signin");
+    // _ahdJs.showPageHelpDrawer("/auth/signin");
+    // _ahdJs.showInformation(beacons);
+    //_ahdJs.updatePageUrl("/testing.html");
+    // _ahdJs.start();
+    // setTimeout(() => {
+    //   //   _ahdJs.updatePageUrl("/testing.html");
+    //   _ahdJs.beacons();
+    // }, 10000);
+    // setTimeout(async () => {
+    //   await _ahdJs.stop();
+    //   ;
+    // _ahdJs.setTour(tour);
+    // _ahdJs.start();
+    // }, 15000);
+  </script>
+</body>
+</head>
 
-            if (result.type === "snackbar") {
-              const snackbarContent = [
-                {
-                  title: result.content.title,
-                  description: result.content.body,
-                  position: result.content.position,
-                },
-              ];
-              _ahdJs.setTour(snackbarContent, {
-                type: "snackbar",
-                showNavigation: false,
-              });
-              _ahdJs.start();
-              _ahdJs.removeOverlayEl();
-              _ahdJs.removePreloaderEl();
-              // setTimeout(() => {
-              //   _ahdJs.stop();
-              // }, result.timeout);
-            }
-            if (result.type === "beacon") {
-              const beacon = {
-                element: result.content.selector,
-                // title: result.content.title,
-                // description: result.content.body,
-                // position: result.content.position || "top",
-                // shape: result.content.shape || "circle",
-                // color: result.content.color || "blue",
-                // background: result.content.background,
-                // textColor: result.content.textColor,
-
-                tour: {
-                  steps: [
-                    {
-                      element: result.content.selector,
-                      title: result.content.title,
-                      description: result.content.body,
-                      position: result.content.position || "top",
-                    },
-                  ],
-                  options: {
-                    position: result.content.position,
-                    shape: result.content.shape || "circle",
-                    color: result.content.color || "blue",
-                    background: result.content.background,
-                    textColor: result.content.textColor,
-                  },
-                },
-              };
-
- 
-              // const targetElement = document.querySelector(beacon.element);
-              // if (!targetElement) {
-              //   console.error(
-              //     "Target element not found for beacon selector:",
-              //     beacon.element
-              //   );
-              //   return;
-              // }
-              
-              debugger;
-              _ahdJs.setBeacons(beacon);
-              // _ahdJs.showAll();
-            }
-
-            if (result.type === "tour") {
-              _ahdJs.setTour(result.tourContent);
- 
-              _ahdJs.start();
-              // _ahdJs.showAll();
-            }
-            if (result.type === "tooltip") {
-              const tooltip = [
-                {
-                  element: result.content.selector,
-                  position: result.content.position,
-                  title: result.content.title,
-                  tour: [
-                    ...result.content.map((record) => ({
-                      ...record,
-                    })),
-                  ],
-                },
-              ];
-
-              _ahdJs.setBeacons(tooltip);
-              // _ahdJs.showAll();
-            }
-          })
-
-          .catch((error) => console.error(error));
-        // setTimeout(() => {
-        //   _ahdJs.clearCachedData();
-        // }, 50000);
-
-        // _ahdJs.start();
-        // _ahdJs.showPageTour("/slug");
-        // _ahdJs.showAppBanner();
-
-        // _ahdJs.fetchFaqs("/help-support");
-        // _ahdJs.showPageBeacons("/auth/signin");
-        //_ahdJs.showPageFAQs("/auth/signin");
-        // _ahdJs.showPageHelpDrawer("/auth/signin");
-        // _ahdJs.showInformation(beacons);
-        //_ahdJs.updatePageUrl("/testing.html");
-        // _ahdJs.start();
-        // setTimeout(() => {
-        //   //   _ahdJs.updatePageUrl("/testing.html");
-        //   _ahdJs.beacons();
-        // }, 10000);
-        // setTimeout(async () => {
-        //   await _ahdJs.stop();
-        //   ;
-        // _ahdJs.setTour(tour);
-        // _ahdJs.start();
-        // }, 15000);
-      </script>
-    </body>
-  </head>
 </html>

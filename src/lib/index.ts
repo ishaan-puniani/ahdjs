@@ -1,142 +1,4 @@
 //@ts-nocheck
-// import GuideChimp from "./GuideChimp";
-// //import  Beacons from "./plugins/beacons";
-// import "./index.scss";
-// // import Information from "./plugins/information";
-// // import Beacons from "./plugins/beacons";
-// // class AHDjs {
-// //   private guideChimp: any;
-// //   private appId: string;
-// //   private contextToursMapData: any;
-// //   constructor(applicationId: any, tour: any, options: any) {
-// //     this.appId = applicationId;
-// //     //@ts-ignore
-// //     this.guideChimp = new GuideChimp(tour, options);
-
-// //     this.guideChimp.prototype = GuideChimp.prototype;
-// //     this.guideChimp.plugins = new Set();
-
-// //     //@ts-ignore
-// //     // this.guideChimp.extend = (plugin, ...args) => {
-// //     //   if (!this.guideChimp.plugins.has(plugin)) {
-// //     //     this.guideChimp.plugins.add(plugin);
-// //     //     plugin(GuideChimp, this.guideChimp, ...args);
-// //     //   }
-// //     //   return this.guideChimp;
-// //     // };
-
-// //     // test beacon extension
-// //     // @ts-ignore
-// //     const pluginsToLoad = [Beacons, Information];
-// //     pluginsToLoad.forEach((pluginClass) => {
-// //       const plugin = pluginClass;
-// //       if (!this.guideChimp.plugins.has(plugin)) {
-// //         this.guideChimp.plugins.add(plugin);
-// //         // @ts-ignore
-// //         plugin(GuideChimp, this.guideChimp, tour, options);
-// //       }
-// //     });
-// //   }
-
-// //   updatePageUrl = async (url: string, refetch: boolean) => {
-// //     await this.stop();
-// //     // todo: local caching and use https://github.com/pillarjs/path-to-regexp to find exact match
-// //     const respons: any = await fetch(
-// //       `https://ahd-be-jggub5n6qq-em.a.run.app/api/tenant/${this.appId}/contexttour?filter[isActive]=true`
-// //     ).then((res) => res.json());
-
-// //     this.contextToursMapData = respons.rows;
-// //     //if there is anything to open onload
-// //     const onboardTour = respons.rows
-// //       .filter((row: any) => !!row.content)
-// //       .map((row: any) => {
-// //         return {
-// //           element: row.selector,
-// //           title: row.content.title,
-// //           description: row.content.content,
-// //           tour: [
-// //             {
-// //               title: "Multi Feature",
-// //               description: "Multi Feature beacon clicked.",
-// //             },
-// //           ],
-// //         };
-// //       });
-// //     this.setTour(onboardTour);
-// //     this.start();
-// //   };
-
-// //   setTour = (tour: any) => {
-// //     this.guideChimp.setTour(tour);
-// //   };
-// //   beacons = (...args: any) => {
-// //     // @ts-ignore
-// //     // this.guideChimp.beacon = new Beacons(...args);
-
-// //     const tourBeacons = this.contextToursMapData
-// //       .filter((row: any) => !!row.content)
-// //       .map((row: any) => {
-// //         return {
-// //           element: row.selector,
-// //           title: row.content.title,
-// //           description: row.content.content,
-// //           tour: [
-// //             {
-// //               title: "BC Multi Feature",
-// //               description: "BC Multi Feature beacon clicked.",
-// //             },
-// //             {
-// //               title: "B2C Multi Feature",
-// //               description: "B2C Multi Feature beacon clicked.",
-// //             },
-// //           ],
-// //         };
-// //       });
-
-// //     const b = this.guideChimp.beacons(tourBeacons);
-// //     setTimeout(() => {
-// //       b.showAll();
-// //     }, 1000);
-// //   };
-// //   start = (...args: any) => {
-// //     this.guideChimp.start(...args);
-// //   };
-// //   stop = async (...args: any) => {
-// //     await this.guideChimp.stop(...args);
-// //   };
-// //   showInformation = (...args: any) => {
-// //     // @ts-ignore
-// //     // this.guideChimp.beacon = new Beacons(...args);
-// //     const b = this.guideChimp.information(...args);
-// //     setTimeout(() => {
-// //       b.showAll();
-// //     }, 1000);
-// //   };
-// //   // guideChimp.prototype = GuideChimp.prototype;
-// //   // guideChimp.plugins = new Set();
-
-// //   // guideChimp.extend = (plugin, ...args) => {
-// //   //     if (!guideChimp.plugins.has(plugin)) {
-// //   //         guideChimp.plugins.add(plugin);
-// //   //         plugin(GuideChimp, guideChimp, ...args);
-// //   //     }
-// //   //     return guideChimp;
-// //   // };
-
-// //   // module.exports = guideChimp;
-// // }
-
-// class AHDjs {
-//   private guideChimp;
-//   constructor(...args: any) {
-//     // @ts-ignore
-//     this.guideChimp = new GuideChimp(...args);
-//   }
-//   public start(...args: any) {
-//     this.guideChimp.start(...args);
-//   }
-// }
-// export default AHDjs;
 
 /**
  * Copyright (C) 2020 Labs64 GmbH
@@ -149,26 +11,28 @@ import GuideChimp from "./GuideChimp";
 import { LocalStorage } from "ttl-localstorage";
 import Beacons from "./plugins/beacons";
 import { googleFonts, createGoogleFontsURL } from './fonts';
-/* ============
- * Styling
- * ============
- *
- * Import the library styling.
- */
 import "./index.scss";
 
-const { match } = require("path-to-regexp");
+import {
+  HELP_DATA_STORAGE_KEY,
+  TOUR_DATA_STORAGE_KEY,
+  HIGHLIGHTS_DATA_STORAGE_KEY,
+  AHD_VISITOR_STATS_STORAGE_KEY,
+} from './utils/storage-keys';
+import { TourApiClient } from './api/tour-api';
+import { BannerRenderer, handleBannerClick } from './banners/banner-renderer';
+import { normalizeDimension } from './utils/dimension';
+import { getApplicabeDataForUrl, getUnAcknowledgedHightlightsForUrl } from './utils/url-matcher';
 
-const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
-const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
-const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
-const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
+const { match } = require("path-to-regexp");
 
 class AHD extends GuideChimp {
   private static _instances: Set<AHD> = new Set();
 
   private _lastPageUrl: string = '';
   private _lastRenderedIdentifier: string = '';
+  private _api: TourApiClient;
+  private _bannerRenderer: BannerRenderer;
 
   constructor(tour, options = {}) {
 
@@ -179,6 +43,8 @@ class AHD extends GuideChimp {
       options.language = '';
     }
     super(tour, options);
+    this._api = new TourApiClient(options);
+    this._bannerRenderer = new BannerRenderer(this.acknowledgeAppBanner.bind(this));
     AHD._instances.add(this);
     this.attachPlugins();
   }
@@ -207,21 +73,13 @@ class AHD extends GuideChimp {
   }
 
   async initializeSiteMap(refetch: boolean) {
-    let highlightsData = LocalStorage.get(HIGHLIGHTS_DATA_STORAGE_KEY);
-    if (!highlightsData || refetch) {
-      // highlightsData = await this.fetchAndCacheHighlightsData(highlightsData);
-    }
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData);
+      toursData = await this._api.fetchAndCacheTourData(toursData);
     }
-    // let helpData = LocalStorage.get(HELP_DATA_STORAGE_KEY);
-    // if (!helpData || refetch) {
-    //   helpData = await this.fetchAndCacheHelpData(helpData);
-    // }
     let stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY);
     if (!stats || refetch) {
-      stats = await this.fetchAndCachePageVisitsData(stats);
+      stats = await this._api.fetchAndCachePageVisitsData(stats);
     }
   }
 
@@ -229,25 +87,16 @@ class AHD extends GuideChimp {
     let helpData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!helpData || refetch) {
-      helpData = await this.fetchAndCacheTourData(helpData);
+      helpData = await this._api.fetchAndCacheTourData(helpData);
     }
 
-    const applicableHelp = this.getApplicabeDataForUrl(
+    const applicableHelp = getApplicabeDataForUrl(
       helpData,
       url,
       "help",
       true
     );
     return applicableHelp;
-  }
-
-  private normalizeDimension(val: any): string | number | undefined {
-    if (val === undefined || val === null) return undefined;
-    if (typeof val === 'string') {
-      const trimmed = val.trim();
-      return trimmed.endsWith('%') ? trimmed : trimmed;
-    }
-    return typeof val === 'number' ? val : parseInt(val);
   }
 
   async showPageTour(url: string) {
@@ -258,7 +107,7 @@ class AHD extends GuideChimp {
       return;
     }
 
-    const applicableTours = this.getApplicabeDataForUrl(
+    const applicableTours = getApplicabeDataForUrl(
       toursData.tours,
       url,
       true
@@ -272,7 +121,7 @@ class AHD extends GuideChimp {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
           const entityId = tour.id || tour._id;
-          this.markPageVisited(tour.slug, "tour", entityId);
+          this._api.markPageVisited(tour.slug, "tour", entityId);
         }
       });
 
@@ -296,10 +145,10 @@ class AHD extends GuideChimp {
               isCaret: step.isCaret,
               dismissalSetting: step.dismissalSetting,
               showProgressbar: this.options.showProgressbar,
-              width: this.normalizeDimension(step.canvasWidth || step.styles?.width),
-              height: this.normalizeDimension(step.canvasHeight || step.styles?.height),
-              top: this.normalizeDimension(step.styles?.top || step.top),
-              left: this.normalizeDimension(step.styles?.left || step.left),
+              width: normalizeDimension(step.canvasWidth || step.styles?.width),
+              height: normalizeDimension(step.canvasHeight || step.styles?.height),
+              top: normalizeDimension(step.styles?.top || step.top),
+              left: normalizeDimension(step.styles?.left || step.left),
               stepId: step.id,
               id: row.id,
               type: row.type || "tour",
@@ -320,7 +169,7 @@ class AHD extends GuideChimp {
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier, false);
+      toursData = await this._api.fetchAndCacheTourData(toursData, identifier, false);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -330,28 +179,11 @@ class AHD extends GuideChimp {
     return appBannerData;
   }
 
-  private handleBannerClick(e: MouseEvent) {
-    const target = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
-    if (!target) return;
-    const action = target.getAttribute('data-action');
-    if (action === 'postMessageEvent') {
-      const eventName = target.getAttribute('data-post-message-event') || (() => {
-        try { return JSON.parse(target.getAttribute('data-action-payload') || '{}').postMessageEvent; } catch (_) { return null; }
-      })();
-      console.log('[AHDjs] postMessageEvent eventName:', eventName);
-      if (eventName) {
-        e.stopPropagation();
-        window.postMessage({ type: eventName }, '*');
-        console.log('[AHDjs] postMessage sent:', { type: eventName });
-      }
-    }
-  }
-
   async renderAppBanner(identifier: string, refetch: boolean) {
     this._lastRenderedIdentifier = identifier;
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier, false);
+      toursData = await this._api.fetchAndCacheTourData(toursData, identifier, false);
     }
 
     const appBannerData = Array.isArray(toursData?.appBanners)
@@ -427,16 +259,16 @@ class AHD extends GuideChimp {
                 this.acknowledgeAppBanner(bannerId, slideIds);
               }
               wrapper.remove();
-              delete (this as any)._ahd_active_banner;
+              this._bannerRenderer._ahd_active_banner = null;
             });
             wrapper.appendChild(closeBtn);
           }
           container.innerHTML = '';
           container.appendChild(wrapper);
-          wrapper.addEventListener('click', (e) => this.handleBannerClick(e));
+          wrapper.addEventListener('click', (e) => handleBannerClick(e));
         } else {
           container.innerHTML = bannerContent;
-          container.addEventListener('click', (e) => this.handleBannerClick(e));
+          container.addEventListener('click', (e) => handleBannerClick(e));
         }
       }
     }
@@ -446,7 +278,7 @@ class AHD extends GuideChimp {
       const slideIds = Array.isArray(firstRow.slides)
         ? firstRow.slides.map((s: any) => s.id || s._id).filter(Boolean)
         : [];
-      (this as any)._ahd_active_banner = { bannerId, slideIds };
+      this._bannerRenderer._ahd_active_banner = { bannerId, slideIds };
       const isSimpleBanner = !firstRow?.type || firstRow?.type === 'simpleBanner';
       const isModal = firstRow?.type === 'modal';
       if (!isSimpleBanner && !isModal) {
@@ -458,242 +290,19 @@ class AHD extends GuideChimp {
   }
 
   async renderCarouselBanner(bannerRow: any, identifier?: string) {
-    this.destroyCarousel();
-    const slides = Array.isArray(bannerRow.slides) ? bannerRow.slides : [];
-    if (!slides.length) return;
-
-    const carousel = document.createElement('div');
-    carousel.className = 'gc-carousel';
-    carousel.setAttribute('data-ahd-carousel', 'true');
-    carousel.setAttribute('role', 'region');
-    carousel.setAttribute('aria-roledescription', 'carousel');
-    carousel.setAttribute('aria-label', bannerRow.title || 'Carousel');
-
-    const slidesWrap = document.createElement('div');
-    slidesWrap.className = 'gc-carousel-slides';
-    slidesWrap.setAttribute('data-current-index', '0');
-
-    slides.forEach((s: any, idx: number) => {
-      const slide = document.createElement('div');
-      slide.className = 'gc-carousel-slide';
-      slide.setAttribute('data-slide-index', String(idx));
-      const slideContent = s?.content?.content || s?.content || '';
-      slide.innerHTML = slideContent;
-      slide.addEventListener('click', (e) => this.handleBannerClick(e));
-      slidesWrap.appendChild(slide);
-    });
-
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'gc-carousel-prev';
-    prevBtn.setAttribute('aria-label', 'Previous slide');
-    prevBtn.innerText = '‹';
-
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'gc-carousel-next';
-    nextBtn.setAttribute('aria-label', 'Next slide');
-    nextBtn.innerText = '›';
-
-    const indicators = document.createElement('div');
-    indicators.className = 'gc-carousel-indicators';
-
-    slides.forEach((_: any, i: number) => {
-      const dot = document.createElement('button');
-      dot.className = 'gc-carousel-indicator';
-      dot.setAttribute('data-slide', String(i));
-      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
-      if (i === 0) dot.setAttribute('aria-current', 'true');
-      indicators.appendChild(dot);
-    });
-
-    carousel.appendChild(slidesWrap);
-    carousel.appendChild(prevBtn);
-    carousel.appendChild(nextBtn);
-    carousel.appendChild(indicators);
-
-    let mountParent: Element | null = null;
-    const renderAsModal = bannerRow?.behaviour?.renderAs === 'modal' || (!identifier && bannerRow?.type === 'carousel');
-    if (renderAsModal) {
-      this.removeModalBanner();
-      const modalOverlay = document.createElement('div');
-      modalOverlay.className = 'gc-modal-overlay';
-      modalOverlay.setAttribute('data-ahd-modal', 'true');
-      const modal = document.createElement('div');
-      modal.className = 'gc-modal';
-      const closeBtn = document.createElement('div');
-      closeBtn.className = 'gc-close';
-      closeBtn.style.setProperty('--gc-close-foreground', bannerRow?.styles?.iconCloseColor || '#000');
-      closeBtn.addEventListener('click', () => this.removeModalBanner());
-      const contentContainer = document.createElement('div');
-      contentContainer.className = 'gc-modal-content';
-      contentContainer.appendChild(carousel);
-      modal.appendChild(closeBtn);
-      modal.appendChild(contentContainer);
-      modalOverlay.appendChild(modal);
-      modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) this.removeModalBanner(); });
-      document.addEventListener('keydown', function escHandler(e: KeyboardEvent) { if (e.key === 'Escape') { document.removeEventListener('keydown', escHandler); } });
-      document.body.style.overflow = 'hidden';
-      document.body.appendChild(modalOverlay);
-      mountParent = carousel;
-    } else if (identifier) {
-      const container = document.querySelector(identifier);
-      if (container) {
-        container.innerHTML = '';
-        container.appendChild(carousel);
-        mountParent = carousel;
-      }
-    }
-
-    const state: any = {
-      index: 0,
-      slidesCount: slides.length,
-      slidesWrap,
-      timer: null,
-    };
-
-    const goTo = (i: number) => {
-      if (!state) return;
-      const idx = ((i % state.slidesCount) + state.slidesCount) % state.slidesCount;
-      state.index = idx;
-      const x = -idx * 100;
-      state.slidesWrap.style.transform = `translateX(${x}%)`;
-      const dots = indicators.querySelectorAll('.gc-carousel-indicator');
-      dots.forEach((d: Element, di: number) => {
-        if (di === idx) (d as HTMLElement).setAttribute('aria-current', 'true'); else (d as HTMLElement).removeAttribute('aria-current');
-      });
-    };
-
-    prevBtn.addEventListener('click', () => goTo(state.index - 1));
-    nextBtn.addEventListener('click', () => goTo(state.index + 1));
-    indicators.querySelectorAll('.gc-carousel-indicator').forEach((b: Element) => {
-      b.addEventListener('click', (ev) => {
-        const target = ev.currentTarget as HTMLElement;
-        const si = parseInt(target.getAttribute('data-slide') || '0', 10);
-        goTo(si);
-      });
-    });
-
-    const autoplay = !!bannerRow?.behaviour?.autoplay;
-    const delay = bannerRow?.behaviour?.autoplayDelay || 5000;
-    if (autoplay) {
-      state.timer = window.setInterval(() => goTo(state.index + 1), delay);
-      carousel.addEventListener('mouseenter', () => { if (state.timer) clearInterval(state.timer); });
-      carousel.addEventListener('mouseleave', () => { state.timer = window.setInterval(() => goTo(state.index + 1), delay); });
-    }
-
-    let startX = 0;
-    let deltaX = 0;
-    const onTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; };
-    const onTouchMove = (e: TouchEvent) => { deltaX = e.touches[0].clientX - startX; };
-    const onTouchEnd = () => {
-      const threshold = 50;
-      if (deltaX > threshold) goTo(state.index - 1);
-      else if (deltaX < -threshold) goTo(state.index + 1);
-      startX = 0; deltaX = 0;
-    };
-    carousel.addEventListener('touchstart', onTouchStart, { passive: true });
-    carousel.addEventListener('touchmove', onTouchMove, { passive: true });
-    carousel.addEventListener('touchend', onTouchEnd);
-
-    (this as any)._ahd_carousel = { carousel, state, handlers: { onTouchStart, onTouchMove, onTouchEnd } };
-  }
-
-  private destroyCarousel() {
-    const inst = (this as any)._ahd_carousel;
-    if (!inst) return;
-    try {
-      const { carousel, state, handlers } = inst;
-      if (state && state.timer) clearInterval(state.timer);
-      if (carousel) {
-        carousel.removeEventListener('touchstart', handlers.onTouchStart);
-        carousel.removeEventListener('touchmove', handlers.onTouchMove);
-        carousel.removeEventListener('touchend', handlers.onTouchEnd);
-        if (carousel.parentElement) carousel.parentElement.removeChild(carousel);
-      }
-    } catch (e) { }
-    delete (this as any)._ahd_carousel;
+    return this._bannerRenderer.renderCarouselBanner(bannerRow, identifier);
   }
 
   async renderModalBanner(content: string, bannerData: any) {
-    this.removeModalBanner();
-
-    if (!content) return;
-    const modalOverlay = document.createElement('div');
-    modalOverlay.className = 'gc-modal-overlay';
-    modalOverlay.setAttribute('data-ahd-modal', 'true');
-    const modal = document.createElement('div');
-    modal.className = 'gc-modal';
-    if (bannerData?.styles?.width) {
-      modal.style.width = this.normalizeDimensionToStyle(bannerData.styles.width);
-    }
-    if (bannerData?.styles?.height) {
-      modal.style.height = this.normalizeDimensionToStyle(bannerData.styles.height);
-    }
-
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'gc-close';
-    closeBtn.style.setProperty('--gc-close-foreground', bannerData?.styles?.iconCloseColor || '#000');
-    closeBtn.addEventListener('click', () => this.removeModalBanner());
-
-    const contentContainer = document.createElement('div');
-    contentContainer.className = 'gc-modal-content';
-    contentContainer.innerHTML = content;
-    contentContainer.addEventListener('click', (e) => this.handleBannerClick(e));
-
-    modal.appendChild(closeBtn);
-    modal.appendChild(contentContainer);
-    modalOverlay.appendChild(modal);
-
-    modalOverlay.addEventListener('click', (e) => {
-      if (e.target === modalOverlay) {
-        this.removeModalBanner();
-      }
-    });
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        this.removeModalBanner();
-        document.removeEventListener('keydown', handleEscape);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
-    document.body.style.overflow = 'hidden';
-
-    document.body.appendChild(modalOverlay);
+    return this._bannerRenderer.renderModalBanner(content, bannerData);
   }
 
   removeModalBanner() {
-    const activeBanner = (this as any)._ahd_active_banner;
-    if (activeBanner) {
-      const { bannerId, slideIds } = activeBanner;
-      this.acknowledgeAppBanner(bannerId, slideIds);
-      delete (this as any)._ahd_active_banner;
-    }
-    const existingModal = document.querySelector('[data-ahd-modal="true"]');
-    if (existingModal) {
-      existingModal.remove();
-      document.body.style.overflow = '';
-    }
-  }
-
-
-  private normalizeDimensionToStyle(val: any): string {
-    if (val === undefined || val === null) return '';
-    if (typeof val === 'string') {
-      const trimmed = val.trim();
-      if (/[a-z%]/i.test(trimmed)) {
-        return trimmed;
-      }
-      return `${trimmed}px`;
-    }
-    return typeof val === 'number' ? `${val}px` : '';
+    return this._bannerRenderer.removeModalBanner();
   }
 
   async fetchFaqs(slug) {
-    const response: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/faq-group-list?filter[slug]=${slug}&filter[status]=published&limit=10&orderBy=order_ASC`
-    ).then((res) => res.json());
-
-    return response;
+    return this._api.fetchFaqs(slug);
   }
 
   async showPageBeacons(url: string) {
@@ -716,7 +325,7 @@ class AHD extends GuideChimp {
       return;
     }
 
-    const applicableTours = this.getApplicabeDataForUrl(
+    const applicableTours = getApplicabeDataForUrl(
       toursData.tooltips,
       url,
       true
@@ -729,7 +338,7 @@ class AHD extends GuideChimp {
         if (!nVisited.has(tour.slug)) {
           nVisited.add(tour.slug);
           const entityId = applicableTours[0].id || applicableTours[0]._id;
-          this.markPageVisited(tour.slug, "tooltip", entityId);
+          this._api.markPageVisited(tour.slug, "tooltip", entityId);
         }
       });
 
@@ -799,7 +408,6 @@ class AHD extends GuideChimp {
               beacon.triggerIcon = {
                 type: iconType,
                 color: triggerIconData.color || "#000000",
-                // opacity: triggerIconData.opacity ?? 1,
                 isAnimated: triggerIconData.isAnimated || false,
               };
             } else if (beacon.triggerMode === "label" && triggerLabelData) {
@@ -825,22 +433,6 @@ class AHD extends GuideChimp {
     }).showAll();
   }
 
-  private resolveSlugPatternForUrl(url: string, cachedData: any): string {
-    const allItems = [
-      ...(cachedData?.tours || []),
-      ...(cachedData?.tooltips || []),
-    ];
-    for (const item of allItems) {
-      if (!item.slug) continue;
-      try {
-        const matcher = match(item.slug, { decode: decodeURIComponent });
-        if (matcher(url)) return item.slug;
-      } catch (e) { }
-    }
-    // Replace MongoDB ObjectIds (24-char hex) or numeric IDs with :id
-    return url.replace(/\/([a-f0-9]{24}|[0-9]+)(?=\/|$)/gi, '/:id');
-  }
-
   async showHighlights(url: string, refetch: boolean) {
     this._lastPageUrl = url;
     await this.stop();
@@ -858,7 +450,7 @@ class AHD extends GuideChimp {
 
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, url);
+      toursData = await this._api.fetchAndCacheTourData(toursData, url);
     }
 
     const matchesUrl = (td: any, u: string) => {
@@ -881,10 +473,7 @@ class AHD extends GuideChimp {
     await this.stop();
     let highlightsData = LocalStorage.get(HIGHLIGHTS_DATA_STORAGE_KEY);
 
-    if (!highlightsData || refetch) {
-      // highlightsData = await this.fetchAndCacheHighlightsData(highlightsData);
-    }
-    const applicableHighlights = this.getUnAcknowledgedHightlightsForUrl(
+    const applicableHighlights = getUnAcknowledgedHightlightsForUrl(
       highlightsData,
       url,
       "highlight",
@@ -945,7 +534,7 @@ class AHD extends GuideChimp {
       { ...stats, ack: [...nAckonowledged] },
       86400
     );
-    this.updateVisitorStats({ ack: [id] }, "highlight");
+    this._api.updateVisitorStats({ ack: [id] }, "highlight");
   }
 
   async markUnacknowledge(slugOrIdentifier: string) {
@@ -982,7 +571,7 @@ class AHD extends GuideChimp {
       86400
     );
 
-    await this.fetchAndCachePageVisitsData(null);
+    await this._api.fetchAndCachePageVisitsData(null);
 
     if (type === 'app-banner') {
       await this.renderAppBanner(slugOrIdentifier, true);
@@ -993,17 +582,6 @@ class AHD extends GuideChimp {
 
   private generateDescription(content: any) {
     let description = content.content || "";
-    // debugger;
-    // if (content.video) {
-    //   content.video.forEach((vid) => {
-    //     description += `<br/><video  width="320" height="240" controls><source src="${vid.downloadUrl}" type="video/mp4"></video>`;
-    //   });
-    // }
-    // if (content.image) {
-    //   content.image.forEach((img) => {
-    //     description += `<br/><img  width="320" height="240" src="${img.downloadUrl}" />`;
-    //   });
-    // }
     const fontLinkId = 'ahd-google-fonts';
     if (!document.getElementById(fontLinkId)) {
       const link = document.createElement('link');
@@ -1015,204 +593,11 @@ class AHD extends GuideChimp {
     return description;
   }
 
-  private getUnAcknowledgedHightlightsForUrl(
-    highlightsData: any,
-    url: string,
-    type: string,
-    forceShow = false
-  ) {
-    // exlude visitied
-    const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
-    const acknowledged = stats?.ack || [];
-    return highlightsData.filter((td) => {
-      if (forceShow || !acknowledged || !acknowledged.includes(td.id)) {
-        const matcher = match(td.slug, { decode: decodeURIComponent });
-        const highlightound = matcher(url);
-
-        return highlightound;
-      }
-      return false;
-    });
-  }
-
-  private getApplicabeDataForUrl(
-    toursData: any,
-    url: string,
-    forceShow = false
-  ) {
-    const stats = LocalStorage.get(AHD_VISITOR_STATS_STORAGE_KEY) || {};
-    const visited = stats?.visited || [];
-
-    return toursData.filter((td) => {
-      const slugs = [td.slug, ...(Array.isArray(td.altSlugs) ? td.altSlugs : [])].filter(Boolean);
-      const tourFound = slugs.some((slug) => {
-        try { return !!match(slug, { decode: decodeURIComponent })(url); } catch (_) { return false; }
-      });
-
-      if (!tourFound) return false;
-      if (forceShow) return true;
-      return !visited.includes(td.slug);
-    });
-  }
-  private async fetchAndCacheHighlightsData(highlightsData: any) {
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/highlights?filter[isActive]=true&filter[language]=${this.options.language || ''}`
-    ).then((res) => res.json());
-    if (respons.rows) {
-      highlightsData = respons.rows.filter((row: any) => !!row.content);
-      LocalStorage.put(
-        HIGHLIGHTS_DATA_STORAGE_KEY,
-        highlightsData,
-        this.options.highlightRefetchIntervalInSec
-      );
-    }
-    return highlightsData;
-  }
-
-  private async fetchAndCacheTourData(toursData: any, slug: string, resolveSlug = true) {
-    if (slug && resolveSlug) {
-      slug = this.resolveSlugPatternForUrl(slug, toursData);
-    }
-    const langParam = this.options.language ? `&filter[language]=${this.options.language}` : '';
-    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
-    const response: any = await fetch(url).then((res) => res.json());
-    if (response) {
-      toursData = response;
-      LocalStorage.put(
-        TOUR_DATA_STORAGE_KEY,
-        toursData,
-        this.options.toursRefetchIntervalInSec
-      );
-
-    }
-    return toursData;
-  }
-
-
-
-
-  // private async fetchAndCacheHelpData(helpData: any) {
-  //   const respons: any = await fetch(
-  //     `${this.options.apiHost}/api/tenant/${this.options.applicationId}/context-help?filter[isActive]=true`
-  //   ).then((res) => res.json());
-  //   if (respons.rows) {
-  //     helpData = respons.rows.filter((row: any) => !!row.content);
-  //     LocalStorage.put(
-  //       HELP_DATA_STORAGE_KEY,
-  //       helpData,
-  //       this.options.helpRefetchIntervalInSec
-  //     );
-  //   }
-  //   return helpData;
-  // }
-
-  private async fetchAndCachePageVisitsData(visits: any) {
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/stats/${this.options.visitorId}?filter[device]=web`
-    ).then((res) => res.json());
-    if (respons) {
-      LocalStorage.put(
-        AHD_VISITOR_STATS_STORAGE_KEY,
-        respons,
-        this.options.statsCacheIntervalInSec
-      );
-    }
-    return visits;
-  }
-
-  private async updateVisitorStats(dataToPatch: any, type: string) {
-    let visits;
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/visitor-stats`,
-      {
-        method: "POST", // *GET, POST, PUT, DELETE, etc.
-        mode: "cors", // no-cors, *cors, same-origin
-        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: "same-origin", // include, *same-origin, omit
-        headers: {
-          "Content-Type": "application/json",
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        redirect: "follow", // manual, *follow, error
-        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify({
-          data: {
-            dataToPatch,
-            visitorId: this.options.visitorId,
-            channel: "web",
-            type,
-          },
-        }), // body data type must match "Content-Type" header
-      }
-    ).then((res) => res.json());
-    if (respons) {
-      LocalStorage.put(
-        AHD_VISITOR_STATS_STORAGE_KEY,
-        respons,
-        this.options.visitsCacheIntervalInSec
-      );
-    }
-    return visits;
-  }
-
   private acknowledgeAppBanner(bannerId: string, slideIds: string[]) {
     if (!bannerId) return;
     slideIds.forEach((slideId) => {
-      this.acknowledgeStep('app-banner', bannerId, slideId);
+      this._api.acknowledgeStep('app-banner', bannerId, slideId);
     });
-  }
-
-  private async acknowledgeStep(type: string, id: string, stepId: string) {
-    // console.log('acknowledgeStep', type, id);
-    if (!this.options.visitorId) {
-      console.warn('acknowledgeStep: visitorId is not defined, skipping acknowledgment');
-      return;
-    }
-    const requestOptions = {
-      method: "GET",
-      redirect: "follow",
-    };
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/acknowledge?userId=${this.options.visitorId}&id=${id}&type=${type}&stepId=${stepId}&device=desktop`,
-      requestOptions
-    ).then((res) => res.json());
-
-  }
-
-  private async markPageVisited(slug: string, type: string, entityId: string) {
-    let visits;
-    const respons: any = await fetch(
-      `${this.options.apiHost}/api/tenant/${this.options.applicationId}/visitor-stats`,
-      {
-        method: "POST", // *GET, POST, PUT, DELETE, etc.
-        mode: "cors", // no-cors, *cors, same-origin
-        cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
-        credentials: "same-origin", // include, *same-origin, omit
-        headers: {
-          "Content-Type": "application/json",
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        redirect: "follow", // manual, *follow, error
-        referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-        body: JSON.stringify({
-          data: {
-            slug,
-            visitorId: this.options.visitorId,
-            entityId: entityId,
-            channel: "web",
-            type,
-          },
-        }), // body data type must match "Content-Type" header
-      }
-    ).then((res) => res.json());
-    if (respons) {
-      LocalStorage.put(
-        AHD_VISITOR_STATS_STORAGE_KEY,
-        respons,
-        this.options.visitsCacheIntervalInSec
-      );
-    }
-    return visits;
   }
 }
 
@@ -1228,41 +613,5 @@ AHDjs.extend = (plugin, ...args) => {
   }
   return AHDjs;
 };
-
-// const BASE_WIDTH = 2560;
-
-// function applyGuideChimpScaling() {
-//   const scale = Math.min(window.innerWidth / BASE_WIDTH, 1).toFixed(2);
-
-//   const originMap: { [key: string]: string } = {
-//     'top': 'bottom center',
-//     'top-left': 'bottom right',
-//     'top-right': 'bottom left',
-//     'bottom': 'right top',
-//     'bottom-left': 'top right',
-//     'bottom-right': 'top left',
-//     'left': ' right',
-//     'right': ' left',
-//     'floating': 'floating',
-//   };
-
-//   document.querySelectorAll('[data-guidechimp-position]').forEach((el) => {
-//     const position = (el as Element).getAttribute('data-guidechimp-position') || '';
-//     const origin = originMap[position];
-//     if (origin === 'floating') {
-//       (el as HTMLElement).style.transformOrigin = 'none';
-//       (el as HTMLElement).style.transform = ` translate(-50%, -50%)`;
-//       return;
-//     }
-//     else {
-//       (el as HTMLElement).style.transformOrigin = originMap[position];
-//       (el as HTMLElement).style.transform = `scale(${(parseFloat(scale) + 0.25).toFixed(2)})`;
-//     }
-//   });
-// }
-
-// applyGuideChimpScaling();
-// window.addEventListener('resize', applyGuideChimpScaling);
-// window.addEventListener('load', applyGuideChimpScaling);
 
 export default AHDjs;

@@ -1,0 +1,104 @@
+# Demo Embed — Conditional Visibility via postMessage
+
+The demo viewer iframe communicates its status to the parent page via `window.postMessage`. Use this to keep the iframe hidden until the demo is confirmed live, avoiding a flash of a draft or loading state.
+
+---
+
+## How it works
+
+1. The wrapper div starts with `visibility: hidden` — the iframe loads and makes its API calls in the background, but nothing is visible to the user.
+2. The iframe posts a `DEMO_STATUS` message once it knows its publish state.
+3. If `status === 'live'`, the wrapper becomes visible. If not, it is removed from layout entirely with `display: none`.
+
+---
+
+## Embed snippet
+
+```html
+<div
+  id="demo-wrapper"
+  style="
+    visibility: hidden;
+    position: relative;
+    padding-bottom: calc(54.75% + 25px);
+    width: 100%;
+    height: 0;
+    margin-top: 40px;
+  "
+>
+  <iframe
+    id="demo-iframe"
+    loading="lazy"
+    src="https://pagepilot-demo-viewer-prod.web.app/?tid=YOUR_TID&did=YOUR_DID&type=demo"
+    allow="fullscreen"
+    style="
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 1px solid rgba(63, 95, 172, 0.35);
+      box-shadow: 0px 0px 18px rgba(26, 19, 72, 0.15);
+      border-radius: 10px;
+      box-sizing: border-box;
+    "
+  ></iframe>
+</div>
+
+<script>
+  window.addEventListener('message', function (event) {
+    var msg = event.data;
+    if (!msg || msg.source !== 'pagepilot-demo-viewer') return;
+
+    if (msg.type === 'DEMO_STATUS') {
+      var wrapper = document.getElementById('demo-wrapper');
+      if (msg.status === 'live') {
+        wrapper.style.visibility = 'visible';
+      } else {
+        wrapper.style.display = 'none';
+      }
+    }
+  });
+</script>
+```
+
+---
+
+## postMessage event reference
+
+All messages posted by the demo viewer have the shape:
+
+```js
+{
+  source: 'pagepilot-demo-viewer',
+  type: string,
+  // additional fields depending on type
+}
+```
+
+| `type`            | When fired                                      | Extra fields           |
+| ----------------- | ----------------------------------------------- | ---------------------- |
+| `DEMO_LOAD_STARTED` | Iframe has mounted, before any API call         | —                      |
+| `DEMO_LOADING`    | API call is in-flight                           | —                      |
+| `DEMO_STATUS`     | Publish state resolved                          | `status: 'live' \| 'draft'` |
+| `DEMO_LOADED`     | Demo content is fully rendered inside the iframe | —                      |
+
+---
+
+## Why `visibility: hidden` instead of `display: none`
+
+`display: none` prevents the browser from loading the iframe at all — no network requests are made, so `DEMO_STATUS` never fires and the demo stays hidden forever.
+
+`visibility: hidden` keeps the element in the layout and allows the iframe to load normally. The user sees nothing until the status resolves, at which point the wrapper is either revealed or collapsed.
+
+---
+
+## Filtering messages safely
+
+Always guard against messages from other sources:
+
+```js
+if (!msg || msg.source !== 'pagepilot-demo-viewer') return;
+```
+
+This prevents unrelated `postMessage` traffic (analytics, extensions, other iframes) from triggering visibility changes.
