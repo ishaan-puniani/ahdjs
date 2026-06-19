@@ -2048,6 +2048,82 @@ export default class GuideChimp {
         const _lockPos = this.currentStep.lockPosition ?? this.options.lockPosition;
         const _isCornerAlignment = alignment === 'left' || alignment === 'right';
         if (!_lockPos || (_hasCustomRoot && !_isCornerAlignment)) clampToViewport(tooltipEl, 0);
+
+        // Align the caret to the target element once the tooltip's final position is set.
+        this.alignTooltipCaret(tooltipEl, position);
+        return this;
+    }
+
+    /**
+     * Position the tooltip caret/tail so it points at the center of the target element,
+     * regardless of how the tooltip body has been shifted or clamped within the viewport.
+     *
+     * @param {HTMLElement} tooltipEl
+     * @param {string} position - resolved position: top | bottom | left | right | floating
+     * @returns {this}
+     */
+    alignTooltipCaret(tooltipEl, position) {
+        if (!tooltipEl || !this.currentStep) {
+            return this;
+        }
+
+        const tail = tooltipEl.querySelector('.gc-tooltip-tail');
+
+        // Nothing to do when the caret is disabled/hidden.
+        if (!tail || !this.currentStep.isCaret || tail.classList.contains('gc-tooltip-tail-hidden')) {
+            return this;
+        }
+
+        // The caret only points at an element for the edge positions.
+        if (!['top', 'bottom', 'left', 'right'].includes(position)) {
+            return this;
+        }
+
+        const targetEl = this.getStepEl(this.currentStep);
+        if (!targetEl || this.isEl(targetEl, 'fakeStep')) {
+            return this;
+        }
+
+        const elRect = this.getElementVisibleRect(targetEl);
+        const tipRect = tooltipEl.getBoundingClientRect();
+
+        // Account for any CSS transform: scale() applied on smaller screens.
+        const scaleX = tooltipEl.offsetWidth ? (tipRect.width / tooltipEl.offsetWidth) : 1;
+        const scaleY = tooltipEl.offsetHeight ? (tipRect.height / tooltipEl.offsetHeight) : 1;
+
+        // Half of the visible caret triangle (6px border on each side).
+        const caretHalf = 6;
+        const edgeGap = 8;
+
+        // Clear previous inline overrides so CSS defaults apply if we bail out below.
+        tail.style.left = '';
+        tail.style.right = '';
+        tail.style.top = '';
+        tail.style.bottom = '';
+        tail.style.marginLeft = '';
+        tail.style.marginTop = '';
+
+        if (position === 'top' || position === 'bottom') {
+            const elCenterX = elRect.left + (elRect.width / 2);
+            const innerWidth = tooltipEl.offsetWidth;
+            // Offset of the element center inside the (un-scaled) tooltip box.
+            let caretLeft = ((elCenterX - tipRect.left) / (scaleX || 1)) - caretHalf;
+            const maxLeft = innerWidth - edgeGap - (caretHalf * 2);
+            caretLeft = Math.max(edgeGap, Math.min(caretLeft, maxLeft));
+            tail.style.left = `${Math.round(caretLeft)}px`;
+            tail.style.right = 'auto';
+            tail.style.marginLeft = '0px';
+        } else {
+            const elCenterY = elRect.top + (elRect.height / 2);
+            const innerHeight = tooltipEl.offsetHeight;
+            let caretTop = ((elCenterY - tipRect.top) / (scaleY || 1)) - caretHalf;
+            const maxTop = innerHeight - edgeGap - (caretHalf * 2);
+            caretTop = Math.max(edgeGap, Math.min(caretTop, maxTop));
+            tail.style.top = `${Math.round(caretTop)}px`;
+            tail.style.bottom = 'auto';
+            tail.style.marginTop = '0px';
+        }
+
         return this;
     }
 
