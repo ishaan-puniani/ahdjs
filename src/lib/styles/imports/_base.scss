@@ -176,57 +176,57 @@
 .gc-tooltip-tail {
   position: absolute;
   content: "";
-  border: 6px solid transparent;
+  border: 8px solid transparent;
 
   .gc-tooltip[data-guidechimp-position="top"] & {
-    bottom: -10px;
+    bottom: -14px;
     border-top-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="top"][data-guidechimp-alignment="right"]
     & {
     right: 10px;
-    bottom: -10px;
+    bottom: -14px;
     border-top-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="top"][data-guidechimp-alignment="middle"]
     & {
-    bottom: -10px;
+    bottom: -14px;
     left: 50%;
-    margin-left: -5px;
+    margin-left: -8px;
     border-top-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="left"] & {
     top: 10px;
-    right: -10px;
+    right: -14px;
     border-left-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="right"] & {
     top: 10px;
-    left: -10px;
+    left: -14px;
     border-right-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="bottom"] & {
-    top: -10px;
+    top: -14px;
     border-bottom-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="bottom"][data-guidechimp-alignment="right"]
     & {
-    top: -10px;
+    top: -14px;
     right: 10px;
     border-bottom-color: white;
   }
 
   .gc-tooltip[data-guidechimp-position="bottom"][data-guidechimp-alignment="middle"]
     & {
-    top: -10px;
+    top: -14px;
     left: 50%;
-    margin-left: -5px;
+    margin-left: -8px;
     border-bottom-color: white;
   }
 }
