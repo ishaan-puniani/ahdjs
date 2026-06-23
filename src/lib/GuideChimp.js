@@ -35,6 +35,28 @@ import notificationTmpl from './templates/notification.html';
 import fakeStepTmpl from './templates/fake-step.html';
 import { animationMode, DISMISSAL_SETTINGS } from './utils/constants';
 
+// Pull the ordered color stops out of a CSS gradient string (hex / rgb(a) / hsl(a)).
+// Direction tokens like "90deg" / "to right" are ignored since they aren't colors.
+function extractGradientColors(gradient) {
+    return gradient.match(/#[0-9a-fA-F]{3,8}|(?:rgba?|hsla?)\([^)]*\)/gi) || [];
+}
+
+// Resolve the caret fill, mirroring the email editor's getCaretColor. A solid
+// canvasColor passes through; a gradient collapses to the solid stop nearest the
+// card edge the caret points from (last stop for right/bottom edges, first stop
+// otherwise); transparent/empty falls back to white.
+function getCaretColor(canvasColor, caretPosition) {
+    if (!canvasColor || canvasColor === 'transparent') return '#ffffff';
+    if (!canvasColor.includes('gradient')) return canvasColor;
+    const colors = extractGradientColors(canvasColor);
+    if (colors.length === 0) return '#ffffff';
+    const useLastStop = caretPosition === 'right'
+        || caretPosition === 'bottom'
+        || caretPosition === 'bottom-left'
+        || caretPosition === 'bottom-right';
+    return useLastStop ? colors[colors.length - 1] : colors[0];
+}
+
 export default class GuideChimp {
     /**
      * GuideChimp constructor
@@ -1875,10 +1897,21 @@ export default class GuideChimp {
                     positions.splice(positions.indexOf('right'), 1);
                 }
 
+                const _flipFromEdge = position; // configured edge before any flip
                 if (positions.length) {
                     position = positions.includes(position) ? position : positions[0];
                 } else {
                     position = 'floating';
+                }
+
+                // A left/right placement flipped to top/bottom (no room on that
+                // side) keeps its horizontal intent as a corner alignment, so the
+                // caret sits at the corner over the target (e.g. right -> bottom-
+                // right, caret at the top-left) instead of centering the tooltip.
+                if ((position === 'top' || position === 'bottom')
+                    && (_flipFromEdge === 'left' || _flipFromEdge === 'right')
+                    && alignment === undefined) {
+                    alignment = _flipFromEdge;
                 }
 
                 if (position === 'top' || position === 'bottom') {
@@ -1947,12 +1980,20 @@ export default class GuideChimp {
                     }
             }
 
-            // alignment adjustments for top/bottom positions
+            // Alignment adjustments for top/bottom positions. The caret is axis-
+            // aligned (points straight up/down), so the tooltip must overlap the
+            // target horizontally for the caret to land on it. Place the tooltip
+            // so its caret — CARET_INSET from the near edge (matches the editor's
+            // corner inset) — points at the target centre, while the body extends
+            // to the aligned side: "right" => body extends right, caret near left;
+            // "left" => body extends left, caret near right.
+            const CARET_INSET = 20;
+            const CARET_HALF = 8;
             if (position === 'top' || position === 'bottom') {
                 if (alignment === 'left') {
-                    computedLeft = Math.round(elLeft - tooltipWith - (padding / 2));
+                    computedLeft = Math.round(elCenterX - (tooltipWith - CARET_INSET - CARET_HALF));
                 } else if (alignment === 'right') {
-                    computedLeft = Math.round(elRight + (padding / 2));
+                    computedLeft = Math.round(elCenterX - CARET_INSET - CARET_HALF);
                 }
             }
 
@@ -1992,20 +2033,20 @@ export default class GuideChimp {
                     : (val) => Math.max(0, Math.min(val, vpWidth - tooltipWith));
                 switch (alignment) {
                     case 'left': {
-                        // tooltip ends at element's left edge (outside element, to the left)
-                        const leftVal = elLeft - tooltipWith - (padding / 2);
+                        // body extends left; caret sits near the right edge, over the target
+                        const leftVal = elCenterX - (tooltipWith - CARET_INSET - CARET_HALF);
                         tooltipStyle.left = `${clampLeft(leftVal) + positionOffset.left}px`;
                         break;
                     }
                     case 'right': {
-                        // tooltip starts at element's right edge (outside element, to the right)
-                        const rightVal = elRight + (padding / 2);
+                        // body extends right; caret sits near the left edge, over the target
+                        const rightVal = elCenterX - CARET_INSET - CARET_HALF;
                         tooltipStyle.left = `${clampLeft(rightVal) + positionOffset.left}px`;
                         tooltipStyle.right = 'auto';
                         break;
                     }
                     default: {
-                        const centerLeft = elLeft + (elWidth / 2) - (tooltipWith / 2);
+                        const centerLeft = elCenterX - (tooltipWith / 2);
                         tooltipStyle.left = `${clampLeft(centerLeft) + positionOffset.left}px`;
                     }
                 }
@@ -2079,6 +2120,32 @@ export default class GuideChimp {
             return this;
         }
 
+        // Inherit the caret color from the tooltip's rendered background, mirroring
+        // the email editor (where the caret takes its canvasColor). Read the inline
+        // style first so gradient strings survive, then fall back to the computed
+        // background color. The colored border side depends on which tooltip edge
+        // the caret sits on (opposite the tooltip's position).
+        const contentTable = tooltipEl.querySelector('.gc-description table');
+        if (contentTable) {
+            const canvasColor = contentTable.style.background
+                || contentTable.style.backgroundColor
+                || window.getComputedStyle(contentTable).backgroundColor;
+            const sideByPosition = {
+                top: { prop: 'borderTopColor', edge: 'bottom' },
+                bottom: { prop: 'borderBottomColor', edge: 'top' },
+                left: { prop: 'borderLeftColor', edge: 'right' },
+                right: { prop: 'borderRightColor', edge: 'left' },
+            };
+            const { prop, edge } = sideByPosition[position];
+            const caretColor = getCaretColor(canvasColor, edge);
+            // Reset all sides first so a previous step's color doesn't linger.
+            tail.style.borderTopColor = 'transparent';
+            tail.style.borderBottomColor = 'transparent';
+            tail.style.borderLeftColor = 'transparent';
+            tail.style.borderRightColor = 'transparent';
+            tail.style[prop] = caretColor;
+        }
+
         const targetEl = this.getStepEl(this.currentStep);
         if (!targetEl || this.isEl(targetEl, 'fakeStep')) {
             return this;
@@ -2091,8 +2158,8 @@ export default class GuideChimp {
         const scaleX = tooltipEl.offsetWidth ? (tipRect.width / tooltipEl.offsetWidth) : 1;
         const scaleY = tooltipEl.offsetHeight ? (tipRect.height / tooltipEl.offsetHeight) : 1;
 
-        // Half of the visible caret triangle (6px border on each side).
-        const caretHalf = 6;
+        // Half of the visible caret triangle (8px border on each side).
+        const caretHalf = 8;
         const edgeGap = 8;
 
         // Clear previous inline overrides so CSS defaults apply if we bail out below.
@@ -3195,6 +3262,14 @@ export default class GuideChimp {
         if (observer) {
             // observe elements
             observer.observe(this.getStepEl(this.currentStep), options);
+            // Also observe the tooltip itself: its content (images/fonts) can lay
+            // out after the first paint, changing its size. Without this the
+            // initial position is computed against a stale (smaller) box and never
+            // corrected, so the tooltip/caret land in the wrong place on first load.
+            const tooltipEl = this.getEl('tooltip');
+            if (tooltipEl) {
+                observer.observe(tooltipEl, options);
+            }
             return true;
         }
 
