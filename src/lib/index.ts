@@ -334,16 +334,83 @@ class AHD extends GuideChimp {
     const target = (e.target as HTMLElement).closest('[data-action]') as HTMLElement | null;
     if (!target) return;
     const action = target.getAttribute('data-action');
+    if (!action) return;
+
+    const getPayload = () => {
+      try { return JSON.parse(target.getAttribute('data-action-payload') || '{}'); } catch (_) { return {}; }
+    };
+
     if (action === 'postMessageEvent') {
-      const eventName = target.getAttribute('data-post-message-event') || (() => {
-        try { return JSON.parse(target.getAttribute('data-action-payload') || '{}').postMessageEvent; } catch (_) { return null; }
-      })();
+      const eventName = target.getAttribute('data-post-message-event') || getPayload().postMessageEvent;
       console.log('[AHDjs] postMessageEvent eventName:', eventName);
       if (eventName) {
         e.stopPropagation();
         window.postMessage({ type: eventName }, '*');
         console.log('[AHDjs] postMessage sent:', { type: eventName });
       }
+      return;
+    }
+
+    if (action === 'goToStep') {
+      const stepNumber = target.getAttribute('data-goto-step') || getPayload().goToStep;
+      const slideIndex = parseInt(stepNumber, 10) - 1;
+      if (!isNaN(slideIndex) && slideIndex >= 0) {
+        e.stopPropagation();
+        this.goToBannerSlide(slideIndex);
+      }
+      return;
+    }
+
+    if (action === 'onNextStep') {
+      e.stopPropagation();
+      this.stepBannerSlide(1);
+      return;
+    }
+
+    if (action === 'onPrevStep') {
+      e.stopPropagation();
+      this.stepBannerSlide(-1);
+      return;
+    }
+
+    if (action === 'onCloseStep') {
+      e.stopPropagation();
+      this.closeActiveBanner();
+      return;
+    }
+  }
+
+  private goToBannerSlide(index: number) {
+    const inst = (this as any)._ahd_carousel;
+    if (inst && typeof inst.goTo === 'function') {
+      inst.goTo(index);
+    }
+  }
+
+  private stepBannerSlide(delta: number) {
+    const inst = (this as any)._ahd_carousel;
+    if (inst && typeof inst.goTo === 'function' && inst.state) {
+      inst.goTo(inst.state.index + delta);
+    }
+  }
+
+  private closeActiveBanner() {
+    if (document.querySelector('[data-ahd-modal="true"]')) {
+      this.removeModalBanner();
+      return;
+    }
+    if (document.querySelector('[data-ahd-floater="true"]')) {
+      this.removeFloaterBanner();
+      return;
+    }
+    const simpleBanner = document.querySelector('[data-ahd-simple-banner="true"]');
+    if (simpleBanner) {
+      const activeBanner = (this as any)._ahd_active_banner;
+      if (activeBanner && activeBanner.bannerId) {
+        this.acknowledgeAppBanner(activeBanner.bannerId, activeBanner.slideIds || []);
+      }
+      simpleBanner.remove();
+      delete (this as any)._ahd_active_banner;
     }
   }
 
@@ -538,7 +605,19 @@ class AHD extends GuideChimp {
       document.body.appendChild(modalOverlay);
       mountParent = carousel;
     } else if (identifier) {
-      const container = document.querySelector(identifier);
+      let container = null;
+      try {
+        container = document.querySelector(identifier);
+      } catch (e) {
+        container = null;
+      }
+      if (!container && !identifier.startsWith('#')) {
+        try {
+          container = document.querySelector('#' + identifier);
+        } catch (e) {
+          container = null;
+        }
+      }
       if (container) {
         container.innerHTML = '';
         container.appendChild(carousel);
@@ -597,7 +676,7 @@ class AHD extends GuideChimp {
     carousel.addEventListener('touchmove', onTouchMove, { passive: true });
     carousel.addEventListener('touchend', onTouchEnd);
 
-    (this as any)._ahd_carousel = { carousel, state, handlers: { onTouchStart, onTouchMove, onTouchEnd } };
+    (this as any)._ahd_carousel = { carousel, state, goTo, handlers: { onTouchStart, onTouchMove, onTouchEnd } };
   }
 
   private destroyCarousel() {
