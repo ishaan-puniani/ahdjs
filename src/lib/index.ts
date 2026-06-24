@@ -605,7 +605,19 @@ class AHD extends GuideChimp {
       document.body.appendChild(modalOverlay);
       mountParent = carousel;
     } else if (identifier) {
-      const container = document.querySelector(identifier);
+      let container = null;
+      try {
+        container = document.querySelector(identifier);
+      } catch (e) {
+        container = null;
+      }
+      if (!container && !identifier.startsWith('#')) {
+        try {
+          container = document.querySelector('#' + identifier);
+        } catch (e) {
+          container = null;
+        }
+      }
       if (container) {
         container.innerHTML = '';
         container.appendChild(carousel);
