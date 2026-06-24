@@ -688,9 +688,26 @@ class AHD extends GuideChimp {
       'top-left', 'top-right', 'bottom-left', 'bottom-right',
       'top-center', 'bottom-center', 'left-center', 'right-center', 'center',
     ];
-    const requested = (bannerData?.position || bannerData?.styles?.position || 'bottom-right')
-      .toString()
-      .toLowerCase();
+
+    const slide = Array.isArray(bannerData?.slides) ? bannerData.slides[0] : null;
+    const slideRootBehaviour =
+      slide?.contentMetadata?.document?.root?.data?.behaviour ?? {};
+    const slideBehaviour = slide?.behaviour ?? {};
+    const rootBehaviour = bannerData?.behaviour ?? {};
+
+    const pick = (...candidates: any[]) =>
+      candidates.find((v) => v !== undefined && v !== null);
+
+    const requestedRaw =
+      pick(
+        slideBehaviour.position,
+        slideRootBehaviour.position,
+        slide?.position,
+        rootBehaviour.position,
+        bannerData?.position,
+        bannerData?.styles?.position,
+      ) ?? 'bottom-right';
+    const requested = String(requestedRaw).toLowerCase();
     const position = allowedPositions.includes(requested) ? requested : 'bottom-right';
 
     const floater = document.createElement('div');
@@ -706,10 +723,28 @@ class AHD extends GuideChimp {
     }
 
     const offsetY = this.normalizeDimensionToStyle(
-      bannerData?.offsetY ?? bannerData?.styles?.offsetY ?? bannerData?.offset ?? bannerData?.styles?.offset ?? 20
+      pick(
+        slideBehaviour.offsetY,
+        slideRootBehaviour.offsetY,
+        slide?.offsetY,
+        rootBehaviour.offsetY,
+        bannerData?.offsetY,
+        bannerData?.styles?.offsetY,
+        bannerData?.offset,
+        bannerData?.styles?.offset,
+      ) ?? 20
     );
     const offsetX = this.normalizeDimensionToStyle(
-      bannerData?.offsetX ?? bannerData?.styles?.offsetX ?? bannerData?.offset ?? bannerData?.styles?.offset ?? 20
+      pick(
+        slideBehaviour.offsetX,
+        slideRootBehaviour.offsetX,
+        slide?.offsetX,
+        rootBehaviour.offsetX,
+        bannerData?.offsetX,
+        bannerData?.styles?.offsetX,
+        bannerData?.offset,
+        bannerData?.styles?.offset,
+      ) ?? 20
     );
 
     const applyAxis = (axis: 'top' | 'bottom' | 'left' | 'right', value: string) => {
@@ -749,9 +784,15 @@ class AHD extends GuideChimp {
       }
     }
 
-    const animationType = (bannerData?.behaviour?.animationType
-      ?? bannerData?.animationType
-      ?? 'fadeIn').toString();
+    const animationType = String(
+      pick(
+        slideBehaviour.animationType,
+        slideRootBehaviour.animationType,
+        slide?.animationType,
+        rootBehaviour.animationType,
+        bannerData?.animationType,
+      ) ?? 'fadeIn'
+    );
     const animationKeyframe: Record<string, string> = {
       fadeIn: 'fadeIn',
       slide: 'slideUp',
