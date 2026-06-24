@@ -375,6 +375,8 @@ class AHD extends GuideChimp {
       this.renderCarouselBanner(firstRow, identifier);
     } else if (firstRow?.type === 'modal') {
       this.renderModalBanner(bannerContent, firstRow);
+    } else if (firstRow?.type === 'floater') {
+      this.renderFloaterBanner(bannerContent, firstRow);
     } else if (identifier) {
       console.log('Rendering banner in ', identifier);
       let container = null;
@@ -449,7 +451,8 @@ class AHD extends GuideChimp {
       (this as any)._ahd_active_banner = { bannerId, slideIds };
       const isSimpleBanner = !firstRow?.type || firstRow?.type === 'simpleBanner';
       const isModal = firstRow?.type === 'modal';
-      if (!isSimpleBanner && !isModal) {
+      const isFloater = firstRow?.type === 'floater';
+      if (!isSimpleBanner && !isModal && !isFloater) {
         this.acknowledgeAppBanner(bannerId, slideIds);
       }
     }
@@ -673,6 +676,123 @@ class AHD extends GuideChimp {
       existingModal.remove();
       document.body.style.overflow = '';
     }
+    this.removeFloaterBanner();
+  }
+
+  async renderFloaterBanner(content: string, bannerData: any) {
+    this.removeFloaterBanner();
+
+    if (!content) return;
+
+    const allowedPositions = [
+      'top-left', 'top-right', 'bottom-left', 'bottom-right',
+      'top-center', 'bottom-center', 'left-center', 'right-center', 'center',
+    ];
+    const requested = (bannerData?.position || bannerData?.styles?.position || 'bottom-right')
+      .toString()
+      .toLowerCase();
+    const position = allowedPositions.includes(requested) ? requested : 'bottom-right';
+
+    const floater = document.createElement('div');
+    floater.className = `gc-floater gc-floater-${position}`;
+    floater.setAttribute('data-ahd-floater', 'true');
+    floater.setAttribute('data-position', position);
+
+    if (bannerData?.styles?.width) {
+      floater.style.width = this.normalizeDimensionToStyle(bannerData.styles.width);
+    }
+    if (bannerData?.styles?.height) {
+      floater.style.height = this.normalizeDimensionToStyle(bannerData.styles.height);
+    }
+
+    const offsetY = this.normalizeDimensionToStyle(
+      bannerData?.offsetY ?? bannerData?.styles?.offsetY ?? bannerData?.offset ?? bannerData?.styles?.offset ?? 20
+    );
+    const offsetX = this.normalizeDimensionToStyle(
+      bannerData?.offsetX ?? bannerData?.styles?.offsetX ?? bannerData?.offset ?? bannerData?.styles?.offset ?? 20
+    );
+
+    const applyAxis = (axis: 'top' | 'bottom' | 'left' | 'right', value: string) => {
+      (floater.style as any)[axis] = value;
+    };
+
+    switch (position) {
+      case 'center':
+        applyAxis('top', '50%');
+        applyAxis('left', '50%');
+        floater.style.transform = 'translate(-50%, -50%)';
+        break;
+      case 'top-center':
+        applyAxis('top', offsetY);
+        applyAxis('left', '50%');
+        floater.style.transform = 'translateX(-50%)';
+        break;
+      case 'bottom-center':
+        applyAxis('bottom', offsetY);
+        applyAxis('left', '50%');
+        floater.style.transform = 'translateX(-50%)';
+        break;
+      case 'left-center':
+        applyAxis('top', '50%');
+        applyAxis('left', offsetX);
+        floater.style.transform = 'translateY(-50%)';
+        break;
+      case 'right-center':
+        applyAxis('top', '50%');
+        applyAxis('right', offsetX);
+        floater.style.transform = 'translateY(-50%)';
+        break;
+      default: {
+        const [vertical, horizontal] = position.split('-');
+        applyAxis(vertical as 'top' | 'bottom', offsetY);
+        applyAxis(horizontal as 'left' | 'right', offsetX);
+      }
+    }
+
+    const animationType = (bannerData?.behaviour?.animationType
+      ?? bannerData?.animationType
+      ?? 'fadeIn').toString();
+    const animationKeyframe: Record<string, string> = {
+      fadeIn: 'fadeIn',
+      slide: 'slideUp',
+      slideDown: 'slideDown',
+      slideLeft: 'slideLeft',
+      slideRight: 'slideRight',
+    };
+    if (animationType === 'instant') {
+      floater.style.animation = 'none';
+    } else if (animationKeyframe[animationType]) {
+      floater.style.animation = `${animationKeyframe[animationType]} 0.3s ease-out`;
+    }
+
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'gc-floater-content';
+    contentContainer.innerHTML = content;
+    contentContainer.addEventListener('click', (e) => this.handleBannerClick(e));
+
+    const inlineCloseEl = contentContainer.querySelector('[data-action="onCloseStep"]') as HTMLElement | null;
+    if (inlineCloseEl) {
+      inlineCloseEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeFloaterBanner();
+      });
+    }
+
+    floater.appendChild(contentContainer);
+
+    document.body.appendChild(floater);
+  }
+
+  removeFloaterBanner() {
+    const existingFloater = document.querySelector('[data-ahd-floater="true"]');
+    if (!existingFloater) return;
+    const activeBanner = (this as any)._ahd_active_banner;
+    if (activeBanner) {
+      const { bannerId, slideIds } = activeBanner;
+      this.acknowledgeAppBanner(bannerId, slideIds);
+      delete (this as any)._ahd_active_banner;
+    }
+    existingFloater.remove();
   }
 
 

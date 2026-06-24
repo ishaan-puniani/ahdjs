@@ -576,3 +576,17 @@
   display: inline-block;
 }
 
+.gc-floater {
+  position: fixed;
+  z-index: 9999;
+  box-sizing: border-box;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.gc-floater-content {
+  display: inline-block;
+}
+
