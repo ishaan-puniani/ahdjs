@@ -699,6 +699,27 @@ class AHD extends GuideChimp {
     this.removeModalBanner();
 
     if (!content) return;
+
+    const slide = Array.isArray(bannerData?.slides) ? bannerData.slides[0] : null;
+    const slideRootBehaviour =
+      slide?.contentMetadata?.document?.root?.data?.behaviour ?? {};
+    const slideBehaviour = slide?.behaviour ?? {};
+    const rootBehaviour = bannerData?.behaviour ?? {};
+    const pick = (...candidates: any[]) =>
+      candidates.find((v) => v !== undefined && v !== null);
+    const showCloseIcon = pick(
+      slideBehaviour.showCloseIcon,
+      slideRootBehaviour.showCloseIcon,
+      rootBehaviour.showCloseIcon,
+      bannerData?.showCloseIcon,
+    );
+    const closeIconColor = pick(
+      slideBehaviour.iconCloseColor,
+      slideRootBehaviour.iconCloseColor,
+      rootBehaviour.iconCloseColor,
+      bannerData?.styles?.iconCloseColor,
+    ) || '#000';
+
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'gc-modal-overlay';
     modalOverlay.setAttribute('data-ahd-modal', 'true');
@@ -711,17 +732,25 @@ class AHD extends GuideChimp {
       modal.style.height = this.normalizeDimensionToStyle(bannerData.styles.height);
     }
 
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'gc-close';
-    closeBtn.style.setProperty('--gc-close-foreground', bannerData?.styles?.iconCloseColor || '#000');
-    closeBtn.addEventListener('click', () => this.removeModalBanner());
-
     const contentContainer = document.createElement('div');
     contentContainer.className = 'gc-modal-content';
     contentContainer.innerHTML = content;
     contentContainer.addEventListener('click', (e) => this.handleBannerClick(e));
 
-    modal.appendChild(closeBtn);
+    const inlineCloseEl = contentContainer.querySelector('[data-action="onCloseStep"]') as HTMLElement | null;
+    if (inlineCloseEl) {
+      inlineCloseEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeModalBanner();
+      });
+    } else if (showCloseIcon !== false) {
+      const closeBtn = document.createElement('div');
+      closeBtn.className = 'gc-close';
+      closeBtn.style.setProperty('--gc-close-foreground', closeIconColor);
+      closeBtn.addEventListener('click', () => this.removeModalBanner());
+      modal.appendChild(closeBtn);
+    }
+
     modal.appendChild(contentContainer);
     modalOverlay.appendChild(modal);
 
