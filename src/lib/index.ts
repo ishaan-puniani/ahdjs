@@ -711,10 +711,13 @@ class AHD extends GuideChimp {
       modal.style.height = this.normalizeDimensionToStyle(bannerData.styles.height);
     }
 
-    const closeBtn = document.createElement('div');
-    closeBtn.className = 'gc-close';
-    closeBtn.style.setProperty('--gc-close-foreground', bannerData?.styles?.iconCloseColor || '#000');
-    closeBtn.addEventListener('click', () => this.removeModalBanner());
+    const slideBehaviour = bannerData?.slides?.[0]?.behaviour || bannerData?.behaviour || {};
+    const showCloseIcon =
+      slideBehaviour?.showCloseIcon ??
+      bannerData?.slides?.[0]?.showCloseIcon ??
+      bannerData?.showCloseIcon;
+    const closeIconColor =
+      slideBehaviour?.iconCloseColor || bannerData?.styles?.iconCloseColor || '#000';
 
     const contentContainer = document.createElement('div');
     contentContainer.className = 'gc-modal-content';
