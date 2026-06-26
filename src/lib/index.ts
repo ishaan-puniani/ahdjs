@@ -596,7 +596,7 @@ class AHD extends GuideChimp {
       const contentContainer = document.createElement('div');
       contentContainer.className = 'gc-modal-content';
       contentContainer.appendChild(carousel);
-      modal.appendChild(closeBtn);
+      contentContainer.appendChild(closeBtn);
       modal.appendChild(contentContainer);
       modalOverlay.appendChild(modal);
       modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) this.removeModalBanner(); });
@@ -721,9 +721,44 @@ class AHD extends GuideChimp {
     contentContainer.innerHTML = content;
     contentContainer.addEventListener('click', (e) => this.handleBannerClick(e));
 
-    modal.appendChild(closeBtn);
+    const inlineCloseEl = contentContainer.querySelector('[data-action="onCloseStep"]') as HTMLElement | null;
+    if (inlineCloseEl) {
+      inlineCloseEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.removeModalBanner();
+      });
+    }
+
     modal.appendChild(contentContainer);
     modalOverlay.appendChild(modal);
+
+    // Append the close icon only after the banner is visible (modal mounted +
+    // laid out). The content is an email-style export whose visible card is a
+    // centered <table> wrapped in full-width blocks; that table/cell only
+    // resolves its real layout once in the DOM. Anchor the icon to the
+    // td.email-layout-content cell so it always sits on the card's top-right.
+    const mountCloseIcon = () => {
+      if (inlineCloseEl || showCloseIcon === false) return;
+      if (!modalOverlay.isConnected) return;
+      const closeBtn = document.createElement('div');
+      closeBtn.className = 'gc-close';
+      closeBtn.style.setProperty('--gc-close-foreground', closeIconColor);
+      closeBtn.addEventListener('click', () => this.removeModalBanner());
+      const cardCell =
+        (contentContainer.querySelector('td.email-layout-content') as HTMLElement | null) ||
+        (contentContainer.querySelector('tbody') as HTMLElement | null);
+      if (cardCell) {
+        if (getComputedStyle(cardCell).position === 'static') {
+          cardCell.style.position = 'relative';
+        }
+        cardCell.appendChild(closeBtn);
+      } else {
+        contentContainer.appendChild(closeBtn);
+      }
+    };
+    // Wait two frames so the email content has painted/laid out before we
+    // measure and anchor.
+    requestAnimationFrame(() => requestAnimationFrame(mountCloseIcon));
 
     modalOverlay.addEventListener('click', (e) => {
       if (e.target === modalOverlay) {
