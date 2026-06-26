@@ -573,7 +573,8 @@
 }
 
 .gc-modal-content {
-  display: inline-block;
+  position: relative;
+  display: block;
 }
 
 .gc-floater {
