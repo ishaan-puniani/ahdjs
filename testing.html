@@ -1,7 +1,39 @@
+<!DOCTYPE html>
 <html>
   <head>
     <link rel="stylesheet" href="./build/css/index.css" />
     <script type="text/javascript" src="/build/index.js"></script>
+    <style>
+      body {
+        font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+        color: #262626;
+      }
+
+      .tour-container {
+        max-width: 720px;
+        margin: 48px auto;
+        padding: 32px;
+        line-height: 2.2;
+      }
+
+      /* Anchor targets the /onboarding tour points at (a[href="/tour"], etc.).
+         Spaced out as buttons so each has room for the tooltip + caret. */
+      .tour-link {
+        display: inline-block;
+        margin: 8px 16px 8px 0;
+        padding: 10px 20px;
+        background: #2563eb;
+        color: #ffffff;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      .tour-link:hover {
+        background: #1d4ed8;
+      }
+    </style>
 
     <body>
       <div class="tour-container">
@@ -28,6 +60,16 @@
           Node-Locked </span
         ><br />
         <span id="pay-per-use" class="tour-section">Pay-per-Use</span>
+
+        <div id="test-id" class="tour-section">Test Target</div>
+<div id="ECOM"></div>
+        <!-- Targets for the /onboarding tour steps (matched by a[href="..."]). -->
+        <nav>
+          <a class="tour-link" href="/tour">Tour</a>
+          <a class="tour-link" href="/demo">Demo</a>
+          <a class="tour-link" href="/page">Page</a>
+          <a class="tour-link" href="/app-banner">App Banner</a>
+        </nav>
       </div>
       <script>
         const tour1 = [
@@ -217,7 +259,7 @@
         ];
 
         const AHDjs = window.AHDjs.default;
-        const userId = "675c5d10b73dc091ba239699";
+        const userId = `user-${Math.floor(Math.random() * 1000)}`;
         let _ahdJs = new AHDjs(undefined, {
           applicationId: "6655bc2b30a6760d8f897581",
           apiHost: "https://pagepilot.fabbuilder.com",
@@ -360,6 +402,12 @@
         //   _ahdJs.clearCachedData();
         // }, 50000);
 
+        // The configured tour's slug is "/onboarding" and its steps target the
+        // anchors above (a[href="/tour"], etc.) and #test-id. Pass that slug so the
+        // client-side URL match succeeds — passing "/" matches no tour and shows
+        // nothing.
+        // _ahdJs.showHighlights("/test23", true);
+        _ahdJs.renderAppBanner("ECOM", true);
         // _ahdJs.start();
         // _ahdJs.showPageTour("/slug");
         // _ahdJs.showAppBanner();
