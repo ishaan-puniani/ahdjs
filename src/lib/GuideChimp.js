@@ -1726,10 +1726,14 @@ export default class GuideChimp {
             const _isCornerPos = (alignment === 'left' || alignment === 'right');
             if (!_lockPosNoEl || (hasCustomRoot && !_isCornerPos)) clampToViewport(tooltipEl, 0);
 
-            // Color the caret to match the tooltip background/border. There's no DOM
-            // target here (CSS handles the corner placement), so we only recolor the
-            // caret rather than running the full alignment pass.
-            this.colorTooltipCaret(tooltipEl, position);
+            // Align the caret with the SAME pass the element branch uses, so a
+            // coordinate-positioned caret lands identically to an element-positioned
+            // one (the element branch always reaches alignTooltipCaret before
+            // returning). getStepEl() resolves to an offset fake-step at the target
+            // rectangle, which alignTooltipCaret aligns the caret to (and recolors
+            // internally) for the edge positions; corners/center fall back to the
+            // static CSS placement set above.
+            this.alignTooltipCaret(tooltipEl, position);
             return this;
         } else if (!hasElement && (hasTop || hasLeft)) {
             tooltipEl.setAttribute('data-guidechimp-position', 'top-left');
@@ -2197,7 +2201,17 @@ export default class GuideChimp {
         this.colorTooltipCaret(tooltipEl, position);
 
         const targetEl = this.getStepEl(this.currentStep);
-        if (!targetEl || this.isEl(targetEl, 'fakeStep')) {
+
+        // Coordinate steps have no real target element; getStepEl returns an
+        // (invisible) offset fake-step positioned at the target rectangle. It
+        // registers under the same 'fakeStep' key as the generic floating
+        // placeholder, but unlike that placeholder it has a real rect — so the
+        // caret should align to its center exactly like an element target.
+        // Only bail for non-coordinate fake steps (true floating tooltips).
+        const cs = this.currentStep || {};
+        const isCoordStep = !cs.element
+            && cs.top !== undefined && cs.left !== undefined && cs.width && cs.height;
+        if (!targetEl || (this.isEl(targetEl, 'fakeStep') && !isCoordStep)) {
             return this;
         }
 
