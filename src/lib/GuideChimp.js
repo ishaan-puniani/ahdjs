@@ -1157,6 +1157,29 @@ export default class GuideChimp {
         return this;
     }
 
+    // Build the optional inline-style suffix for the interaction rectangle
+    // based on the per-step `highlightStyle` config authored in ahd-fe.
+    // Returns '' when unset so the default (fully transparent .gc-interaction)
+    // is preserved for existing demos.
+    getHighlightStyleCss() {
+        const hs = this.currentStep && this.currentStep.highlightStyle;
+        if (!hs) return '';
+        const parts = [];
+        if (hs.color) parts.push(`background-color: ${hs.color};`);
+        if (hs.opacity != null) {
+            const o = Math.max(0, Math.min(100, Number(hs.opacity))) / 100;
+            parts.push(`opacity: ${o};`);
+        }
+        if (hs.borderColor) {
+            const w = hs.borderWidth != null ? Number(hs.borderWidth) : 1;
+            parts.push(`border: ${w}px solid ${hs.borderColor}; box-sizing: border-box;`);
+        }
+        if (hs.borderRadius != null) {
+            parts.push(`border-radius: ${Number(hs.borderRadius)}px;`);
+        }
+        return parts.join(' ');
+    }
+
     setInteractionPosition(interactionEl) {
         const hasElement = this.currentStep?.element;
         const hasTop = this.currentStep?.top !== undefined;
@@ -1192,6 +1215,7 @@ export default class GuideChimp {
             const height = convertToPx(this.currentStep.height, 'y');
 
             const { style } = interactionEl;
+            const highlightCss = this.getHighlightStyleCss();
 
             if (hasCustomRoot) {
                 style.cssText = `position: absolute;
@@ -1199,14 +1223,14 @@ export default class GuideChimp {
                 height: ${height + padding}px;
                 top: ${top - (padding / 2)}px;
                 left: ${left - (padding / 2)}px;
-                z-index: 6403;`;
+                z-index: 6403; ${highlightCss}`;
             } else {
                 style.cssText = `position: fixed;
                 width: ${width + padding}px;
                 height: ${height + padding}px;
                 top: ${top - (padding / 2)}px;
                 left: ${left - (padding / 2)}px;
-                z-index: 6403;`;
+                z-index: 6403; ${highlightCss}`;
             }
 
             return this;
@@ -1231,11 +1255,12 @@ export default class GuideChimp {
         interactionEl.classList.toggle(this.constructor.getFixedClass(), this.constructor.isFixed(el));
 
         const { style } = interactionEl;
+        const highlightCss = this.getHighlightStyleCss();
 
         style.cssText = `width: ${width + padding}px;
         height: ${height + padding}px;
         top: ${top - (padding / 2)}px;
-        left: ${left - (padding / 2)}px;`;
+        left: ${left - (padding / 2)}px; ${highlightCss}`;
 
         return this;
     }
