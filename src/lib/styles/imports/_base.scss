@@ -183,9 +183,20 @@
     border-top-color: white;
   }
 
+  // Body leans left, caret near the right edge (28px from edge = 20px inset + 8px half).
+  .gc-tooltip[data-guidechimp-position="top"][data-guidechimp-alignment="left"]
+    & {
+    right: 20px;
+    left: auto;
+    bottom: -14px;
+    border-top-color: white;
+  }
+
+  // Body leans right, caret near the left edge.
   .gc-tooltip[data-guidechimp-position="top"][data-guidechimp-alignment="right"]
     & {
-    right: 10px;
+    left: 20px;
+    right: auto;
     bottom: -14px;
     border-top-color: white;
   }
@@ -215,10 +226,21 @@
     border-bottom-color: white;
   }
 
+  // Body leans left, caret near the right edge (28px from edge = 20px inset + 8px half).
+  .gc-tooltip[data-guidechimp-position="bottom"][data-guidechimp-alignment="left"]
+    & {
+    top: -14px;
+    right: 20px;
+    left: auto;
+    border-bottom-color: white;
+  }
+
+  // Body leans right, caret near the left edge.
   .gc-tooltip[data-guidechimp-position="bottom"][data-guidechimp-alignment="right"]
     & {
     top: -14px;
-    right: 10px;
+    left: 20px;
+    right: auto;
     border-bottom-color: white;
   }
 
