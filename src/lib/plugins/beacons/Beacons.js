@@ -876,8 +876,21 @@ export default class Beacons {
       const beaconEl = this.elements.get(beacon);
 
       if (beaconEl) {
-        if (!el || !document.body.contains(el)) {
-         beaconEl.hidden = true;
+        const targetInDom = !!el && document.body.contains(el);
+        const beaconInDom = document.body.contains(beaconEl);
+
+        if (!targetInDom) {
+          // Target is gone — hide the beacon if it's still around.
+          if (beaconInDom) {
+            beaconEl.hidden = true;
+          }
+        } else if (!beaconInDom) {
+          // Target came back but the beacon was ripped out with its old
+          // parent (e.g. a MUI Dialog portal was unmounted and remounted).
+          // The stored beaconEl is orphaned; create a fresh one attached to
+          // the new target's parent.
+          this.elements.delete(beacon);
+          this.createAndAttachBeacon(beacon, el);
         } else if (this.isCanShowBeacon(beacon)) {
           beaconEl.hidden = false;
           this.setBeaconPosition(el, beaconEl, beacon);
