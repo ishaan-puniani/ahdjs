@@ -170,9 +170,6 @@ export default class Beacons {
   createAndAttachBeacon(beacon, el) {
     const beaconEl = this.createBeaconEl(beacon);
     beaconEl.hidden = true;
-    if (this.constructor.isFixed(el)) {
-      beaconEl.classList.add(this.constructor.getFixedClass());
-    }
     if (beacon.class === "info-tooltip") {
       beaconEl.classList.remove("gc-beacon");
     }
@@ -180,9 +177,42 @@ export default class Beacons {
       beaconEl.classList.remove("gc-beacon");
     }
 
-    const parentEl = document.body;
+    // Attach the beacon as a sibling of the target (inside target.parentNode).
+    // This puts the beacon in the same stacking context as the target, so any
+    // element that covers the target also covers the beacon, and anything the
+    // target sits above the beacon sits above too — with no z-index needed on
+    // the beacon.
+    //
+    // The parent element must be a positioning context so the beacon's
+    // `position: absolute` is measured against the same origin as the target's
+    // own offsets. If it isn't, set position: relative on it (visually a no-op
+    // for the vast majority of layouts).
+    const parentEl =
+      (el && el.parentNode && el.parentNode.nodeType === 1)
+        ? el.parentNode
+        : document.body;
 
-    parentEl.append(beaconEl);
+    if (parentEl !== document.body) {
+      const parentComputed = getComputedStyle(parentEl);
+      if (parentComputed.position === "static") {
+        parentEl.style.position = "relative";
+      }
+    }
+
+    // Only apply the fixed-position class when we're falling back to
+    // document.body — because in that case coords are viewport-relative.
+    // When beacon sits next to its target, coords are parent-relative and
+    // must stay `position: absolute` inside the parent's box, even if the
+    // target has a position: fixed ancestor (e.g. a modal backdrop).
+    if (parentEl === document.body && this.constructor.isFixed(el)) {
+      beaconEl.classList.add(this.constructor.getFixedClass());
+    }
+
+    if (el && el.nextSibling) {
+      parentEl.insertBefore(beaconEl, el.nextSibling);
+    } else {
+      parentEl.appendChild(beaconEl);
+    }
     this.elements.set(beacon, beaconEl);
     this.setBeaconPosition(el, beaconEl, beacon);
    if (beacon._forceShow) {
@@ -424,24 +454,28 @@ export default class Beacons {
     boundary = boundary || this.options.boundary;
     boundary = boundary === "inner" ? "inner" : "outer";
 
-    const elRect = el.getBoundingClientRect();
-    const isFixed = beaconEl.classList.contains(this.constructor.getFixedClass());
-    
-    let elLeft, elTop;
-    if (isFixed) {
-      elLeft = elRect.left;
-      elTop = elRect.top;
-    } else {
+    // The beacon lives in target.parentNode (or fell back to document.body),
+    // so target.offsetLeft/Top give the target's position within the same
+    // reference frame as the beacon's absolute positioning. If the beacon
+    // fell back to document.body, we compute equivalent viewport coords via
+    // getBoundingClientRect.
+    let elLeft, elTop, elWidth, elHeight;
+    const beaconInBody = beaconEl.parentNode === document.body;
+    if (beaconInBody) {
+      const elRect = el.getBoundingClientRect();
       const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      
       elLeft = elRect.left + scrollLeft;
       elTop = elRect.top + scrollTop;
+      elWidth = elRect.width;
+      elHeight = elRect.height;
+    } else {
+      elLeft = el.offsetLeft;
+      elTop = el.offsetTop;
+      elWidth = el.offsetWidth;
+      elHeight = el.offsetHeight;
     }
-    
-    const elWidth = elRect.width;
-    const elHeight = elRect.height;
-    
+
     const { style: beaconStyle } = beaconEl;
     let { width: beaconWidth, height: beaconHeight } =
       getComputedStyle(beaconEl);
