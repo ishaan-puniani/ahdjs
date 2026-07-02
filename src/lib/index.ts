@@ -306,7 +306,14 @@ class AHD extends GuideChimp {
               iconCloseColor: step.style?.iconCloseColor ?? step.behaviour?.iconCloseColor,
               navigationMode: step?.behaviour?.navigationMode || step.navigationMode,
               navigationDelay: step?.behaviour?.navigationDelay || step.navigationDelay,
-              showStep: step?.behaviour?.showStep
+              showStep: step?.behaviour?.showStep,
+              // Forward the per-step highlight rectangle style authored in
+              // ahd-fe. The publish path puts it at the step's top level, but
+              // older records may only have it inside contentMetadata.
+              highlightStyle:
+                step.highlightStyle ||
+                step?.contentMetadata?.document?.root?.data?.highlightStyle ||
+                null,
             }))
           : []
       );
@@ -1048,6 +1055,10 @@ class AHD extends GuideChimp {
                 id: tour.id,
                 type: "tooltip",
                 showProgressbar: this.options.showProgressbar,
+                highlightStyle:
+                  step.highlightStyle ||
+                  step?.contentMetadata?.document?.root?.data?.highlightStyle ||
+                  null,
               },
             ];
 
