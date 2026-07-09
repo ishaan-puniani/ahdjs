@@ -161,6 +161,7 @@ const { match } = require("path-to-regexp");
 
 const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
+const APP_BANNER_DATA_STORAGE_KEY = "AHD_APP_BANNER_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
@@ -423,18 +424,16 @@ class AHD extends GuideChimp {
 
   async renderAppBanner(identifier: string, refetch: boolean) {
     this._lastRenderedIdentifier = identifier;
-    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-    if (refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier, false);
+
+    const bannerCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
+    const hasCachedEntry = Object.prototype.hasOwnProperty.call(bannerCache, identifier);
+    let firstRow = hasCachedEntry ? bannerCache[identifier] : undefined;
+
+    if (!hasCachedEntry || refetch) {
+      firstRow = await this.fetchAndCacheAppBannerRow(identifier);
     }
 
-    const appBannerData = Array.isArray(toursData?.appBanners)
-      ? toursData.appBanners.filter((b: any) => b.identifier === identifier)
-      : [];
-
-    const firstRow = Array.isArray(appBannerData)
-      ? appBannerData[0]
-      : appBannerData;
+    const appBannerData: any[] = firstRow ? [firstRow] : [];
 
 
     const bannerContent =
@@ -1208,6 +1207,7 @@ class AHD extends GuideChimp {
     LocalStorage.removeKey(HIGHLIGHTS_DATA_STORAGE_KEY);
     LocalStorage.removeKey(HELP_DATA_STORAGE_KEY);
     LocalStorage.removeKey(TOUR_DATA_STORAGE_KEY);
+    LocalStorage.removeKey(APP_BANNER_DATA_STORAGE_KEY);
     LocalStorage.removeKey(AHD_VISITOR_STATS_STORAGE_KEY);
   }
 
@@ -1356,6 +1356,27 @@ class AHD extends GuideChimp {
       );
     }
     return highlightsData;
+  }
+
+  private async fetchAndCacheAppBannerRow(identifier: string) {
+    const langParam = this.options.language ? `&filter[language]=${this.options.language}` : '';
+    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${identifier}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
+    const response: any = await fetch(url).then((res) => res.json());
+
+    const rows = Array.isArray(response?.appBanners)
+      ? response.appBanners.filter((b: any) => b.identifier === identifier)
+      : [];
+    const row = rows[0] ?? null;
+
+    const nextCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
+    nextCache[identifier] = row;
+    LocalStorage.put(
+      APP_BANNER_DATA_STORAGE_KEY,
+      nextCache,
+      this.options.toursRefetchIntervalInSec
+    );
+
+    return row;
   }
 
   private async fetchAndCacheTourData(toursData: any, slug: string, resolveSlug = true) {
