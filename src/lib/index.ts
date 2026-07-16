@@ -427,7 +427,7 @@ class AHD extends GuideChimp {
 
     const bannerCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
     const hasCachedEntry = Object.prototype.hasOwnProperty.call(bannerCache, identifier);
-    let firstRow = hasCachedEntry ? bannerCache[identifier] : undefined;
+    let firstRow = hasCachedEntry ? bannerCache[identifier]?.row : undefined;
 
     if (!hasCachedEntry || refetch) {
       firstRow = await this.fetchAndCacheAppBannerRow(identifier);
@@ -1363,13 +1363,22 @@ class AHD extends GuideChimp {
     const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${identifier}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
     const response: any = await fetch(url).then((res) => res.json());
 
+    const nextCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
+    const cachedEntry = nextCache[identifier];
+
+    if (
+      response?.changeTrackingId &&
+      cachedEntry?.changeTrackingId === response.changeTrackingId
+    ) {
+      return cachedEntry.row;
+    }
+
     const rows = Array.isArray(response?.appBanners)
       ? response.appBanners.filter((b: any) => b.identifier === identifier)
       : [];
     const row = rows[0] ?? null;
 
-    const nextCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
-    nextCache[identifier] = row;
+    nextCache[identifier] = { row, changeTrackingId: response?.changeTrackingId };
     LocalStorage.put(
       APP_BANNER_DATA_STORAGE_KEY,
       nextCache,
@@ -1387,6 +1396,12 @@ class AHD extends GuideChimp {
     const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
     const response: any = await fetch(url).then((res) => res.json());
     if (response) {
+      if (
+        response.changeTrackingId &&
+        toursData?.changeTrackingId === response.changeTrackingId
+      ) {
+        return toursData;
+      }
       toursData = response;
       LocalStorage.put(
         TOUR_DATA_STORAGE_KEY,
