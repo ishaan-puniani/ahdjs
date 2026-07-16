@@ -348,6 +348,7 @@ export default class GuideChimp {
             toursRefetchIntervalInSec: 86400,
             helpRefetchIntervalInSec: 86400,
             statsCacheIntervalInSec: 86400,
+            bannerRefetchIntervalInSec: 43200,
         };
     }
 

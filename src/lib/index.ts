@@ -425,13 +425,7 @@ class AHD extends GuideChimp {
   async renderAppBanner(identifier: string, refetch: boolean) {
     this._lastRenderedIdentifier = identifier;
 
-    const bannerCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
-    const hasCachedEntry = Object.prototype.hasOwnProperty.call(bannerCache, identifier);
-    let firstRow = hasCachedEntry ? bannerCache[identifier]?.row : undefined;
-
-    if (!hasCachedEntry || refetch) {
-      firstRow = await this.fetchAndCacheAppBannerRow(identifier);
-    }
+    const firstRow = await this.fetchAndCacheAppBannerRow(identifier);
 
     const appBannerData: any[] = firstRow ? [firstRow] : [];
 
@@ -1382,7 +1376,7 @@ class AHD extends GuideChimp {
     LocalStorage.put(
       APP_BANNER_DATA_STORAGE_KEY,
       nextCache,
-      this.options.toursRefetchIntervalInSec
+      this.options.bannerRefetchIntervalInSec
     );
 
     return row;
