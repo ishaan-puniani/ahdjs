@@ -2619,6 +2619,20 @@ export default class GuideChimp {
 
             const targetParent = (parent === document.body) ? this.getRootEl() : (parent || this.getRootEl());
             targetParent.appendChild(el);
+
+            // el was built via innerHTML in a detached document, so any
+            // <script> tags inside it were never executed; re-create them
+            // as live nodes now that el is attached to the document
+            [...el.querySelectorAll('script')].forEach((oldScript) => {
+                const newScript = document.createElement('script');
+
+                [...oldScript.attributes].forEach((attr) => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+
+                newScript.text = oldScript.text;
+                oldScript.replaceWith(newScript);
+            });
         }
 
         return el;
