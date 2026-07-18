@@ -5,7 +5,10 @@
   width: 20px;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 9999;
+  // z-index intentionally omitted: without it the beacon paints in DOM order,
+  // so any modal/dialog opened after the beacon (with its own z-index) will
+  // naturally cover it. Beacons re-parented into a modal ride along with that
+  // modal's stacking context.
   // box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
   background-repeat: no-repeat;
   background-position: center;

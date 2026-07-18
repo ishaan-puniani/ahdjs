@@ -348,6 +348,7 @@ export default class GuideChimp {
             toursRefetchIntervalInSec: 86400,
             helpRefetchIntervalInSec: 86400,
             statsCacheIntervalInSec: 86400,
+            bannerRefetchIntervalInSec: 43200,
         };
     }
 
@@ -1157,6 +1158,176 @@ export default class GuideChimp {
         return this;
     }
 
+    // Convert a CSS color + alpha percent (0..100) into an rgba() string so
+    // the highlight's background fill can be translucent without also dimming
+    // the border. Falls back to the original color when the input is not in a
+    // recognized format (e.g. a gradient).
+    static toHighlightFill(color, alphaPct) {
+        if (!color) return null;
+        const alpha = Math.max(0, Math.min(100, Number(alphaPct ?? 100))) / 100;
+        const str = String(color).trim();
+        if (str.startsWith('#')) {
+            let h = str.slice(1);
+            if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+            if (h.length === 6 || h.length === 8) {
+                const r = parseInt(h.slice(0, 2), 16);
+                const g = parseInt(h.slice(2, 4), 16);
+                const b = parseInt(h.slice(4, 6), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+        }
+        const rgb = str.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+        if (rgb) return `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})`;
+        const rgba = str.match(/^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*[\d.]+\s*\)$/i);
+        if (rgba) return `rgba(${rgba[1]}, ${rgba[2]}, ${rgba[3]}, ${alpha})`;
+        return str;
+    }
+
+    // Build the optional inline-style suffix for the interaction rectangle
+    // based on the per-step `highlightStyle` config authored in ahd-fe.
+    // Returns '' when unset so the default (fully transparent .gc-interaction)
+    // is preserved for existing demos.
+    //
+    // Two implementation notes:
+    //   1. Alpha is baked into background-color (via toHighlightFill) rather
+    //      than applied to the element via `opacity`, so the border stays
+    //      fully saturated instead of also being dimmed.
+    //   2. The border is drawn with `box-shadow: inset` — the interaction
+    //      rectangle is intentionally ~padding-px larger than the overlay's
+    //      SVG cutout to catch clicks, and a real CSS `border` sits partially
+    //      in the overlay-covered ring and gets visually swallowed. An inset
+    //      box-shadow paints on top of the background, always inside the
+    //      element bounds, so it renders regardless of the overlay geometry.
+    //   3. `.gc-interaction.gc-disable` sets `opacity: 0` — we override with
+    //      `opacity: 1` inline so the fill/border are visible.
+    getHighlightStyleCss() {
+        const hs = this.currentStep && this.currentStep.highlightStyle;
+        if (!hs) return '';
+        const hasVisible =
+            !!hs.color || !!hs.borderColor || hs.borderRadius != null;
+        if (!hasVisible) return '';
+        const parts = [];
+        if (hs.color) {
+            const fill = this.constructor.toHighlightFill(hs.color, hs.opacity);
+            parts.push(`background-color: ${fill} !important;`);
+        }
+        // Draw the border with three redundant declarations so at least one
+        // is guaranteed to render:
+        //   - real `border` (box-sizing: border-box means it sits inside the
+        //     element's width, which matches the SVG cutout exactly),
+        //   - `outline` with negative offset for browsers that clip the
+        //     border in some stacking scenarios,
+        //   - `box-shadow: inset` as final belt-and-suspenders.
+        if (hs.borderColor) {
+            const w = hs.borderWidth != null ? Number(hs.borderWidth) : 1;
+            parts.push(`border: ${w}px solid ${hs.borderColor} !important;`);
+            parts.push(`outline: ${w}px solid ${hs.borderColor};`);
+            parts.push(`outline-offset: -${w}px;`);
+            parts.push(`box-shadow: inset 0 0 0 ${w}px ${hs.borderColor} !important;`);
+        }
+        if (hs.borderRadius != null) {
+            parts.push(`border-radius: ${Number(hs.borderRadius)}px;`);
+        }
+        parts.push('opacity: 1 !important;');
+        return parts.join(' ');
+    }
+
+    // Create-or-update a dedicated visual element for the demo highlight
+    // rectangle. Living on its own — outside .gc-interaction — means it is
+    // untouched by legacy CSS (gc-disable => opacity:0, click-catch padding,
+    // etc.), so the fill/border always render exactly as the highlightStyle
+    // config specifies. Positioned exactly on the SVG overlay's cutout, with
+    // z-index above every SDK element, and pointer-events:none so it never
+    // steals clicks from the interaction element sitting below it.
+    updateHighlightVisualEl() {
+        const highlightCss = this.getHighlightStyleCss();
+
+        // Remove the visual when the step has no highlightStyle so previous
+        // steps' rectangles don't linger and existing demos are unaffected.
+        if (!highlightCss) {
+            this.removeHighlightVisualEl();
+            return this;
+        }
+
+        const step = this.currentStep;
+        const hasElement = step && step.element;
+        let top;
+        let left;
+        let width;
+        let height;
+        let position = 'fixed';
+
+        if (!hasElement
+            && step?.top !== undefined
+            && step?.left !== undefined
+            && step?.width
+            && step?.height) {
+            // Coordinate-based (demo) step — geometry matches the SVG cutout.
+            const { innerWidth, innerHeight } = this.getViewportDims();
+            const toPx = (value, axis) => {
+                if (typeof value === 'string' && value.trim().endsWith('%')) {
+                    const p = parseFloat(value) || 0;
+                    return (axis === 'x')
+                        ? (p / 100) * innerWidth
+                        : (p / 100) * innerHeight;
+                }
+                return typeof value === 'number' ? value : parseFloat(value) || 0;
+            };
+            top = toPx(step.top, 'y');
+            left = toPx(step.left, 'x');
+            width = toPx(step.width, 'x');
+            height = toPx(step.height, 'y');
+            const root = this.getRootEl();
+            if (root && root !== document.body) position = 'absolute';
+        } else if (hasElement) {
+            // Element-based (tooltip) step — anchor to the target element's
+            // bounds without the interaction rectangle's click-catch padding.
+            const el = this.getStepEl(step);
+            if (!el) {
+                this.removeHighlightVisualEl();
+                return this;
+            }
+            const off = this.constructor.getOffset(el);
+            top = off.top;
+            left = off.left;
+            width = off.width;
+            height = off.height;
+            position = this.constructor.isFixed(el) ? 'fixed' : 'absolute';
+        } else {
+            this.removeHighlightVisualEl();
+            return this;
+        }
+
+        let el = this.getEl('highlightVisual');
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'gc-highlight-visual';
+            this.getRootEl().appendChild(el);
+            this.elements.set('highlightVisual', el);
+        }
+
+        el.style.cssText = `position: ${position};
+            top: ${top}px;
+            left: ${left}px;
+            width: ${width}px;
+            height: ${height}px;
+            z-index: 6405;
+            pointer-events: none;
+            box-sizing: border-box;
+            ${highlightCss}`;
+
+        return this;
+    }
+
+    removeHighlightVisualEl() {
+        const el = this.getEl && this.getEl('highlightVisual');
+        if (el && el.parentNode) {
+            try { el.parentNode.removeChild(el); } catch (e) { /* ignore */ }
+        }
+        if (this.elements && this.elements.delete) this.elements.delete('highlightVisual');
+        return this;
+    }
+
     setInteractionPosition(interactionEl) {
         const hasElement = this.currentStep?.element;
         const hasTop = this.currentStep?.top !== undefined;
@@ -1209,6 +1380,11 @@ export default class GuideChimp {
                 z-index: 6403;`;
             }
 
+            // Draw the configured highlight rectangle on a dedicated element
+            // so the styling is isolated from the .gc-interaction rectangle's
+            // legacy CSS (gc-disable => opacity:0) and click-catch padding.
+            this.updateHighlightVisualEl();
+
             return this;
         }
 
@@ -1236,6 +1412,8 @@ export default class GuideChimp {
         height: ${height + padding}px;
         top: ${top - (padding / 2)}px;
         left: ${left - (padding / 2)}px;`;
+
+        this.updateHighlightVisualEl();
 
         return this;
     }
@@ -2354,6 +2532,13 @@ export default class GuideChimp {
 
         this.setInteractionPosition(interactionEl);
         this.setControlPosition(controlEl);
+        // Called here (not just inside setInteractionPosition) because the
+        // .gc-interaction template only renders when `options.interaction ===
+        // false` — the default is `true`, so setInteractionPosition receives
+        // a null element and returns early. Our highlight visual is
+        // independent of the interaction rectangle and must always mount when
+        // the step configures a highlightStyle.
+        this.updateHighlightVisualEl();
 
         const tooltipEl = this.getEl('tooltip');
         const rootEl = this.getRootEl();
@@ -2392,6 +2577,7 @@ export default class GuideChimp {
             // ignore
         }
 
+        this.removeHighlightVisualEl();
         this.removeInteractionEl();
         this.removeControlEl();
         this.removePreloaderEl();
@@ -2433,6 +2619,20 @@ export default class GuideChimp {
 
             const targetParent = (parent === document.body) ? this.getRootEl() : (parent || this.getRootEl());
             targetParent.appendChild(el);
+
+            // el was built via innerHTML in a detached document, so any
+            // <script> tags inside it were never executed; re-create them
+            // as live nodes now that el is attached to the document
+            [...el.querySelectorAll('script')].forEach((oldScript) => {
+                const newScript = document.createElement('script');
+
+                [...oldScript.attributes].forEach((attr) => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+
+                newScript.text = oldScript.text;
+                oldScript.replaceWith(newScript);
+            });
         }
 
         return el;
@@ -3439,6 +3639,7 @@ export default class GuideChimp {
         this.setControlPosition(this.getEl('control'));
         this.setInteractionPosition(this.getEl('interaction'));
         this.setTooltipPosition(this.getEl('tooltip'));
+        this.updateHighlightVisualEl();
         this.applyRootWidthScale();
 
         return this;

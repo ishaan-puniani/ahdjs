@@ -161,6 +161,7 @@ const { match } = require("path-to-regexp");
 
 const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
+const APP_BANNER_DATA_STORAGE_KEY = "AHD_APP_BANNER_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 
@@ -306,7 +307,14 @@ class AHD extends GuideChimp {
               iconCloseColor: step.style?.iconCloseColor ?? step.behaviour?.iconCloseColor,
               navigationMode: step?.behaviour?.navigationMode || step.navigationMode,
               navigationDelay: step?.behaviour?.navigationDelay || step.navigationDelay,
-              showStep: step?.behaviour?.showStep
+              showStep: step?.behaviour?.showStep,
+              // Forward the per-step highlight rectangle style authored in
+              // ahd-fe. The publish path puts it at the step's top level, but
+              // older records may only have it inside contentMetadata.
+              highlightStyle:
+                step.highlightStyle ||
+                step?.contentMetadata?.document?.root?.data?.highlightStyle ||
+                null,
             }))
           : []
       );
@@ -416,18 +424,10 @@ class AHD extends GuideChimp {
 
   async renderAppBanner(identifier: string, refetch: boolean) {
     this._lastRenderedIdentifier = identifier;
-    let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
-    if (refetch) {
-      toursData = await this.fetchAndCacheTourData(toursData, identifier, false);
-    }
 
-    const appBannerData = Array.isArray(toursData?.appBanners)
-      ? toursData.appBanners.filter((b: any) => b.identifier === identifier)
-      : [];
+    const firstRow = await this.fetchAndCacheAppBannerRow(identifier);
 
-    const firstRow = Array.isArray(appBannerData)
-      ? appBannerData[0]
-      : appBannerData;
+    const appBannerData: any[] = firstRow ? [firstRow] : [];
 
 
     const bannerContent =
@@ -1048,6 +1048,10 @@ class AHD extends GuideChimp {
                 id: tour.id,
                 type: "tooltip",
                 showProgressbar: this.options.showProgressbar,
+                highlightStyle:
+                  step.highlightStyle ||
+                  step?.contentMetadata?.document?.root?.data?.highlightStyle ||
+                  null,
               },
             ];
 
@@ -1197,6 +1201,7 @@ class AHD extends GuideChimp {
     LocalStorage.removeKey(HIGHLIGHTS_DATA_STORAGE_KEY);
     LocalStorage.removeKey(HELP_DATA_STORAGE_KEY);
     LocalStorage.removeKey(TOUR_DATA_STORAGE_KEY);
+    LocalStorage.removeKey(APP_BANNER_DATA_STORAGE_KEY);
     LocalStorage.removeKey(AHD_VISITOR_STATS_STORAGE_KEY);
   }
 
@@ -1347,6 +1352,36 @@ class AHD extends GuideChimp {
     return highlightsData;
   }
 
+  private async fetchAndCacheAppBannerRow(identifier: string) {
+    const langParam = this.options.language ? `&filter[language]=${this.options.language}` : '';
+    const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${identifier}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
+    const response: any = await fetch(url).then((res) => res.json());
+
+    const nextCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
+    const cachedEntry = nextCache[identifier];
+
+    if (
+      response?.changeTrackingId &&
+      cachedEntry?.changeTrackingId === response.changeTrackingId
+    ) {
+      return cachedEntry.row;
+    }
+
+    const rows = Array.isArray(response?.appBanners)
+      ? response.appBanners.filter((b: any) => b.identifier === identifier)
+      : [];
+    const row = rows[0] ?? null;
+
+    nextCache[identifier] = { row, changeTrackingId: response?.changeTrackingId };
+    LocalStorage.put(
+      APP_BANNER_DATA_STORAGE_KEY,
+      nextCache,
+      this.options.bannerRefetchIntervalInSec
+    );
+
+    return row;
+  }
+
   private async fetchAndCacheTourData(toursData: any, slug: string, resolveSlug = true) {
     if (slug && resolveSlug) {
       slug = this.resolveSlugPatternForUrl(slug, toursData);
@@ -1355,6 +1390,12 @@ class AHD extends GuideChimp {
     const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${slug}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
     const response: any = await fetch(url).then((res) => res.json());
     if (response) {
+      if (
+        response.changeTrackingId &&
+        toursData?.changeTrackingId === response.changeTrackingId
+      ) {
+        return toursData;
+      }
       toursData = response;
       LocalStorage.put(
         TOUR_DATA_STORAGE_KEY,
