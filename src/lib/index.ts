@@ -164,6 +164,11 @@ const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
 const APP_BANNER_DATA_STORAGE_KEY = "AHD_APP_BANNER_DATA";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
+// ttl-localstorage throws if a key-level TTL is passed as anything other than
+// null or a positive integer, so a default is required when callers don't
+// configure bannerRefetchIntervalInSec — otherwise every cache write throws
+// and the app banner cache never persists.
+const DEFAULT_BANNER_REFETCH_INTERVAL_IN_SEC = 300;
 
 class AHD extends GuideChimp {
   private static _instances: Set<AHD> = new Set();
@@ -1410,7 +1415,7 @@ class AHD extends GuideChimp {
     LocalStorage.put(
       APP_BANNER_DATA_STORAGE_KEY,
       nextCache,
-      this.options.bannerRefetchIntervalInSec
+      this.options.bannerRefetchIntervalInSec || DEFAULT_BANNER_REFETCH_INTERVAL_IN_SEC
     );
 
     return row;
