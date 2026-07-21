@@ -425,8 +425,32 @@ class AHD extends GuideChimp {
   async renderAppBanner(identifier: string, refetch: boolean) {
     this._lastRenderedIdentifier = identifier;
 
+    const cachedRow = refetch ? undefined : this.getCachedAppBannerRow(identifier);
+
+    if (cachedRow !== undefined) {
+      // Cached data exists: paint immediately (no loader), then silently
+      // revalidate in the background and re-render only if it changed.
+      this.paintAppBanner(cachedRow, identifier);
+
+      this.fetchAndCacheAppBannerRow(identifier)
+        .then((freshRow) => {
+          if (freshRow !== cachedRow) {
+            this.paintAppBanner(freshRow, identifier);
+          }
+        })
+        .catch(() => {
+          // Offline/API failure: keep showing the cached banner as a fallback.
+        });
+
+      return cachedRow ? [cachedRow] : [];
+    }
+
     const firstRow = await this.fetchAndCacheAppBannerRow(identifier);
 
+    return this.paintAppBanner(firstRow, identifier);
+  }
+
+  private paintAppBanner(firstRow: any, identifier: string) {
     const appBannerData: any[] = firstRow ? [firstRow] : [];
 
 
@@ -1350,6 +1374,16 @@ class AHD extends GuideChimp {
       );
     }
     return highlightsData;
+  }
+
+  getCachedAppBannerRow(identifier: string) {
+    const cache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
+    const cachedEntry = cache[identifier];
+    return cachedEntry ? cachedEntry.row : undefined;
+  }
+
+  hasCachedAppBanner(identifier: string) {
+    return this.getCachedAppBannerRow(identifier) !== undefined;
   }
 
   private async fetchAndCacheAppBannerRow(identifier: string) {
