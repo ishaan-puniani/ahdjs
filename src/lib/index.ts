@@ -1480,6 +1480,11 @@ class AHD extends GuideChimp {
       : [];
     const row = rows[0] ?? null;
 
+    const isOnetimeOnly = row?.oneTimeOnly || row?.behaviour?.onetimeOnly;
+    if (isOnetimeOnly) {
+      return row;
+    }
+
     nextCache[identifier] = { row, changeTrackingId: response?.changeTrackingId };
     LocalStorage.put(
       APP_BANNER_DATA_STORAGE_KEY,
