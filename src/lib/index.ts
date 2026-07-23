@@ -162,6 +162,11 @@ const { match } = require("path-to-regexp");
 const HELP_DATA_STORAGE_KEY = "AHD_HELP_DATA";
 const TOUR_DATA_STORAGE_KEY = "AHD_TOUR_DATA";
 const APP_BANNER_DATA_STORAGE_KEY = "AHD_APP_BANNER_DATA";
+// Tracks identifiers that have been observed as oneTimeOnly, so that once the
+// banner is acknowledged and the API stops returning its row (unacknowledged
+// filter excludes it), we still know to keep skipping the app banner cache
+// for that identifier instead of writing a stale {row: null} entry.
+const ONETIME_BANNER_IDENTIFIERS_STORAGE_KEY = "AHD_ONETIME_BANNER_IDS";
 const HIGHLIGHTS_DATA_STORAGE_KEY = "AHD_HIGHLIGHTS_DATA";
 const AHD_VISITOR_STATS_STORAGE_KEY = "AHD_VISITOR_STATS";
 // ttl-localstorage throws if a key-level TTL is passed as anything other than
@@ -1460,10 +1465,40 @@ class AHD extends GuideChimp {
     return this.getCachedAppBannerRow(identifier) !== undefined;
   }
 
+  private isKnownOnetimeOnlyIdentifier(identifier: string): boolean {
+    const onetimeIds = LocalStorage.get(ONETIME_BANNER_IDENTIFIERS_STORAGE_KEY) || {};
+    return !!onetimeIds[identifier];
+  }
+
+  private markIdentifierAsOnetimeOnly(identifier: string) {
+    const onetimeIds = LocalStorage.get(ONETIME_BANNER_IDENTIFIERS_STORAGE_KEY) || {};
+    if (onetimeIds[identifier]) return;
+    onetimeIds[identifier] = true;
+    LocalStorage.put(ONETIME_BANNER_IDENTIFIERS_STORAGE_KEY, onetimeIds, null);
+  }
+
   private async fetchAndCacheAppBannerRow(identifier: string) {
     const langParam = this.options.language ? `&filter[language]=${this.options.language}` : '';
     const url = `${this.options.apiHost}/api/tenant/${this.options.applicationId}/client/unacknowledged?filter[slug]=${identifier}&filter[userId]=${this.options.visitorId}&filter[device]=desktop${langParam}`;
     const response: any = await fetch(url).then((res) => res.json());
+
+    const rows = Array.isArray(response?.appBanners)
+      ? response.appBanners.filter((b: any) => b.identifier === identifier)
+      : [];
+    const row = rows[0] ?? null;
+
+    const isOnetimeOnly = row?.oneTimeOnly || row?.behaviour?.onetimeOnly;
+    if (isOnetimeOnly) {
+      this.markIdentifierAsOnetimeOnly(identifier);
+      return row;
+    }
+
+    // Once acknowledged, a oneTimeOnly banner's row stops being returned by
+    // the unacknowledged filter, so it can no longer be identified from the
+    // response alone — rely on the previously recorded flag instead.
+    if (this.isKnownOnetimeOnlyIdentifier(identifier)) {
+      return row;
+    }
 
     const nextCache = LocalStorage.get(APP_BANNER_DATA_STORAGE_KEY) || {};
     const cachedEntry = nextCache[identifier];
@@ -1473,16 +1508,6 @@ class AHD extends GuideChimp {
       cachedEntry?.changeTrackingId === response.changeTrackingId
     ) {
       return cachedEntry.row;
-    }
-
-    const rows = Array.isArray(response?.appBanners)
-      ? response.appBanners.filter((b: any) => b.identifier === identifier)
-      : [];
-    const row = rows[0] ?? null;
-
-    const isOnetimeOnly = row?.oneTimeOnly || row?.behaviour?.onetimeOnly;
-    if (isOnetimeOnly) {
-      return row;
     }
 
     nextCache[identifier] = { row, changeTrackingId: response?.changeTrackingId };
