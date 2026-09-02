@@ -698,11 +698,30 @@ class AHD extends GuideChimp {
       });
     };
 
+    // Normalise a track position back into the real-slide band [cloneOffset,
+    // cloneOffset + slidesCount - 1] without animating. The seamless-loop design
+    // relies on a `transitionend` firing after landing on a clone to snap back;
+    // when the host page suppresses CSS transitions (global reset, reduced
+    // motion) or the tab is backgrounded, that event never arrives and
+    // `trackIndex` would otherwise grow without bound (translateX(-11000%) →
+    // blank carousel). Re-anchoring on every step keeps it bounded regardless.
+    const reanchorIfOnClone = () => {
+      if (!state || !canLoop) return;
+      const low = cloneOffset;
+      const high = cloneOffset + state.slidesCount - 1;
+      if (state.trackIndex >= low && state.trackIndex <= high) return;
+      snapWithoutTransition(state.index + cloneOffset);
+    };
+
     // Move the track by exactly one step in the requested direction (may land
     // on a clone) — used for prev/next/autoplay so the wrap animates through
     // the clone instead of jumping straight back.
     const step = (delta: 1 | -1) => {
       if (!state) return;
+      // If a previous step left us parked on a clone (missed transitionend),
+      // re-anchor to the equivalent real slide before moving again so the
+      // increment always starts from within the real-slide band.
+      reanchorIfOnClone();
       state.trackIndex += delta;
       state.index = ((state.trackIndex - cloneOffset) % state.slidesCount + state.slidesCount) % state.slidesCount;
       state.slidesWrap.style.transform = `translateX(${-state.trackIndex * 100}%)`;
@@ -732,12 +751,15 @@ class AHD extends GuideChimp {
     if (canLoop) {
       slidesWrap.addEventListener('transitionend', (e: TransitionEvent) => {
         if (e.propertyName !== 'transform' || !state) return;
-        // Landed on a clone: snap (no transition) to the equivalent real slide,
-        // keeping state.index/trackIndex consistent with the visible position.
-        if (state.trackIndex === 0) {
-          snapWithoutTransition(state.slidesCount);
-        } else if (state.trackIndex === state.slidesCount + 1) {
-          snapWithoutTransition(1);
+        // Landed outside the real-slide band (on a clone, or further out if an
+        // earlier transitionend was missed): snap (no transition) to the
+        // equivalent real slide. Use the already-normalised state.index rather
+        // than exact-boundary equality so recovery still works once trackIndex
+        // has drifted past ±1.
+        const low = cloneOffset;
+        const high = cloneOffset + state.slidesCount - 1;
+        if (state.trackIndex < low || state.trackIndex > high) {
+          snapWithoutTransition(state.index + cloneOffset);
         }
       });
     }
