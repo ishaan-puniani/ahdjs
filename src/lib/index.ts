@@ -698,32 +698,38 @@ class AHD extends GuideChimp {
       });
     };
 
-    // Normalise a track position back into the real-slide band [cloneOffset,
-    // cloneOffset + slidesCount - 1] without animating. The seamless-loop design
-    // relies on a `transitionend` firing after landing on a clone to snap back;
-    // when the host page suppresses CSS transitions (global reset, reduced
-    // motion) or the tab is backgrounded, that event never arrives and
-    // `trackIndex` would otherwise grow without bound (translateX(-11000%) →
-    // blank carousel). Re-anchoring on every step keeps it bounded regardless.
-    const reanchorIfOnClone = () => {
-      if (!state || !canLoop) return;
-      const low = cloneOffset;
-      const high = cloneOffset + state.slidesCount - 1;
-      if (state.trackIndex >= low && state.trackIndex <= high) return;
-      snapWithoutTransition(state.index + cloneOffset);
+    const snapWithoutTransition = (trackIndex: number) => {
+      if (!state) return;
+      state.trackIndex = trackIndex;
+      state.slidesWrap.style.transition = 'none';
+      state.slidesWrap.style.transform = `translateX(${-trackIndex * 100}%)`;
+      void state.slidesWrap.offsetHeight;
+      state.slidesWrap.style.transition = '';
     };
 
     // Move the track by exactly one step in the requested direction (may land
     // on a clone) — used for prev/next/autoplay so the wrap animates through
-    // the clone instead of jumping straight back.
+    // the clone instead of jumping straight back. `trackIndex` is always
+    // derived fresh from `state.index` rather than accumulated, so repeated
+    // calls (autoplay firing faster than the transition/transitionend can
+    // keep up, e.g. a short navigationDelay or a throttled background tab)
+    // can never push it outside the single-clone band on either side. Without
+    // this bound, a missed transitionend lets trackIndex grow without limit,
+    // eventually translating the track far off-screen (blank carousel).
     const step = (delta: 1 | -1) => {
       if (!state) return;
-      // If a previous step left us parked on a clone (missed transitionend),
-      // re-anchor to the equivalent real slide before moving again so the
-      // increment always starts from within the real-slide band.
-      reanchorIfOnClone();
-      state.trackIndex += delta;
-      state.index = ((state.trackIndex - cloneOffset) % state.slidesCount + state.slidesCount) % state.slidesCount;
+      const nextIndex = ((state.index + delta) % state.slidesCount + state.slidesCount) % state.slidesCount;
+      // Stepping forward from the last real slide (or backward from the
+      // first) walks through the adjacent clone so the loop animates
+      // seamlessly; every other step moves directly between real slides.
+      const wrappingForward = delta === 1 && state.index === state.slidesCount - 1;
+      const wrappingBackward = delta === -1 && state.index === 0;
+      state.trackIndex = wrappingForward
+        ? state.slidesCount + cloneOffset
+        : wrappingBackward
+          ? 0
+          : nextIndex + cloneOffset;
+      state.index = nextIndex;
       state.slidesWrap.style.transform = `translateX(${-state.trackIndex * 100}%)`;
       setDots(state.index);
     };
@@ -739,26 +745,13 @@ class AHD extends GuideChimp {
       setDots(idx);
     };
 
-    const snapWithoutTransition = (trackIndex: number) => {
-      if (!state) return;
-      state.trackIndex = trackIndex;
-      state.slidesWrap.style.transition = 'none';
-      state.slidesWrap.style.transform = `translateX(${-trackIndex * 100}%)`;
-      void state.slidesWrap.offsetHeight;
-      state.slidesWrap.style.transition = '';
-    };
-
     if (canLoop) {
       slidesWrap.addEventListener('transitionend', (e: TransitionEvent) => {
         if (e.propertyName !== 'transform' || !state) return;
-        // Landed outside the real-slide band (on a clone, or further out if an
-        // earlier transitionend was missed): snap (no transition) to the
-        // equivalent real slide. Use the already-normalised state.index rather
-        // than exact-boundary equality so recovery still works once trackIndex
-        // has drifted past ±1.
-        const low = cloneOffset;
-        const high = cloneOffset + state.slidesCount - 1;
-        if (state.trackIndex < low || state.trackIndex > high) {
+        // Landed on a clone: snap (no transition) to the equivalent real
+        // slide. state.index is already the normalised real-slide index, so
+        // this is exact regardless of how trackIndex got here.
+        if (state.trackIndex === 0 || state.trackIndex === state.slidesCount + 1) {
           snapWithoutTransition(state.index + cloneOffset);
         }
       });
