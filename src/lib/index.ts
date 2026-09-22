@@ -261,6 +261,89 @@ class AHD extends GuideChimp {
     return typeof val === 'number' ? val : parseInt(val);
   }
 
+  private resolveBannerCloseSettings(bannerData: any, slide?: any) {
+    const slideBehaviour = slide?.behaviour || {};
+    const slideRootBehaviour = slide?.contentMetadata?.document?.root?.data?.behaviour || {};
+    const bannerBehaviour = bannerData?.behaviour || {};
+    const pick = (...values: any[]) => values.find((value) => value !== undefined && value !== null);
+
+    return {
+      allowUserToClose: pick(
+        slideBehaviour.allowUserToClose,
+        slideRootBehaviour.allowUserToClose,
+        bannerBehaviour.allowUserToClose,
+        slide?.allowUserToClose,
+        bannerData?.allowUserToClose,
+      ) ?? true,
+      showCloseIcon: pick(
+        slideBehaviour.showCloseIcon,
+        slideRootBehaviour.showCloseIcon,
+        bannerBehaviour.showCloseIcon,
+        slide?.showCloseIcon,
+        bannerData?.showCloseIcon,
+      ) ?? true,
+      iconCloseColor: pick(
+        slideBehaviour.iconCloseColor,
+        slideRootBehaviour.iconCloseColor,
+        bannerBehaviour.iconCloseColor,
+        slide?.iconCloseColor,
+        bannerData?.iconCloseColor,
+        slide?.styles?.iconCloseColor,
+        bannerData?.styles?.iconCloseColor,
+      ) ?? '#000',
+      closeIconPosition: pick(
+        slideBehaviour.closeIconPosition,
+        slideRootBehaviour.closeIconPosition,
+        bannerBehaviour.closeIconPosition,
+        slide?.closeIconPosition,
+        bannerData?.closeIconPosition,
+      ) ?? 'right',
+      closeIconPaddingTop: pick(
+        slideBehaviour.closeIconPaddingTop,
+        slideRootBehaviour.closeIconPaddingTop,
+        bannerBehaviour.closeIconPaddingTop,
+        slide?.closeIconPaddingTop,
+        bannerData?.closeIconPaddingTop,
+      ) ?? 5,
+      closeIconPaddingLeft: pick(
+        slideBehaviour.closeIconPaddingLeft,
+        slideRootBehaviour.closeIconPaddingLeft,
+        bannerBehaviour.closeIconPaddingLeft,
+        slide?.closeIconPaddingLeft,
+        bannerData?.closeIconPaddingLeft,
+      ) ?? 5,
+      closeIconPaddingRight: pick(
+        slideBehaviour.closeIconPaddingRight,
+        slideRootBehaviour.closeIconPaddingRight,
+        bannerBehaviour.closeIconPaddingRight,
+        slide?.closeIconPaddingRight,
+        bannerData?.closeIconPaddingRight,
+      ) ?? 5,
+    };
+  }
+
+  private applyBannerCloseSettings(closeBtn: HTMLElement, settings: any) {
+    const position = ['left', 'center', 'right'].includes(settings.closeIconPosition)
+      ? settings.closeIconPosition
+      : 'right';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = this.normalizeDimensionToStyle(settings.closeIconPaddingTop) || '5px';
+    closeBtn.style.setProperty('margin', '0', 'important');
+    closeBtn.style.left = '';
+    closeBtn.style.right = '';
+    if (position === 'left') {
+      closeBtn.style.left = this.normalizeDimensionToStyle(settings.closeIconPaddingLeft) || '5px';
+    } else if (position === 'center') {
+      closeBtn.style.left = '50%';
+      closeBtn.style.transform = 'translateX(-50%)';
+    } else {
+      closeBtn.style.right = this.normalizeDimensionToStyle(settings.closeIconPaddingRight) || '5px';
+    }
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.zIndex = '10';
+    closeBtn.style.setProperty('--gc-close-foreground', settings.iconCloseColor);
+  }
+
   async showPageTour(url: string) {
     this._lastPageUrl = url;
     await this.stop();
@@ -507,24 +590,14 @@ class AHD extends GuideChimp {
           wrapper.style.position = 'relative';
           wrapper.innerHTML = bannerContent;
 
-          const slideBehaviour = firstRow?.slides?.[0]?.behaviour || firstRow?.behaviour || {};
-          const showClose = slideBehaviour?.showCloseIcon
-            || firstRow?.slides?.[0]?.showCloseIcon
-            || firstRow?.showCloseIcon;
+          const slide = firstRow?.slides?.[0];
+          const closeSettings = this.resolveBannerCloseSettings(firstRow, slide);
           console.log('Closing banner ', bannerId, slideIds);
 
-          if (showClose) {
+          if (closeSettings.allowUserToClose !== false && closeSettings.showCloseIcon !== false) {
             const closeBtn = document.createElement('div');
             closeBtn.className = 'gc-close';
-            closeBtn.style.position = 'absolute';
-            closeBtn.style.top = '0';
-            closeBtn.style.right = '0';
-            closeBtn.style.cursor = 'pointer';
-            closeBtn.style.zIndex = '10';
-            closeBtn.style.setProperty(
-              '--gc-close-foreground',
-              slideBehaviour?.iconCloseColor || firstRow?.styles?.iconCloseColor || '#000'
-            );
+            this.applyBannerCloseSettings(closeBtn, closeSettings);
             closeBtn.addEventListener('click', () => {
               if (bannerId) {
                 this.acknowledgeAppBanner(bannerId, slideIds);
@@ -641,14 +714,17 @@ class AHD extends GuideChimp {
       modalOverlay.setAttribute('data-ahd-modal', 'true');
       const modal = document.createElement('div');
       modal.className = 'gc-modal';
-      const closeBtn = document.createElement('div');
-      closeBtn.className = 'gc-close';
-      closeBtn.style.setProperty('--gc-close-foreground', bannerRow?.styles?.iconCloseColor || '#000');
-      closeBtn.addEventListener('click', () => this.removeModalBanner());
+      const closeSettings = this.resolveBannerCloseSettings(bannerRow, bannerRow?.slides?.[0]);
       const contentContainer = document.createElement('div');
       contentContainer.className = 'gc-modal-content';
       contentContainer.appendChild(carousel);
-      contentContainer.appendChild(closeBtn);
+      if (closeSettings.allowUserToClose !== false && closeSettings.showCloseIcon !== false) {
+        const closeBtn = document.createElement('div');
+        closeBtn.className = 'gc-close';
+        this.applyBannerCloseSettings(closeBtn, closeSettings);
+        closeBtn.addEventListener('click', () => this.removeModalBanner());
+        contentContainer.appendChild(closeBtn);
+      }
       modal.appendChild(contentContainer);
       modalOverlay.appendChild(modal);
       modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) this.removeModalBanner(); });
@@ -829,13 +905,8 @@ class AHD extends GuideChimp {
       modal.style.height = this.normalizeDimensionToStyle(bannerData.styles.height);
     }
 
-    const slideBehaviour = bannerData?.slides?.[0]?.behaviour || bannerData?.behaviour || {};
-    const showCloseIcon =
-      slideBehaviour?.showCloseIcon ??
-      bannerData?.slides?.[0]?.showCloseIcon ??
-      bannerData?.showCloseIcon;
-    const closeIconColor =
-      slideBehaviour?.iconCloseColor || bannerData?.styles?.iconCloseColor || '#000';
+    const slide = bannerData?.slides?.[0];
+    const closeSettings = this.resolveBannerCloseSettings(bannerData, slide);
 
     const contentContainer = document.createElement('div');
     contentContainer.className = 'gc-modal-content';
@@ -859,11 +930,11 @@ class AHD extends GuideChimp {
     // resolves its real layout once in the DOM. Anchor the icon to the
     // td.email-layout-content cell so it always sits on the card's top-right.
     const mountCloseIcon = () => {
-      if (inlineCloseEl || showCloseIcon === false) return;
+      if (inlineCloseEl || closeSettings.allowUserToClose === false || closeSettings.showCloseIcon === false) return;
       if (!modalOverlay.isConnected) return;
       const closeBtn = document.createElement('div');
       closeBtn.className = 'gc-close';
-      closeBtn.style.setProperty('--gc-close-foreground', closeIconColor);
+      this.applyBannerCloseSettings(closeBtn, closeSettings);
       closeBtn.addEventListener('click', () => this.removeModalBanner());
       const cardCell =
         (contentContainer.querySelector('td.email-layout-content') as HTMLElement | null) ||
@@ -929,6 +1000,7 @@ class AHD extends GuideChimp {
       slide?.contentMetadata?.document?.root?.data?.behaviour ?? {};
     const slideBehaviour = slide?.behaviour ?? {};
     const rootBehaviour = bannerData?.behaviour ?? {};
+    const closeSettings = this.resolveBannerCloseSettings(bannerData, slide);
 
     const pick = (...candidates: any[]) =>
       candidates.find((v) => v !== undefined && v !== null);
@@ -1055,6 +1127,14 @@ class AHD extends GuideChimp {
     }
 
     floater.appendChild(contentContainer);
+
+    if (!inlineCloseEl && closeSettings.allowUserToClose !== false && closeSettings.showCloseIcon !== false) {
+      const closeBtn = document.createElement('div');
+      closeBtn.className = 'gc-close';
+      this.applyBannerCloseSettings(closeBtn, closeSettings);
+      closeBtn.addEventListener('click', () => this.removeFloaterBanner());
+      floater.appendChild(closeBtn);
+    }
 
     document.body.appendChild(floater);
   }
