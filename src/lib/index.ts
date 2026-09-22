@@ -268,13 +268,6 @@ class AHD extends GuideChimp {
     const pick = (...values: any[]) => values.find((value) => value !== undefined && value !== null);
 
     return {
-      allowUserToClose: pick(
-        slideBehaviour.allowUserToClose,
-        slideRootBehaviour.allowUserToClose,
-        bannerBehaviour.allowUserToClose,
-        slide?.allowUserToClose,
-        bannerData?.allowUserToClose,
-      ) ?? true,
       showCloseIcon: pick(
         slideBehaviour.showCloseIcon,
         slideRootBehaviour.showCloseIcon,
@@ -594,7 +587,7 @@ class AHD extends GuideChimp {
           const closeSettings = this.resolveBannerCloseSettings(firstRow, slide);
           console.log('Closing banner ', bannerId, slideIds);
 
-          if (closeSettings.allowUserToClose !== false && closeSettings.showCloseIcon !== false) {
+          if (closeSettings.showCloseIcon !== false) {
             const closeBtn = document.createElement('div');
             closeBtn.className = 'gc-close';
             this.applyBannerCloseSettings(closeBtn, closeSettings);
@@ -718,7 +711,7 @@ class AHD extends GuideChimp {
       const contentContainer = document.createElement('div');
       contentContainer.className = 'gc-modal-content';
       contentContainer.appendChild(carousel);
-      if (closeSettings.allowUserToClose !== false && closeSettings.showCloseIcon !== false) {
+      if (closeSettings.showCloseIcon !== false) {
         const closeBtn = document.createElement('div');
         closeBtn.className = 'gc-close';
         this.applyBannerCloseSettings(closeBtn, closeSettings);
@@ -930,7 +923,7 @@ class AHD extends GuideChimp {
     // resolves its real layout once in the DOM. Anchor the icon to the
     // td.email-layout-content cell so it always sits on the card's top-right.
     const mountCloseIcon = () => {
-      if (inlineCloseEl || closeSettings.allowUserToClose === false || closeSettings.showCloseIcon === false) return;
+      if (inlineCloseEl || closeSettings.showCloseIcon === false) return;
       if (!modalOverlay.isConnected) return;
       const closeBtn = document.createElement('div');
       closeBtn.className = 'gc-close';
@@ -1128,7 +1121,7 @@ class AHD extends GuideChimp {
 
     floater.appendChild(contentContainer);
 
-    if (!inlineCloseEl && closeSettings.allowUserToClose !== false && closeSettings.showCloseIcon !== false) {
+    if (!inlineCloseEl && closeSettings.showCloseIcon !== false) {
       const closeBtn = document.createElement('div');
       closeBtn.className = 'gc-close';
       this.applyBannerCloseSettings(closeBtn, closeSettings);
