@@ -319,22 +319,58 @@ class AHD extends GuideChimp {
     };
   }
 
+  // A padding of 0 is meaningful ("flush to the edge"), so it must not fall
+  // back to the 5px default the way '' / null / undefined do. Only treat a
+  // genuinely absent value as unset.
+  private resolveClosePadding(val: any, fallback: string): string {
+    const normalized = this.normalizeDimensionToStyle(val);
+    if (normalized === '' || normalized === null || normalized === undefined) {
+      return fallback;
+    }
+    return normalized;
+  }
+
+  // Append the close icon to the banner's visible card box instead of the
+  // full-width wrapper, so left/center/right anchor to the edges the author
+  // actually sees. Falls back to the wrapper when the content isn't an
+  // email-style export (no card cell to find).
+  private mountCloseIconOnCard(wrapper: HTMLElement, closeBtn: HTMLElement) {
+    const cardCell =
+      (wrapper.querySelector('td.email-layout-content') as HTMLElement | null) ||
+      (wrapper.querySelector('tbody') as HTMLElement | null);
+    if (cardCell) {
+      if (getComputedStyle(cardCell).position === 'static') {
+        cardCell.style.position = 'relative';
+      }
+      cardCell.appendChild(closeBtn);
+      return;
+    }
+    wrapper.appendChild(closeBtn);
+  }
+
   private applyBannerCloseSettings(closeBtn: HTMLElement, settings: any) {
     const position = ['left', 'center', 'right'].includes(settings.closeIconPosition)
       ? settings.closeIconPosition
       : 'right';
     closeBtn.style.position = 'absolute';
-    closeBtn.style.top = this.normalizeDimensionToStyle(settings.closeIconPaddingTop) || '5px';
+    closeBtn.style.top = this.resolveClosePadding(settings.closeIconPaddingTop, '5px');
     closeBtn.style.setProperty('margin', '0', 'important');
+    // The CSS rules for .gc-close set both top/right; clear every edge each
+    // time so a re-apply (or a different position than a previous call set)
+    // can't leave a stale anchor behind and pin the icon to two edges at once.
     closeBtn.style.left = '';
     closeBtn.style.right = '';
+    // 'center' is the only branch that sets a transform. Without this reset,
+    // an element previously positioned center keeps translateX(-50%) when
+    // re-applied as left/right, shifting the icon half its width off-anchor.
+    closeBtn.style.transform = '';
     if (position === 'left') {
-      closeBtn.style.left = this.normalizeDimensionToStyle(settings.closeIconPaddingLeft) || '5px';
+      closeBtn.style.left = this.resolveClosePadding(settings.closeIconPaddingLeft, '5px');
     } else if (position === 'center') {
       closeBtn.style.left = '50%';
       closeBtn.style.transform = 'translateX(-50%)';
     } else {
-      closeBtn.style.right = this.normalizeDimensionToStyle(settings.closeIconPaddingRight) || '5px';
+      closeBtn.style.right = this.resolveClosePadding(settings.closeIconPaddingRight, '5px');
     }
     closeBtn.style.cursor = 'pointer';
     closeBtn.style.zIndex = '10';
@@ -600,7 +636,13 @@ class AHD extends GuideChimp {
               wrapper.remove();
               delete (this as any)._ahd_active_banner;
             });
-            wrapper.appendChild(closeBtn);
+            // Anchor to the card cell rather than the full-width wrapper. The
+            // banner content is an email-style export whose visible card is a
+            // centered <table>; the wrapper spans the whole host container, so
+            // positioning against it puts 'center' at the container's midpoint
+            // and 'right' off the card's edge. Same anchoring the modal path
+            // uses in mountCloseIcon().
+            this.mountCloseIconOnCard(wrapper, closeBtn);
           }
           container.innerHTML = '';
           container.appendChild(wrapper);
