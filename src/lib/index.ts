@@ -267,6 +267,8 @@ class AHD extends GuideChimp {
     const bannerBehaviour = bannerData?.behaviour || {};
     const pick = (...values: any[]) => values.find((value) => value !== undefined && value !== null);
 
+
+
     return {
       showCloseIcon: pick(
         slideBehaviour.showCloseIcon,
@@ -394,9 +396,6 @@ class AHD extends GuideChimp {
               navigationMode: step?.behaviour?.navigationMode || step.navigationMode,
               navigationDelay: step?.behaviour?.navigationDelay || step.navigationDelay,
               showStep: step?.behaviour?.showStep,
-              // Forward the per-step highlight rectangle style authored in
-              // ahd-fe. The publish path puts it at the step's top level, but
-              // older records may only have it inside contentMetadata.
               highlightStyle:
                 step.highlightStyle ||
                 step?.contentMetadata?.document?.root?.data?.highlightStyle ||
