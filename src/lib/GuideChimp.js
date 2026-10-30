@@ -662,9 +662,13 @@ export default class GuideChimp {
 
         if (this.currentStep.type !== 'tooltip') {
             setTimeout(() => {
-                if (this.getEl('tooltip')) {
+                const tooltipEl = this.getEl('tooltip');
+                if (tooltipEl) {
                     this._unlockScroll();
-                    this.scrollTo(this.getEl('tooltip'), 'instant', scrollPadding);
+                    // re-position first: the tooltip may still sit unplaced at the document top,
+                    // and measuring it there scrolls the page away from the step
+                    this.setTooltipPosition(tooltipEl);
+                    this.scrollTo(tooltipEl, 'instant', scrollPadding);
                     this._lockScroll();
                 }
             }, 300);
@@ -3362,7 +3366,10 @@ export default class GuideChimp {
     addOnRootScrollListener() {
         const rootEl = this.getRootEl();
         if (!rootEl || rootEl === document.body) return this;
-        this.cache.set('onRootScrollListener', () => this.refresh());
+        this.cache.set('onRootScrollListener', (e) => {
+            if (this.isScrollInsideTooltip(e)) return;
+            this.refresh();
+        });
         rootEl.addEventListener('scroll', this.cache.get('onRootScrollListener'), true);
         return this;
     }
@@ -3372,7 +3379,16 @@ export default class GuideChimp {
      * @returns {function}
      */
     getOnWindowScrollListener() {
-        return () => this.refresh();
+        return (e) => {
+            // capture listener also sees scrolls inside the tooltip; refreshing on those re-hides it
+            if (this.isScrollInsideTooltip(e)) return;
+            this.refresh();
+        };
+    }
+
+    isScrollInsideTooltip(e) {
+        const tooltipEl = this.getEl('tooltip');
+        return !!(tooltipEl && e && e.target instanceof Node && tooltipEl.contains(e.target));
     }
 
     /**
