@@ -296,6 +296,7 @@ export default class GuideChimp {
             })()) : null;
             if (eventName) {
                 window.postMessage({ type: eventName }, '*');
+                window.postMessage({ type: 'ahd-button-click', event: eventName }, '*');
             }
             return;
         }

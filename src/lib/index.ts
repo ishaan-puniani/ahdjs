@@ -179,6 +179,21 @@ const DEFAULT_BANNER_REFETCH_INTERVAL_IN_SEC = 300;
 
 class AHD extends GuideChimp {
   private static _instances: Set<AHD> = new Set();
+  private static _activeBeacons: any = null;
+
+  private static clearActiveBeacons() {
+    try {
+      AHD._activeBeacons?.removeAll();
+    } catch (e) { }
+    AHD._activeBeacons = null;
+  }
+
+  private static replaceBeacons(beacons, showAllArg?: boolean) {
+    AHD.clearActiveBeacons();
+    if (typeof AHDjs.beacons !== 'function') return;
+    AHD._activeBeacons = AHDjs.beacons(beacons, { boundary: "outer" });
+    AHD._activeBeacons.showAll(showAllArg);
+  }
 
   private _lastPageUrl: string = '';
   private _lastRenderedIdentifier: string = '';
@@ -478,7 +493,8 @@ class AHD extends GuideChimp {
       if (eventName) {
         e.stopPropagation();
         window.postMessage({ type: eventName }, '*');
-        console.log('[AHDjs] postMessage sent:', { type: eventName });
+        window.postMessage({ type: 'ahd-button-click', event: eventName }, '*');
+        console.log('[AHDjs] postMessage sent:', { type: 'ahd-button-click', event: eventName });
       }
       return;
     }
@@ -910,6 +926,17 @@ class AHD extends GuideChimp {
     (this as any)._ahd_carousel = { carousel, state, goTo, step, handlers: { onTouchStart, onTouchMove, onTouchEnd } };
   }
 
+  destroy() {
+    try {
+      if ((this as any).isDisplayed) super.stop();
+    } catch (e) { }
+    this.destroyCarousel();
+    this.removeModalBanner();
+    this.removeFloaterBanner();
+    AHD._instances.delete(this);
+    if (AHD._instances.size === 0) AHD.clearActiveBeacons();
+  }
+
   private destroyCarousel() {
     const inst = (this as any)._ahd_carousel;
     if (!inst) return;
@@ -1213,15 +1240,7 @@ class AHD extends GuideChimp {
     this._lastPageUrl = url;
     await this.stop();
 
-    if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
-      try {
-        const beaconInstance = AHDjs.beacons([]);
-        if (beaconInstance && typeof beaconInstance.removeAll === 'function') {
-          beaconInstance.removeAll();
-        }
-      } catch (e) {
-      }
-    }
+    AHD.clearActiveBeacons();
 
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
 
@@ -1330,16 +1349,11 @@ class AHD extends GuideChimp {
             return beacon;
           });
       });
-      console.log('Beacons', beacons);
-      AHDjs.beacons(beacons, {
-        boundary: "outer",
-      }).showAll(true);
+      AHD.replaceBeacons(beacons, true);
     }
   }
   async setBeacons(beacons) {
-    AHDjs.beacons(beacons, {
-      boundary: "outer",
-    }).showAll();
+    AHD.replaceBeacons(beacons);
   }
 
   private resolveSlugPatternForUrl(url: string, cachedData: any): string {
@@ -1362,16 +1376,7 @@ class AHD extends GuideChimp {
     this._lastPageUrl = url;
     await this.stop();
 
-    if (AHDjs.beacons && typeof AHDjs.beacons === 'function') {
-      try {
-        const beaconInstance = AHDjs.beacons([]);
-        if (beaconInstance && typeof beaconInstance.removeAll === 'function') {
-          beaconInstance.removeAll();
-        }
-      } catch (e) {
-
-      }
-    }
+    AHD.clearActiveBeacons();
 
     let toursData = LocalStorage.get(TOUR_DATA_STORAGE_KEY);
     if (!toursData || refetch) {
@@ -1427,9 +1432,7 @@ class AHD extends GuideChimp {
       };
     });
 
-    AHDjs.beacons(beacons, {
-      boundary: "outer",
-    }).showAll();
+    AHD.replaceBeacons(beacons);
   }
 
   async clearCachedData() {
